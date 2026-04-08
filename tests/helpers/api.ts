@@ -8,6 +8,6 @@ const TEST_DB_URL = process.env.TEST_DATABASE_URL || "postgres://tfa:tfa@localho
 export async function createTestContext() {
   const client = postgres(TEST_DB_URL);
   const db = drizzle(client, { schema });
-  await db.execute(sql`TRUNCATE api_keys, context_entries, tasks, projects, domains, agents, config CASCADE`);
+  await db.execute(sql`TRUNCATE users, api_keys, context_entries, tasks, projects, domains, agents, config CASCADE`);
   return { db, client };
 }
