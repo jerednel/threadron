@@ -1,4 +1,5 @@
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
@@ -6,6 +7,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { db } from "./db/connection.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { authPublicRoutes, authProtectedRoutes } from "./routes/auth.js";
+import { userPublicRoutes, userProtectedRoutes } from "./routes/users.js";
 import { domainRoutes } from "./routes/domains.js";
 import { projectRoutes } from "./routes/projects.js";
 import { taskRoutes } from "./routes/tasks.js";
@@ -22,25 +24,18 @@ app.onError((err, c) => {
   return c.json({ error: "Internal server error" }, 500);
 });
 
-// Root route
-app.get("/", (c) =>
-  c.json({
-    name: "Tasks for Agents",
-    version: "0.1.0",
-    api: "/v1",
-    health: "/v1/health",
-    docs: "https://github.com/jerednel/tasksforagents",
-  })
-);
-
 // V1 API
 const v1 = new Hono();
 
 // Public routes
 v1.get("/health", (c) => c.json({ status: "ok" }));
 v1.route("/auth", authPublicRoutes(db));
+v1.route("/users", userPublicRoutes(db));
 
-// Protected routes
+// JWT-protected user routes
+v1.route("/users", userProtectedRoutes(db));
+
+// API-key protected routes
 const protected_ = new Hono();
 protected_.use("/*", authMiddleware(db));
 protected_.route("/auth", authProtectedRoutes(db));
@@ -53,6 +48,9 @@ protected_.route("/config", configRoutes(db));
 
 v1.route("/", protected_);
 app.route("/v1", v1);
+
+// Serve marketing site at root (after API routes so API takes priority)
+app.use("/*", serveStatic({ root: "./site" }));
 
 const port = parseInt(process.env.PORT || "8080");
 const host = process.env.HOST || "0.0.0.0";
