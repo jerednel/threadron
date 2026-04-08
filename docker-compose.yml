@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tasksforagents-db
+    environment:
+      POSTGRES_USER: tfa
+      POSTGRES_PASSWORD: tfa
+      POSTGRES_DB: tfa
+    ports:
+      - "5432:5432"
+    volumes:
+      - tfa_data:/var/lib/postgresql/data
+    networks:
+      - tfa-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tfa"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: tasksforagents-api
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://tfa:tfa@db:5432/tfa
+      PORT: "8080"
+      HOST: "0.0.0.0"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tfa-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  web:
+    image: nginx:alpine
+    container_name: tasksforagents-web
+    ports:
+      - "3000:80"
+    volumes:
+      - ./site:/usr/share/nginx/html:ro
+    networks:
+      - tfa-net
+    restart: unless-stopped
+
+volumes:
+  tfa_data:
+
+networks:
+  tfa-net:
+    driver: bridge

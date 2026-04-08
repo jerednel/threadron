@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Started — Tasks for Agents</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a href="index.html" class="logo">tasks<span>for</span>agents</a>
+  <ul class="links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="system.html">The System</a></li>
+    <li><a href="use-cases.html">Use Cases</a></li>
+    <li><a href="get-started.html" class="active">Get Started</a></li>
+    <li><a href="open-source.html">Open Source</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <section class="hero">
+    <div class="label">Get started</div>
+    <h1>
+      <span class="glitch" data-text="Pick your path.">Pick your path.</span>
+    </h1>
+    <p class="lead">
+      Managed service for simplicity. Self-hosted for control. Same API, same agents, same board.
+    </p>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- PRICING -->
+  <section>
+    <div class="label">Pricing</div>
+    <h2>Simple, transparent pricing</h2>
+
+    <div class="pricing-grid" style="margin-top: 40px;">
+      <div class="pricing-card">
+        <div class="label">Self-hosted</div>
+        <h3>Community</h3>
+        <div class="price">Free <span>forever</span></div>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Full core API. Your infrastructure. Docker Compose and go.</p>
+        <ul>
+          <li>Unlimited tasks</li>
+          <li>Unlimited agents</li>
+          <li>All domains and projects</li>
+          <li>Full context logging</li>
+          <li>Guardrail configuration</li>
+          <li>Web dashboard included</li>
+          <li>Community support</li>
+        </ul>
+        <div style="margin-top: 32px;">
+          <a href="open-source.html" class="btn btn-secondary" style="width: 100%; text-align: center;">Self-host</a>
+        </div>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="label" style="color: var(--white);">Managed service</div>
+        <h3>Pro</h3>
+        <div class="price">$12 <span>/ month</span></div>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">We host it. Your tasks are always available, always backed up, from any device.</p>
+        <ul>
+          <li>Everything in Community</li>
+          <li>Hosted PostgreSQL — no Docker required</li>
+          <li>Access from any device, anywhere</li>
+          <li>Automatic backups and uptime SLA</li>
+          <li>Smart Layer: deduplication</li>
+          <li>Smart Layer: priority scoring</li>
+          <li>Smart Layer: scheduling assistance</li>
+          <li>Smart Layer: context summarization</li>
+          <li>Priority support</li>
+        </ul>
+        <div style="margin-top: 32px;">
+          <a href="#waitlist" class="btn btn-primary" style="width: 100%; text-align: center;">Join Waitlist</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- QUICKSTART -->
+  <section>
+    <div class="label">Quickstart</div>
+    <h2>Three steps to your first task</h2>
+
+    <div style="margin-top: 40px;">
+      <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
+        <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">01</div>
+        <div>
+          <h3>Get your API key</h3>
+          <p style="color: var(--gray-4);">Sign up for the managed service, or spin up the Docker container and generate a key locally.</p>
+          <div class="code-block" style="margin-top: 16px;">
+            <span class="label-tag">Managed</span>
+<span class="comment"># Sign up at tasksforagents.com</span>
+<span class="comment"># Your API key appears in the dashboard under Settings > API</span>
+          </div>
+          <div class="code-block" style="margin-top: 8px;">
+            <span class="label-tag">Self-hosted</span>
+docker compose up -d
+curl http://localhost:8080/v1/auth/setup
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
+        <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">02</div>
+        <div>
+          <h3>Configure your agent</h3>
+          <p style="color: var(--gray-4);">Add the Tasks for Agents endpoint to your agent's configuration. We provide templates for popular agents.</p>
+          <div class="code-block" style="margin-top: 16px;">
+            <span class="label-tag">skill.md</span>
+<span class="comment"># Tasks for Agents Configuration</span>
+<span class="comment"># Add to your agent's skill/prompt file</span>
+
+<span class="key">TASK_API</span>=<span class="string">https://api.tasksforagents.com/v1</span>
+<span class="key">TASK_API_KEY</span>=<span class="string">tfa_sk_...</span>
+<span class="key">AGENT_ID</span>=<span class="string">claude-code</span>
+
+<span class="comment"># On each session start, check for pending tasks:</span>
+<span class="comment"># GET $TASK_API/tasks?assignee=$AGENT_ID&status=pending</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 32px; align-items: flex-start;">
+        <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">03</div>
+        <div>
+          <h3>Create your first task</h3>
+          <p style="color: var(--gray-4);">From the dashboard, your agent, or a simple curl command. Set the domain, assign an agent, and let it run.</p>
+          <div class="code-block" style="margin-top: 16px;">
+            <span class="label-tag">curl</span>
+curl -X POST https://api.tasksforagents.com/v1/tasks \
+  -H "Authorization: Bearer tfa_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Research best standing desks under $500",
+    "domain": "personal",
+    "assignee": "hermes",
+    "guardrail": "autonomous"
+  }'
+
+<span class="comment">// Task created. Hermes will pick it up on next poll.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- WAITLIST / CTA -->
+  <section style="text-align: center;" id="waitlist">
+    <h2>Join the waitlist</h2>
+    <p style="margin: 16px auto;">We're launching the managed service soon. Get early access and shape the product.</p>
+
+    <div style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
+      <input type="email" placeholder="you@email.com" style="
+        flex: 1;
+        background: var(--gray-1);
+        border: 1px solid var(--gray-2);
+        padding: 14px 20px;
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--white);
+        outline: none;
+      ">
+      <button class="btn btn-primary" style="white-space: nowrap;">Get Access</button>
+    </div>
+    <p style="margin-top: 16px; font-size: 0.8rem; color: var(--gray-3);">No spam. Just early access and product updates.</p>
+  </section>
+
+</div>
+
+<footer>
+  <p>tasksforagents.com</p>
+  <div class="footer-links">
+    <a href="system.html">System</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="get-started.html">Pricing</a>
+    <a href="open-source.html">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>

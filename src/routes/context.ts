@@ -1,0 +1,73 @@
+import { Hono } from "hono";
+import type { db as DbType } from "../db/connection.js";
+import { contextEntries, tasks } from "../db/schema.js";
+import { genId } from "../lib/id.js";
+import { eq, asc } from "drizzle-orm";
+
+type DrizzleDb = typeof DbType;
+
+function toApi(row: typeof contextEntries.$inferSelect) {
+  return {
+    id: row.id,
+    task_id: row.taskId,
+    type: row.type,
+    body: row.body,
+    author: row.author,
+    created_at: row.createdAt,
+  };
+}
+
+export function contextRoutes(db: DrizzleDb) {
+  const router = new Hono();
+
+  // POST /:id/context — Append context entry
+  router.post("/:id/context", async (c) => {
+    const taskId = c.req.param("id");
+
+    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
+    if (taskRows.length === 0) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const body = await c.req.json<{
+      type: string;
+      body: string;
+      author: string;
+    }>();
+
+    const id = genId("ctx");
+
+    const [row] = await db
+      .insert(contextEntries)
+      .values({
+        id,
+        taskId,
+        type: body.type,
+        body: body.body,
+        author: body.author,
+      })
+      .returning();
+
+    return c.json(toApi(row), 201);
+  });
+
+  // GET /:id/context — List context entries (chronological)
+  router.get("/:id/context", async (c) => {
+    const taskId = c.req.param("id");
+
+    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
+    if (taskRows.length === 0) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+
+    const rows = await db
+      .select()
+      .from(contextEntries)
+      .where(eq(contextEntries.taskId, taskId))
+      .orderBy(asc(contextEntries.createdAt));
+
+    return c.json({ context: rows.map(toApi) });
+  });
+
+  return router;
+}

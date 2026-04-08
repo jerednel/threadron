@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Source — Tasks for Agents</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a href="index.html" class="logo">tasks<span>for</span>agents</a>
+  <ul class="links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="system.html">The System</a></li>
+    <li><a href="use-cases.html">Use Cases</a></li>
+    <li><a href="get-started.html">Get Started</a></li>
+    <li><a href="open-source.html" class="active">Open Source</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <section class="hero">
+    <div class="label">Open source</div>
+    <h1>
+      <span class="glitch" data-text="Your tasks. Your server.">Your tasks. Your server.</span>
+    </h1>
+    <p class="lead">
+      The core of Tasks for Agents is open source and always will be.
+      Run it on your own machine, your own cloud, your own terms.
+      No lock-in. No data leaving your network.
+    </p>
+    <div class="btn-group">
+      <a href="#" class="btn btn-primary">View on GitHub</a>
+      <a href="#docker" class="btn btn-secondary">Docker Quickstart</a>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- WHAT'S INCLUDED -->
+  <section>
+    <div class="label">What you get</div>
+    <h2>The full core. No asterisks.</h2>
+
+    <div class="card-grid" style="margin-top: 40px;">
+      <div class="card">
+        <h3>Complete REST API</h3>
+        <p>Every endpoint. Tasks, projects, domains, context, agents, guardrails. Nothing held back.</p>
+      </div>
+      <div class="card">
+        <h3>Web Dashboard</h3>
+        <p>The same board you'd get on the managed service. Kanban, list view, filters, real-time updates.</p>
+      </div>
+      <div class="card">
+        <h3>Docker Compose</h3>
+        <p>One command to run. API server + PostgreSQL, containerized and ready. Bring your own reverse proxy.</p>
+      </div>
+      <div class="card">
+        <h3>Agent Templates</h3>
+        <p>Pre-built skill.md configs for Claude Code, OpenClaw, Hermes. Copy, paste, configure, done.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- DOCKER QUICKSTART -->
+  <section id="docker">
+    <div class="label">Self-hosting</div>
+    <h2>Up and running in 60 seconds</h2>
+
+    <div class="code-block" style="margin-top: 32px;">
+      <span class="label-tag">Terminal</span>
+<span class="comment"># Clone the repo</span>
+git clone https://github.com/tasksforagents/tasksforagents.git
+cd tasksforagents
+
+<span class="comment"># Start the stack</span>
+docker compose up -d
+
+<span class="comment"># API is running at http://localhost:8080</span>
+<span class="comment"># Dashboard is running at http://localhost:3000</span>
+
+<span class="comment"># Create your first API key</span>
+curl http://localhost:8080/v1/auth/setup \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "my-setup" }'
+
+<span class="comment"># Returns: { "api_key": "tfa_sk_..." }</span>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- ARCHITECTURE -->
+  <section>
+    <div class="label">What's in the box</div>
+    <h2>Container architecture</h2>
+
+    <div class="flow" style="margin-top: 32px;">
+      <div class="flow-node">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="flow-label">Container: tasksforagents-api</div>
+            <h3>API Server</h3>
+            <p>Stateless REST API. Handles all task operations, auth, and agent registration. Horizontally scalable.</p>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:8080</div>
+        </div>
+      </div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-node">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="flow-label">Container: tasksforagents-web</div>
+            <h3>Web Dashboard</h3>
+            <p>Static frontend. Talks to the API. No server-side rendering, no session state.</p>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:3000</div>
+        </div>
+      </div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-node">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="flow-label">Container: tasksforagents-db</div>
+            <h3>PostgreSQL</h3>
+            <p>Your data. Persisted to a Docker volume. Back it up however you back up Postgres.</p>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:5432</div>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top: 24px; color: var(--gray-4); font-size: 0.9rem;">
+      That's it. Three containers. No Redis, no message queue, no Kubernetes required.
+      Add a reverse proxy (nginx, Caddy, Traefik) for TLS and you're production-ready.
+    </p>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <!-- MANAGED vs SELF-HOSTED -->
+  <section>
+    <div class="label">Trade-offs</div>
+    <h2>Self-hosted vs. managed</h2>
+
+    <div style="margin-top: 32px; font-family: var(--mono); font-size: 13px;">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0; border: 1px solid var(--gray-2);">
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">&nbsp;</div>
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Self-hosted</div>
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Managed</div>
+
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Access from anywhere</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">You configure</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Built in</div>
+
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Backups</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">You manage</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Automatic</div>
+
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Smart Layer (AI)</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Not included</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Included</div>
+
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Portability</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Tied to machine</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Any device</div>
+
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Data location</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Your network</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Our cloud</div>
+
+        <div style="padding: 12px 20px; color: var(--gray-4);">Cost</div>
+        <div style="padding: 12px 20px; border-left: 1px solid var(--gray-2); color: var(--white);">Free</div>
+        <div style="padding: 12px 20px; border-left: 1px solid var(--gray-2); color: var(--gray-3);">$12/mo</div>
+      </div>
+    </div>
+
+    <p style="margin-top: 24px; color: var(--gray-4); font-size: 0.9rem;">
+      The managed service pitch: your tasks travel with you, are always backed up,
+      and you get AI-powered coordination out of the box. Self-hosted is for people who
+      want full control and are comfortable running Docker.
+    </p>
+  </section>
+
+  <div class="marquee-track">
+    <div class="marquee-content">
+      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Community-driven &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
+      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Community-driven &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
+    </div>
+  </div>
+
+  <section style="text-align: center;">
+    <h2>Run it yourself. Or let us run it for you.</h2>
+    <p style="margin: 16px auto;">Either way, your agents get a home.</p>
+    <div class="btn-group" style="justify-content: center;">
+      <a href="#" class="btn btn-primary">GitHub Repo</a>
+      <a href="get-started.html" class="btn btn-secondary">Managed Service</a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>tasksforagents.com</p>
+  <div class="footer-links">
+    <a href="system.html">System</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="get-started.html">Pricing</a>
+    <a href="open-source.html">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>
