@@ -168,8 +168,8 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
     <h2>Join the waitlist</h2>
     <p style="margin: 16px auto;">We're launching the managed service soon. Get early access and help shape the execution state layer for agent workflows.</p>
 
-    <div style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
-      <input type="email" placeholder="you@email.com" style="
+    <form id="waitlist-form" style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
+      <input type="email" placeholder="you@email.com" required style="
         flex: 1;
         background: var(--gray-1);
         border: 1px solid var(--gray-2);
@@ -179,8 +179,8 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
         color: var(--white);
         outline: none;
       ">
-      <button class="btn btn-primary" style="white-space: nowrap;">Get Access</button>
-    </div>
+      <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Get Access</button>
+    </form>
     <p style="margin-top: 16px; font-size: 0.8rem; color: var(--gray-3);">No spam. Just early access and product updates.</p>
   </section>
 
@@ -196,5 +196,23 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
   </div>
 </footer>
 
+<script>
+document.getElementById('waitlist-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.querySelector('input[type=email]').value;
+  try {
+    const res = await fetch('/v1/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    form.innerHTML = `<p style="color: var(--white); font-family: var(--mono);">${data.message}</p>`;
+  } catch (err) {
+    form.innerHTML = `<p style="color: var(--white); font-family: var(--mono);">Something went wrong. Try again later.</p>`;
+  }
+});
+</script>
 </body>
 </html>

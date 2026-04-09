@@ -6,6 +6,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 
 import { db } from "./db/connection.js";
 import { authMiddleware } from "./middleware/auth.js";
+import { rateLimit } from "./middleware/rateLimit.js";
 import { authPublicRoutes, authProtectedRoutes } from "./routes/auth.js";
 import { userPublicRoutes, userProtectedRoutes } from "./routes/users.js";
 import { domainRoutes } from "./routes/domains.js";
@@ -15,10 +16,12 @@ import { contextRoutes } from "./routes/context.js";
 import { artifactRoutes, artifactLookupRoutes } from "./routes/artifacts.js";
 import { agentRoutes } from "./routes/agents.js";
 import { configRoutes } from "./routes/config.js";
+import { waitlistRoutes } from "./routes/waitlist.js";
 
 const app = new Hono();
 
 app.use("/*", cors());
+app.use("/*", rateLimit(60000, 200)); // 200 requests per minute
 
 app.onError((err, c) => {
   console.error("Unhandled error:", err);
@@ -32,6 +35,7 @@ const v1 = new Hono();
 v1.get("/health", (c) => c.json({ status: "ok" }));
 v1.route("/auth", authPublicRoutes(db));
 v1.route("/users", userPublicRoutes(db));
+v1.route("/waitlist", waitlistRoutes(db));
 
 // JWT-protected user routes
 v1.route("/users", userProtectedRoutes(db));
