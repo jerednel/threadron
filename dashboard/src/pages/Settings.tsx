@@ -3,7 +3,7 @@ import { api, type Domain, type Agent } from '../lib/api';
 import NewDomain from '../components/NewDomain';
 import NewProject from '../components/NewProject';
 
-type Tab = 'domains' | 'agents' | 'apikeys' | 'preferences';
+type Tab = 'setup' | 'domains' | 'agents' | 'apikeys' | 'preferences';
 
 interface ApiKeyRecord {
   id: string;
@@ -174,7 +174,123 @@ export default function Settings() {
     });
   }
 
+  const [setupTab, setSetupTab] = useState<'claude' | 'openclaw' | 'rest'>('claude');
+  const [skillCopied, setSkillCopied] = useState(false);
+  const [mcpCopied, setMcpCopied] = useState(false);
+  const [claudeMdCopied, setClaudeMdCopied] = useState(false);
+
+  const SKILL_CONTENT = `---
+name: threadron
+description: Track work across sessions using Threadron shared execution state. Automatically checks in at session start, updates state as you work, and records artifacts.
+---
+
+# Threadron — Shared Execution State
+
+You have access to Threadron tools for tracking work across sessions. Use them to maintain continuity — so the next session (yours or another agent's) knows exactly where things stand.
+
+## CRITICAL RULE
+
+**Every time you change what you're doing, call BOTH:**
+1. \`threadron_update_state\` — to update the structured fields (current_state, next_action, blockers)
+2. \`threadron_add_context\` — to explain WHY in the timeline (what you observed, decided, or did)
+
+State fields tell the next reader WHAT. Context entries tell them WHY. Both are required. A state update without a context entry leaves the timeline empty and makes the work item history useless.
+
+## Session Start
+
+At the **start of every session**, call \`threadron_checkin\` to see:
+- Work items you left in progress (resume these first)
+- Pending items assigned to you
+- Blocked items that need attention
+
+If there's in-progress work, call \`threadron_get_task\` on it to read the full state (goal, current_state, next_action, blockers, timeline, artifacts) before doing anything else.
+
+## While Working
+
+When you're actively working on a Threadron work item, follow this pattern at EVERY meaningful step:
+
+### The Update Pattern (use this every time something changes)
+
+\`\`\`
+1. threadron_add_context  → log what happened (observation, decision, action_taken)
+2. threadron_update_state → update current_state and next_action
+\`\`\`
+
+Always log context FIRST, then update state. This ensures the timeline explains every state change.
+
+### Examples of when to use this pattern:
+
+- You investigate something → \`add_context(type: "observation", body: "Found X")\` → \`update_state(current_state: "Investigated, found X")\`
+- You make a choice → \`add_context(type: "decision", body: "Going with approach A because...")\` → \`update_state(next_action: "Implement approach A")\`
+- You complete a step → \`add_context(type: "action_taken", body: "Deployed to staging")\` → \`update_state(current_state: "Deployed to staging", next_action: "Run smoke tests")\`
+- You hit a wall → \`add_context(type: "blocker", body: "Need API key for service X")\` → \`update_state(blockers: ["Need API key for service X"])\`
+
+### Starting work
+
+1. **Claim it** — \`threadron_claim\` before starting (prevents other agents from colliding)
+2. **Update status** — \`threadron_update_state(status: "in_progress")\`
+
+### Producing outputs
+
+- \`threadron_create_artifact\` for branches, PRs, files, plans, terminal output
+- Always pair with \`threadron_add_context(type: "action_taken", body: "Created branch X")\`
+
+## Session End / Pausing
+
+Before the session ends or when switching to other work:
+
+1. \`threadron_add_context(type: "action_taken", body: "Pausing. Summary of what was done...")\` — summarize the session
+2. \`threadron_update_state\` — set current_state and next_action to exactly what the next session needs to know
+3. \`threadron_release\` — release the claim so other agents can pick it up
+4. If done: \`threadron_update_state(status: "completed")\`
+
+## Creating New Work
+
+When you identify new work to be done:
+
+1. \`threadron_list_tasks\` with search to check it doesn't already exist
+2. \`threadron_create_task\` with at minimum: title, domain_id, goal, and outcome_definition
+3. Set current_state and next_action if you know them
+
+## Key Principle
+
+**Write state for the next reader, not for yourself.** The whole point is that a different session — possibly a different agent — should be able to pick up any work item and immediately understand what's going on without re-investigating.
+
+**The timeline IS the story.** If the timeline is empty, the work item is useless for handoff. Every state change needs a context entry explaining it.`;
+
+  const MCP_CONFIG = `{
+  "mcpServers": {
+    "threadron": {
+      "command": "node",
+      "args": ["/path/to/threadron/mcp/dist/index.js"],
+      "env": {
+        "TFA_API_URL": "${API_URL}/v1",
+        "TFA_API_KEY": "YOUR_API_KEY",
+        "TFA_AGENT_ID": "claude-code"
+      }
+    }
+  }
+}`;
+
+  const CLAUDE_MD_SNIPPET = `## Threadron
+
+Use Threadron tools to track work across sessions:
+- Start each session with \`threadron_checkin\` to see what's in progress
+- Before starting work, \`threadron_claim\` the item
+- Update \`threadron_update_state\` as you make progress
+- Record decisions and observations with \`threadron_add_context\`
+- Attach outputs with \`threadron_create_artifact\`
+- When done or pausing, \`threadron_release\` the item`;
+
+  function handleCopyText(text: string, setter: (v: boolean) => void) {
+    navigator.clipboard.writeText(text).then(() => {
+      setter(true);
+      setTimeout(() => setter(false), 2000);
+    });
+  }
+
   const tabs: { id: Tab; label: string }[] = [
+    { id: 'setup', label: 'Agent Setup' },
     { id: 'domains', label: 'Domains' },
     { id: 'agents', label: 'Agents' },
     { id: 'apikeys', label: 'API Keys' },
@@ -210,6 +326,232 @@ export default function Settings() {
 
       {error && (
         <p className="text-red-400 font-mono text-sm mb-4">{error}</p>
+      )}
+
+      {/* Setup tab */}
+      {tab === 'setup' && (
+        <div>
+          <h2 className="font-mono text-sm font-bold text-[#f0f0f0] uppercase tracking-wide mb-2">
+            Connect Your Agent
+          </h2>
+          <p className="text-xs font-mono text-[#9a9a9a] mb-6">
+            Choose your agent below. Follow the steps exactly — each one takes under 2 minutes.
+          </p>
+
+          {/* Agent sub-tabs */}
+          <div className="flex gap-2 mb-6">
+            {([
+              { id: 'claude' as const, label: 'Claude Code' },
+              { id: 'openclaw' as const, label: 'OpenClaw' },
+              { id: 'rest' as const, label: 'Any Agent (REST)' },
+            ]).map(t => (
+              <button
+                key={t.id}
+                onClick={() => setSetupTab(t.id)}
+                className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer ${
+                  setupTab === t.id
+                    ? 'bg-[#f0f0f0] text-[#0a0a0a]'
+                    : 'text-[#8a8a8a] hover:text-[#f0f0f0] bg-[#1a1a1a] border border-[#2a2a2a]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Claude Code setup */}
+          {setupTab === 'claude' && (
+            <div className="space-y-6">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Clone & build the MCP server</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This gives Claude Code native Threadron tools.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
+cd threadron/mcp
+npm install && npm run build`}</pre>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 2 — Register the MCP server</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This makes the tools available in ALL your Claude Code projects.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`claude mcp add --scope user threadron \\
+  -e TFA_API_URL="${API_URL}/v1" \\
+  -e TFA_API_KEY="YOUR_API_KEY" \\
+  -e TFA_AGENT_ID="claude-code" \\
+  -- node /path/to/threadron/mcp/dist/index.js`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab. Replace <code className="text-[#f0f0f0]">/path/to/</code> with where you cloned the repo.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 3 — Install the skill file</h3>
+                  <button
+                    onClick={() => handleCopyText(`mkdir -p ~/.claude/skills/threadron && cp threadron/mcp/skill/SKILL.md ~/.claude/skills/threadron/SKILL.md`, setSkillCopied)}
+                    className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
+                  >
+                    {skillCopied ? 'copied!' : 'copy command'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This tells Claude WHEN and HOW to use the tools (check in on session start, update state while working, etc).</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`mkdir -p ~/.claude/skills/threadron
+cp threadron/mcp/skill/SKILL.md ~/.claude/skills/threadron/SKILL.md`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Run this from the directory where you cloned threadron.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 4 — Restart Claude Code</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Claude Code discovers MCP servers and skills on startup. Exit and relaunch.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`# Exit current session, then:
+claude`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Claude will prompt you to approve the Threadron MCP server on first use. After that, <code className="text-[#f0f0f0]">threadron_*</code> tools are available in every session.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Optional — Add to CLAUDE.md</h3>
+                  <button
+                    onClick={() => handleCopyText(CLAUDE_MD_SNIPPET, setClaudeMdCopied)}
+                    className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
+                  >
+                    {claudeMdCopied ? 'copied!' : 'copy snippet'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Add this to any project's CLAUDE.md to reinforce the behavior in that specific project.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto whitespace-pre-wrap">{CLAUDE_MD_SNIPPET}</pre>
+              </div>
+
+              {/* Available tools reference */}
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Available Tools (11)</h3>
+                <div className="space-y-1.5">
+                  {[
+                    ['threadron_checkin', 'Session start — returns in-progress, pending, and blocked work'],
+                    ['threadron_list_tasks', 'List/filter work items by status, assignee, domain, search'],
+                    ['threadron_get_task', 'Full work item with goal, state, timeline, artifacts'],
+                    ['threadron_create_task', 'Create with structured fields (goal, current_state, outcome)'],
+                    ['threadron_update_state', 'Update current_state, next_action, blockers, confidence, status'],
+                    ['threadron_add_context', 'Add timeline entries: observation, decision, action_taken, blocker, handoff'],
+                    ['threadron_create_artifact', 'Attach branches, PRs, commits, files, plans, docs'],
+                    ['threadron_claim', 'Claim before working (prevents collisions, auto-expires)'],
+                    ['threadron_release', 'Release claim when done or pausing'],
+                    ['threadron_list_domains', 'List available domains'],
+                    ['threadron_list_agents', 'List registered agents and last activity'],
+                  ].map(([name, desc]) => (
+                    <div key={name} className="flex gap-3">
+                      <code className="text-[11px] font-mono text-[#f0f0f0] shrink-0 w-48">{name}</code>
+                      <span className="text-[11px] font-mono text-[#9a9a9a]">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* OpenClaw setup */}
+          {setupTab === 'openclaw' && (
+            <div className="space-y-6">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Clone & build the MCP server</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Same MCP server as Claude Code.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
+cd threadron/mcp
+npm install && npm run build`}</pre>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 2 — Add MCP config</h3>
+                  <button
+                    onClick={() => handleCopyText(MCP_CONFIG.replace('"claude-code"', '"openclaw"'), setMcpCopied)}
+                    className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
+                  >
+                    {mcpCopied ? 'copied!' : 'copy config'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Add this to your OpenClaw MCP configuration file (check OpenClaw docs for the exact location — typically <code className="text-[#f0f0f0]">.mcp.json</code> in the project root or OpenClaw's config directory).</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto whitespace-pre-wrap">{MCP_CONFIG.replace('"claude-code"', '"openclaw"')}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab. Replace <code className="text-[#f0f0f0]">/path/to/</code> with where you cloned the repo.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 3 — Add behavioral instructions</h3>
+                  <button
+                    onClick={() => handleCopyText(SKILL_CONTENT, setSkillCopied)}
+                    className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
+                  >
+                    {skillCopied ? 'copied!' : 'copy skill'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Copy the skill file contents into OpenClaw's system prompt or instruction file. This tells the agent when and how to use the Threadron tools.</p>
+                <p className="text-[10px] font-mono text-[#9a9a9a]">File location: <code className="text-[#f0f0f0]">threadron/mcp/skill/SKILL.md</code> in the cloned repo. Copy its contents into your OpenClaw config.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 4 — Restart OpenClaw</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a]">Restart OpenClaw to pick up the new MCP server and instructions. The <code className="text-[#f0f0f0]">threadron_*</code> tools will be available as native tools.</p>
+              </div>
+            </div>
+          )}
+
+          {/* REST API setup */}
+          {setupTab === 'rest' && (
+            <div className="space-y-6">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Get the skill.md file</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">For agents that don't support MCP (Hermes, custom agents), use the REST API directly. The skill.md contains the complete API documentation and behavioral instructions.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
+# The file is at: threadron/skill.md`}</pre>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 2 — Add to your agent's prompt</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Copy the contents of <code className="text-[#f0f0f0]">skill.md</code> into your agent's system prompt, instruction file, or configuration. Set these environment variables:</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`TFA_API_URL=${API_URL}/v1
+TFA_API_KEY=YOUR_API_KEY
+TFA_AGENT_ID=hermes`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab. Replace <code className="text-[#f0f0f0]">hermes</code> with your agent's name.</p>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Key REST endpoints</h3>
+                <div className="space-y-1.5">
+                  {[
+                    ['GET  /tasks?assignee=ID&status=in_progress', 'Check for work on session start'],
+                    ['POST /tasks/:id/claim', 'Claim before working'],
+                    ['PATCH /tasks/:id', 'Update status, current_state, next_action, blockers'],
+                    ['POST /tasks/:id/context', 'Add timeline entries (observation, decision, action_taken)'],
+                    ['POST /tasks/:id/artifacts', 'Attach outputs (branch, PR, file, doc)'],
+                    ['POST /tasks/:id/release', 'Release claim when done'],
+                  ].map(([endpoint, desc]) => (
+                    <div key={endpoint} className="flex gap-3">
+                      <code className="text-[11px] font-mono text-[#f0f0f0] shrink-0">{endpoint}</code>
+                      <span className="text-[11px] font-mono text-[#9a9a9a]">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Skill file — copyable */}
+          <div className="mt-8 border border-[#2a2a2a] rounded-lg p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Full Skill File (SKILL.md)</h3>
+              <button
+                onClick={() => handleCopyText(SKILL_CONTENT, setSkillCopied)}
+                className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-1"
+              >
+                {skillCopied ? 'copied!' : 'copy entire file'}
+              </button>
+            </div>
+            <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">
+              <strong className="text-[#f0f0f0]">Claude Code:</strong> Save to <code className="text-[#f0f0f0]">~/.claude/skills/threadron/SKILL.md</code><br/>
+              <strong className="text-[#f0f0f0]">OpenClaw:</strong> Add to your system prompt or instruction file<br/>
+              <strong className="text-[#f0f0f0]">Other agents:</strong> Include in the agent's prompt configuration
+            </p>
+            <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-4 text-[11px] font-mono text-[#9a9a9a] overflow-x-auto whitespace-pre-wrap max-h-80 overflow-y-auto leading-relaxed">{SKILL_CONTENT}</pre>
+          </div>
+        </div>
       )}
 
       {/* Domains tab */}
