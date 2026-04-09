@@ -131,9 +131,7 @@ export const apiKeys = pgTable(
     id: text("id").primaryKey(),
     key: text("key").notNull().unique(),
     name: text("name").notNull(),
-    agentId: text("agent_id").references(() => agents.id, {
-      onDelete: "set null",
-    }),
+    agentId: text("agent_id"),
     userId: text("user_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

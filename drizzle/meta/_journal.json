@@ -29,6 +29,13 @@
       "when": 1775700244836,
       "tag": "0003_milky_ultimatum",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775775739787,
+      "tag": "0004_striped_hercules",
+      "breakpoints": true
     }
   ]
 }
