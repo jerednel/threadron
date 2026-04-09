@@ -42,11 +42,12 @@ export function authProtectedRoutes(db: DrizzleDb) {
     const body = await c.req.json<{ name?: string; agent_id?: string }>();
     const name = body?.name ?? "unnamed";
     const agentId = body?.agent_id ?? null;
+    const userId: string = c.get("userId") as string;
 
     const id = genId("key");
     const key = generateApiKey();
 
-    await db.insert(apiKeys).values({ id, key, name, agentId });
+    await db.insert(apiKeys).values({ id, key, name, agentId, userId });
 
     return c.json({ id, api_key: key, name, agent_id: agentId }, 201);
   });
