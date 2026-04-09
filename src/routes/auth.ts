@@ -37,12 +37,12 @@ export function authPublicRoutes(db: DrizzleDb) {
 export function authProtectedRoutes(db: DrizzleDb) {
   const router = new Hono();
 
-  // POST /keys — Create additional API key
+  // POST /keys — Create additional API key (linked to user)
   router.post("/keys", async (c) => {
     const body = await c.req.json<{ name?: string; agent_id?: string }>();
     const name = body?.name ?? "unnamed";
     const agentId = body?.agent_id ?? null;
-    const userId: string = c.get("userId") as string;
+    const userId = c.get("userId") as string;
 
     const id = genId("key");
     const key = generateApiKey();
@@ -52,13 +52,10 @@ export function authProtectedRoutes(db: DrizzleDb) {
     return c.json({ id, api_key: key, name, agent_id: agentId }, 201);
   });
 
-  // GET /keys — List API keys with redacted key values
+  // GET /keys — List API keys with redacted key values (scoped to user)
   router.get("/keys", async (c) => {
-    const userId: string = c.get("userId") as string;
-    const rows = await db
-      .select()
-      .from(apiKeys)
-      .where(eq(apiKeys.userId, userId));
+    const userId = c.get("userId") as string;
+    const rows = await db.select().from(apiKeys).where(eq(apiKeys.userId, userId));
 
     const keys = rows.map((row) => ({
       id: row.id,
@@ -71,10 +68,10 @@ export function authProtectedRoutes(db: DrizzleDb) {
     return c.json({ keys });
   });
 
-  // DELETE /keys/:id — Revoke an API key
+  // DELETE /keys/:id — Revoke an API key (scoped to user)
   router.delete("/keys/:id", async (c) => {
     const id = c.req.param("id");
-    const userId: string = c.get("userId") as string;
+    const userId = c.get("userId") as string;
 
     const [existing] = await db
       .select()
@@ -94,7 +91,7 @@ export function authProtectedRoutes(db: DrizzleDb) {
   return router;
 }
 
-// Backwards-compatible export: public routes only (kept for any legacy callers)
+// Backwards-compatible export
 export function authRoutes(db: DrizzleDb) {
   return authPublicRoutes(db);
 }
