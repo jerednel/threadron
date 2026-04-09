@@ -1,34 +1,27 @@
 const BASE = '/v1';
 
 let token: string | null = localStorage.getItem('tfa_token');
-let apiKey: string | null = localStorage.getItem('tfa_api_key');
 
-export function setAuth(t: string, k: string) {
+export function setAuth(t: string) {
   token = t;
-  apiKey = k;
   localStorage.setItem('tfa_token', t);
-  localStorage.setItem('tfa_api_key', k);
 }
 
 export function clearAuth() {
   token = null;
-  apiKey = null;
   localStorage.removeItem('tfa_token');
-  localStorage.removeItem('tfa_api_key');
+  localStorage.removeItem('tfa_api_key'); // clean up legacy
+  localStorage.removeItem('tfa_initial_api_key');
 }
 
 export function getToken(): string | null {
   return token;
 }
 
-export function getApiKey(): string | null {
-  return apiKey;
-}
-
 async function request(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {}),
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   };
   const res = await fetch(`${BASE}${path}`, {
     ...options,
