@@ -309,6 +309,22 @@ export function taskRoutes(db: DrizzleDb) {
         `Next action: ${body.next_action}`,
         actor, actorType);
     }
+    if (body.blockers !== undefined) {
+      const oldBlockers = (oldRow.blockers as string[]) || [];
+      const newBlockers = body.blockers || [];
+      const added = newBlockers.filter((b: string) => !oldBlockers.includes(b));
+      const removed = oldBlockers.filter((b: string) => !newBlockers.includes(b));
+      if (added.length > 0) {
+        await recordEvent(db, id, "blocker",
+          `Blocker added: ${added.join(", ")}`,
+          actor, actorType);
+      }
+      if (removed.length > 0) {
+        await recordEvent(db, id, "state_transition",
+          `Blocker resolved: ${removed.join(", ")}`,
+          actor, actorType);
+      }
+    }
 
     return c.json(toApi(row));
   });

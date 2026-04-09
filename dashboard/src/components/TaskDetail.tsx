@@ -376,14 +376,21 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                 )}
 
                 {task.claimed_by && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-800/40">
-                      &#x1F512; {task.claimed_by}
+                  <div className="flex items-center gap-2 bg-blue-950/30 border border-blue-800/40 rounded-md px-2.5 py-1.5">
+                    <span className="text-[11px] font-mono text-blue-400 font-bold">
+                      Owned by {task.claimed_by}
                     </span>
+                    {task.claimed_until && (
+                      <span className="text-[10px] font-mono text-blue-500/70">
+                        expires {new Date(task.claimed_until) > new Date()
+                          ? `in ${Math.ceil((new Date(task.claimed_until).getTime() - Date.now()) / 60000)}m`
+                          : 'expired'}
+                      </span>
+                    )}
                     <button
                       onClick={handleRelease}
                       disabled={releasingClaim}
-                      className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer disabled:opacity-50"
+                      className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded border border-blue-800/40 text-blue-500 hover:text-blue-300 hover:border-blue-600 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       {releasingClaim ? '...' : 'Release'}
                     </button>
