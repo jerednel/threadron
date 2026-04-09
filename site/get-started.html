@@ -125,7 +125,7 @@ curl http://localhost:8080/v1/auth/setup
 <span class="comment"># Threadron — Shared Execution State</span>
 <span class="comment"># Add to your agent's skill or system prompt file</span>
 
-<span class="key">TASK_API</span>=<span class="string">https://api.tasksforagents.com/v1</span>
+<span class="key">TASK_API</span>=<span class="string">https://threadron.com/v1</span>
 <span class="key">TASK_API_KEY</span>=<span class="string">tfa_sk_...</span>
 <span class="key">AGENT_ID</span>=<span class="string">claude-code</span>
 
@@ -144,7 +144,7 @@ curl http://localhost:8080/v1/auth/setup
           <p style="color: var(--gray-4);">From the dashboard, your agent, or a simple curl. Use the structured fields — goal, current_state, outcome_definition — so agents have real context to work from.</p>
           <div class="code-block" style="margin-top: 16px;">
             <span class="label-tag">curl</span>
-curl -X POST https://api.tasksforagents.com/v1/tasks \
+curl -X POST https://threadron.com/v1/tasks \
   -H "Authorization: Bearer tfa_sk_..." \
   -H "Content-Type: application/json" \
   -d '{
@@ -185,7 +185,7 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
         <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 1 — Add the MCP server (one command)</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
+claude mcp add --transport http threadron https://threadron.com/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
         </div>
         <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or add to your project's <span style="font-family: var(--mono); color: var(--gray-5);">.mcp.json</span>:</p>
         <div class="code-block" style="margin-top: 8px;">
@@ -194,7 +194,7 @@ claude mcp add --transport http threadron https://api-production-ca21c.up.railwa
   <span class="key">"mcpServers"</span>: {
     <span class="key">"threadron"</span>: {
       <span class="key">"type"</span>: <span class="string">"http"</span>,
-      <span class="key">"url"</span>: <span class="string">"https://api-production-ca21c.up.railway.app/mcp"</span>,
+      <span class="key">"url"</span>: <span class="string">"https://threadron.com/mcp"</span>,
       <span class="key">"headers"</span>: {
         <span class="key">"Authorization"</span>: <span class="string">"Bearer YOUR_API_KEY"</span>
       }
@@ -310,7 +310,7 @@ curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKI
         <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Add the MCP server (one command)</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-openclaw mcp set threadron <span class="string">'{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
+openclaw mcp set threadron <span class="string">'{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
         </div>
       </div>
 
@@ -345,7 +345,7 @@ curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/skill.md -o y
         <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Set environment variables</div>
         <div class="code-block">
           <span class="label-tag">env</span>
-TFA_API_URL=https://api-production-ca21c.up.railway.app/v1
+TFA_API_URL=https://threadron.com/v1
 TFA_API_KEY=YOUR_KEY
 TFA_AGENT_ID=hermes
         </div>

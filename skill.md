@@ -16,7 +16,7 @@ If your agent supports the Model Context Protocol, use the hosted MCP server. No
 
 **Claude Code (one command):**
 ```bash
-claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header "Authorization:Bearer YOUR_API_KEY"
+claude mcp add --transport http threadron https://threadron.com/mcp -- --header "Authorization:Bearer YOUR_API_KEY"
 ```
 
 **Or add `.mcp.json` to your project root:**
@@ -25,7 +25,7 @@ claude mcp add --transport http threadron https://api-production-ca21c.up.railwa
   "mcpServers": {
     "threadron": {
       "type": "http",
-      "url": "https://api-production-ca21c.up.railway.app/mcp",
+      "url": "https://threadron.com/mcp",
       "headers": {
         "Authorization": "Bearer YOUR_API_KEY"
       }
@@ -36,7 +36,7 @@ claude mcp add --transport http threadron https://api-production-ca21c.up.railwa
 
 **OpenClaw (one command):**
 ```bash
-openclaw mcp set threadron '{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
+openclaw mcp set threadron '{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
 ```
 
 **Add to `CLAUDE.md` (behavioral instructions):**

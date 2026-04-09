@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const API_URL = process.env.TFA_API_URL || "https://api-production-ca21c.up.railway.app/v1";
+const API_URL = process.env.TFA_API_URL || "https://threadron.com/v1";
 const API_KEY = process.env.TFA_API_KEY || "";
 const AGENT_ID = process.env.TFA_AGENT_ID || "claude-code";
 

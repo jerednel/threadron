@@ -11,7 +11,7 @@
 set -e
 
 API_KEY="${1:?Usage: ./setup.sh <api-key> [api-url] [agent-id]}"
-API_URL="${2:-https://api-production-ca21c.up.railway.app/v1}"
+API_URL="${2:-https://threadron.com/v1}"
 AGENT_ID="${3:-claude-code}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

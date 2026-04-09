@@ -13,7 +13,7 @@ export function mcpRoutes() {
       return c.json({ error: "API key required. Pass your Threadron API key as: Authorization: Bearer <key>" }, 401);
     }
 
-    const apiUrl = process.env.TFA_API_URL || "https://api-production-ca21c.up.railway.app/v1";
+    const apiUrl = process.env.TFA_API_URL || "https://threadron.com/v1";
     const agentId = c.req.header("X-Agent-Id") || "claude-code";
 
     const server = createThreadronMcp(apiUrl, apiKey, agentId);

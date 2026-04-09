@@ -4,7 +4,7 @@
       "command": "node",
       "args": ["/Users/69348/git/agentask/mcp/dist/index.js"],
       "env": {
-        "TFA_API_URL": "https://api-production-ca21c.up.railway.app/v1",
+        "TFA_API_URL": "https://threadron.com/v1",
         "TFA_API_KEY": "YOUR_API_KEY",
         "TFA_AGENT_ID": "claude-code"
       }

@@ -517,7 +517,7 @@
             <p>Hosted MCP server — one command connects. No git clone, no npm install, no build step.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">bash</span>
-claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
+claude mcp add --transport http threadron https://threadron.com/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
             </div>
             <p style="margin-top: 12px; font-size: 0.8rem;">Then install the skill: <span class="inline-code">curl -sL .../SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs</span>. Restart Claude Code. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
           </div>
@@ -528,7 +528,7 @@ claude mcp add --transport http threadron https://api-production-ca21c.up.railwa
             <p>Hosted MCP server — one command connects. Then add the skill to your system prompt.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">bash</span>
-openclaw mcp set threadron <span class="string">'{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
+openclaw mcp set threadron <span class="string">'{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
             </div>
             <p style="margin-top: 12px; font-size: 0.8rem;">Add skill instructions to your system prompt. <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Full guide &rarr;</a></p>
           </div>
@@ -539,7 +539,7 @@ openclaw mcp set threadron <span class="string">'{"url":"https://api-production-
             <p>No MCP required. Copy skill.md into your agent's system prompt. Direct HTTP calls.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">env</span>
-TFA_API_URL=https://api-production-ca21c.up.railway.app/v1
+TFA_API_URL=https://threadron.com/v1
 TFA_API_KEY=tfa_sk_...
 TFA_AGENT_ID=your-agent
             </div>
@@ -905,7 +905,7 @@ TFA_AGENT_ID=your-agent
       <section id="rest-api" class="docs-section">
         <div class="label">03</div>
         <h2>REST API Reference</h2>
-        <p class="section-intro">Full HTTP API. Base URL: <span class="inline-code">https://api.tasksforagents.com/v1</span> (managed) or <span class="inline-code">http://localhost:8080/v1</span> (self-hosted). All authenticated endpoints require <span class="inline-code">Authorization: Bearer $TFA_API_KEY</span>.</p>
+        <p class="section-intro">Full HTTP API. Base URL: <span class="inline-code">https://threadron.com/v1</span> (managed) or <span class="inline-code">http://localhost:8080/v1</span> (self-hosted). All authenticated endpoints require <span class="inline-code">Authorization: Bearer $TFA_API_KEY</span>.</p>
 
         <div class="code-block" style="font-size: 12px; margin-bottom: 40px;">
           <span class="label-tag">Auth header</span>

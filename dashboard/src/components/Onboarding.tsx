@@ -9,7 +9,7 @@ type Step = 'welcome' | 'domain' | 'apikey' | 'ready';
 
 const guardrails = ['autonomous', 'notify', 'approval_required'];
 
-const API_URL = 'https://api.tasksforagents.com';
+const API_URL = 'https://threadron.com';
 
 function SkillSnippet({ apiKey }: { apiKey: string }) {
   const snippet = `# In your Claude skill config or MCP settings:
