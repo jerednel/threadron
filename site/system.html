@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The System — Tasks for Agents</title>
+  <title>The System — Threadron</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
@@ -12,7 +12,7 @@
 <div class="noise"></div>
 
 <nav>
-  <a href="index.html" class="logo">tasks<span>for</span>agents</a>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
   <ul class="links">
     <li><a href="index.html">Home</a></li>
     <li><a href="system.html" class="active">The System</a></li>
@@ -73,10 +73,13 @@
         <p>LLM-powered coordination. Detects duplicate work items across agents. Suggests priority ordering. Summarizes execution context for long-running items. Consumes the same API as your agents.</p>
       </div>
       <div class="flow-arrow">|</div>
-      <div class="flow-node highlighted">
-        <div class="flow-label">Core API</div>
-        <h3>Execution State Store</h3>
-        <p>Work items, artifacts, events, claims, agents, projects. No LLM calls. No inference. Every mutation auto-generates a structured event. Fast, reliable, self-hostable. The open-source heart.</p>
+      <div class="flow-node highlighted" style="display: flex; align-items: center; gap: 32px;">
+        <div style="flex: 1;">
+          <div class="flow-label">Core API</div>
+          <h3>Execution State Store</h3>
+          <p>Work items, artifacts, events, claims, agents, projects. No LLM calls. No inference. Every mutation auto-generates a structured event. Fast, reliable, self-hostable. The open-source heart.</p>
+        </div>
+        <img src="images/threadron.png" alt="Threadron" class="mascot-sm" style="width: 80px; height: 80px; object-fit: contain; flex-shrink: 0; opacity: 0.85;">
       </div>
       <div class="flow-arrow">|</div>
       <div class="flow-node">
@@ -181,7 +184,7 @@
 </div>
 
 <footer>
-  <p>tasksforagents.com</p>
+  <p>Threadron &mdash; tasksforagents.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

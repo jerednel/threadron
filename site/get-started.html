@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Get Started — Tasks for Agents</title>
+  <title>Get Started — Threadron</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
@@ -12,7 +12,7 @@
 <div class="noise"></div>
 
 <nav>
-  <a href="index.html" class="logo">tasks<span>for</span>agents</a>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
   <ul class="links">
     <li><a href="index.html">Home</a></li>
     <li><a href="system.html">The System</a></li>
@@ -121,7 +121,7 @@ curl http://localhost:8080/v1/auth/setup
           <p style="color: var(--gray-4);">Drop the skill.md into your agent's configuration. It tells the agent how to check in, claim work, and update state on each session start.</p>
           <div class="code-block" style="margin-top: 16px;">
             <span class="label-tag">skill.md</span>
-<span class="comment"># TasksForAgents — Shared Execution State</span>
+<span class="comment"># Threadron — Shared Execution State</span>
 <span class="comment"># Add to your agent's skill or system prompt file</span>
 
 <span class="key">TASK_API</span>=<span class="string">https://api.tasksforagents.com/v1</span>
@@ -167,8 +167,9 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
 
   <!-- WAITLIST / CTA -->
   <section style="text-align: center;" id="waitlist">
+    <img src="images/threadron.png" alt="Threadron" class="mascot-sm" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 24px;">
     <h2>Join the waitlist</h2>
-    <p style="margin: 16px auto;">We're launching the managed service soon. Get early access and help shape the execution state layer for agent workflows.</p>
+    <p style="margin: 16px auto;">We're launching Threadron's managed service soon. Get early access and help shape the execution state layer for agent workflows.</p>
 
     <form id="waitlist-form" style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
       <input type="email" placeholder="you@email.com" required style="
@@ -189,7 +190,7 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
 </div>
 
 <footer>
-  <p>tasksforagents.com</p>
+  <p>Threadron &mdash; tasksforagents.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

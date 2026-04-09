@@ -1,4 +1,4 @@
-/* tasksforagents.com — glitch+art minimal */
+/* threadron.com — glitch+art minimal */
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
 
@@ -539,6 +539,22 @@ footer .footer-links a {
 
 footer .footer-links a:hover {
   color: var(--white);
+}
+
+/* --- MASCOT --- */
+.mascot {
+  animation: float 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(147, 130, 255, 0.3));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.mascot-sm {
+  animation: float 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(147, 130, 255, 0.2));
 }
 
 /* --- RESPONSIVE --- */

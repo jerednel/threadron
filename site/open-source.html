@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Open Source — Tasks for Agents</title>
+  <title>Open Source — Threadron</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
@@ -12,7 +12,7 @@
 <div class="noise"></div>
 
 <nav>
-  <a href="index.html" class="logo">tasks<span>for</span>agents</a>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
   <ul class="links">
     <li><a href="index.html">Home</a></li>
     <li><a href="system.html">The System</a></li>
@@ -26,18 +26,25 @@
 <div class="page">
 
   <section class="hero">
+    <div style="display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 280px;">
     <div class="label">Open source</div>
     <h1>
       <span class="glitch" data-text="Your state. Your server.">Your state. Your server.</span>
     </h1>
     <p class="lead">
-      The core of TasksForAgents is open source and always will be.
+      The core of Threadron is open source and always will be.
       Run it on your own machine, your own cloud, your own terms.
       No lock-in. No execution state leaving your network.
     </p>
     <div class="btn-group">
       <a href="#" class="btn btn-primary">View on GitHub</a>
       <a href="#docker" class="btn btn-secondary">Docker Quickstart</a>
+    </div>
+    </div>
+    <div style="display: flex; align-items: center; padding-top: 60px;">
+      <img src="images/threadron.png" alt="Threadron" class="mascot-sm" style="width: 140px; height: 140px; object-fit: contain; opacity: 0.9;">
+    </div>
     </div>
   </section>
 
@@ -210,7 +217,7 @@ curl http://localhost:8080/v1/auth/setup \
 </div>
 
 <footer>
-  <p>tasksforagents.com</p>
+  <p>Threadron &mdash; tasksforagents.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>
