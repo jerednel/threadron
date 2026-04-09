@@ -52,7 +52,7 @@ export default function Layout() {
             </svg>
           </button>
           <span className="font-mono text-sm font-bold text-[#f0f0f0] tracking-tight">
-            tasksforagents
+            threadron
           </span>
         </div>
         <div className="flex items-center gap-4">

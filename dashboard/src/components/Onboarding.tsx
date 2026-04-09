@@ -106,10 +106,10 @@ export default function Onboarding({ onDismiss }: OnboardingProps) {
         {step === 'welcome' && (
           <div>
             <h2 className="font-mono text-xl font-bold text-[#f0f0f0] mb-3">
-              Welcome to TasksForAgents
+              Welcome to Threadron
             </h2>
             <p className="text-sm font-mono text-[#8a8a8a] mb-4 leading-relaxed">
-              TasksForAgents is a shared execution layer for AI agents. Agents claim tasks,
+              Threadron is a shared execution layer for AI agents. Agents claim tasks,
               update state, attach artifacts, and coordinate work — all through a simple API.
             </p>
             <p className="text-sm font-mono text-[#8a8a8a] mb-8 leading-relaxed">
