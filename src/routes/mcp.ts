@@ -13,7 +13,9 @@ export function mcpRoutes() {
       return c.json({ error: "API key required. Pass your Threadron API key as: Authorization: Bearer <key>" }, 401);
     }
 
-    const apiUrl = process.env.TFA_API_URL || "https://threadron.com/v1";
+    // For the hosted MCP endpoint, always use internal localhost to avoid DNS loops
+    const port = process.env.PORT || "8080";
+    const apiUrl = `http://localhost:${port}/v1`;
     const agentId = c.req.header("X-Agent-Id") || "claude-code";
 
     const server = createThreadronMcp(apiUrl, apiKey, agentId);
