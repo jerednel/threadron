@@ -19,6 +19,9 @@ export default function Dashboard() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(
+    () => localStorage.getItem('tfa_onboarding_done') === 'true'
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,8 +36,8 @@ export default function Dashboard() {
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
       const domainList = Array.isArray(domainsRes) ? domainsRes : [];
       setDomains(domainList);
-      // Show onboarding for first-time users with no domains
-      if (domainList.length === 0) {
+      // Show onboarding for first-time users with no domains (only if not previously dismissed)
+      if (domainList.length === 0 && !onboardingDismissed) {
         setShowOnboarding(true);
       }
     } catch (e: unknown) {
@@ -42,7 +45,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDomainId]);
+  }, [selectedDomainId, onboardingDismissed]);
 
   useEffect(() => {
     loadData();
@@ -174,7 +177,8 @@ export default function Dashboard() {
         <Onboarding
           onDismiss={() => {
             setShowOnboarding(false);
-            // Reload to pick up newly created domain
+            setOnboardingDismissed(true);
+            localStorage.setItem('tfa_onboarding_done', 'true');
             loadData();
           }}
         />
