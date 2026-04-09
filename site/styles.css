@@ -578,7 +578,7 @@ footer .footer-links a:hover {
 
 /* --- HAMBURGER TOGGLE --- */
 .nav-toggle {
-  display: none;
+  display: none !important;
   background: none;
   border: none;
   color: var(--white);
@@ -592,7 +592,7 @@ footer .footer-links a:hover {
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
   nav { padding: 16px 24px; position: relative; }
-  nav .nav-toggle { display: block; }
+  nav .nav-toggle { display: block !important; }
   nav .links {
     display: none;
     position: absolute;
