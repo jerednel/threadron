@@ -116,9 +116,17 @@ export function userPublicRoutes(db: DrizzleDb) {
 
     const token = await createToken(user.id, user.email);
 
+    // Fetch user's first API key so the dashboard can use it
+    const [userKey] = await db
+      .select()
+      .from(apiKeys)
+      .where(eq(apiKeys.userId, user.id))
+      .limit(1);
+
     return c.json({
       user: { id: user.id, email: user.email, name: user.name },
       token,
+      api_key: userKey?.key ?? null,
     });
   });
 
