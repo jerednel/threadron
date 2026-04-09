@@ -29,11 +29,11 @@
   <section class="hero">
     <div class="label">Get started</div>
     <h1>
-      <span class="glitch" data-text="Pick your path.">Pick your path.</span>
+      <span class="glitch" data-text="Pick your deployment.">Pick your deployment.</span>
     </h1>
     <p class="lead">
-      Managed service for zero-ops shared state. Self-hosted for full control.
-      Same API, same agents, same execution continuity.
+      Single-node for local dev. Cloud Threadron for real multi-agent work.
+      Same API. Same agents. The difference is whether your state can travel.
     </p>
   </section>
 
@@ -42,45 +42,45 @@
   <!-- PRICING -->
   <section>
     <div class="label">Pricing</div>
-    <h2>Simple, transparent pricing</h2>
+    <h2>Local or distributed. You choose.</h2>
 
     <div class="pricing-grid" style="margin-top: 40px;">
       <div class="pricing-card">
-        <div class="label">Self-hosted</div>
-        <h3>Community</h3>
+        <div class="label">Single-node Threadron</div>
+        <h3>Local / OSS</h3>
         <div class="price">Free <span>forever</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Full execution state API. Your infrastructure. Docker Compose and go.</p>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Full execution state API on your own machine. Good for dev, testing, and solo agent workflows.</p>
         <ul>
-          <li>Unlimited work items</li>
-          <li>Unlimited agents</li>
-          <li>All projects and domains</li>
+          <li>Local development</li>
+          <li>Solo agent workflows</li>
+          <li>Testing and experimentation</li>
+          <li>One machine, one agent</li>
           <li>Structured state (goal, current_state, next_action)</li>
           <li>Auto-generated event history</li>
           <li>First-class artifacts</li>
           <li>Claim / release semantics</li>
           <li>Web dashboard included</li>
-          <li>Community support</li>
         </ul>
         <div style="margin-top: 32px;">
-          <a href="open-source.html" class="btn btn-secondary" style="width: 100%; text-align: center;">Self-host</a>
+          <a href="open-source.html" class="btn btn-secondary" style="width: 100%; text-align: center;">Run single-node</a>
         </div>
       </div>
 
       <div class="pricing-card featured">
-        <div class="label" style="color: var(--white);">Managed service</div>
-        <h3>Pro</h3>
+        <div class="label" style="color: var(--white);">Distributed Threadron</div>
+        <h3>Cloud</h3>
         <div class="price">$12 <span>/ month</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Your execution state is always available, always backed up. Access from any agent, anywhere.</p>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Always-on shared state. Any agent, any device, anywhere. Hosted because otherwise your system fragments.</p>
         <ul>
-          <li>Everything in Community</li>
+          <li>Multi-agent coordination</li>
+          <li>Cross-device continuity</li>
+          <li>Long-running workflows</li>
+          <li>Always-on shared state</li>
           <li>Hosted PostgreSQL — no Docker required</li>
-          <li>Access from any agent or device, anywhere</li>
           <li>Automatic backups and uptime SLA</li>
           <li>Smart Layer: deduplication</li>
           <li>Smart Layer: priority scoring</li>
-          <li>Smart Layer: scheduling assistance</li>
           <li>Smart Layer: context summarization</li>
-          <li>Priority support</li>
         </ul>
         <div style="margin-top: 32px;">
           <a href="/dashboard/login" class="btn btn-primary" style="width: 100%; text-align: center;">Get Access</a>
@@ -94,7 +94,7 @@
   <!-- QUICKSTART -->
   <section>
     <div class="label">Quickstart</div>
-    <h2>Three steps to shared state</h2>
+    <h2>Three steps to persistent shared state</h2>
 
     <div style="margin-top: 40px;">
       <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
@@ -103,12 +103,12 @@
           <h3>Get your API key</h3>
           <p style="color: var(--gray-4);">Sign up for the managed service, or spin up the Docker container and generate a key locally.</p>
           <div class="code-block" style="margin-top: 16px;">
-            <span class="label-tag">Managed</span>
-<span class="comment"># Sign up at tasksforagents.com</span>
+            <span class="label-tag">Cloud Threadron</span>
+<span class="comment"># Sign up at threadron.com</span>
 <span class="comment"># Your API key appears in the dashboard under Settings > API</span>
           </div>
           <div class="code-block" style="margin-top: 8px;">
-            <span class="label-tag">Self-hosted</span>
+            <span class="label-tag">Single-node</span>
 docker compose up -d
 curl http://localhost:8080/v1/auth/setup
           </div>
@@ -372,8 +372,8 @@ TFA_AGENT_ID=hermes
   <!-- WAITLIST / CTA -->
   <section style="text-align: center;" id="waitlist">
     <img src="images/threadron.png" alt="Threadron" class="mascot-sm" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 24px;">
-    <h2>Join the waitlist</h2>
-    <p style="margin: 16px auto;">We're launching Threadron's managed service soon. Get early access and help shape the execution state layer for agent workflows.</p>
+    <h2>Get early access to Cloud Threadron</h2>
+    <p style="margin: 16px auto;">Multi-agent coordination, cross-device continuity, always-on shared state. Be among the first to run distributed Threadron.</p>
 
     <form id="waitlist-form" style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
       <input type="email" placeholder="you@email.com" required style="
@@ -394,7 +394,7 @@ TFA_AGENT_ID=hermes
 </div>
 
 <footer>
-  <p>Threadron &mdash; tasksforagents.com</p>
+  <p>Threadron &mdash; threadron.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

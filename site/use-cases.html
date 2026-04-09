@@ -35,12 +35,11 @@
   <section class="hero" style="margin-top: -20px; position: relative; z-index: 2; min-height: auto; padding-top: 0;">
     <div class="label">Use cases</div>
     <h1>
-      <span class="glitch" data-text="One state layer.">One state layer.</span><br>
-      <span style="color: var(--gray-3);">Every agent.</span>
+      <span class="glitch" data-text="Where local state">Where local state</span><br>
+      <span style="color: var(--gray-3);">breaks down.</span>
     </h1>
     <p class="lead">
-      Your agents work on the same codebase. They should share the same execution state.
-      Here's what that looks like in practice.
+      These aren't edge cases. They're the normal shape of real agent workflows — and local state fails at every one of them.
     </p>
   </section>
 
@@ -48,9 +47,9 @@
 
   <!-- USE CASE 1: SESSION CONTINUITY -->
   <section>
-    <div class="label">Use case 01</div>
-    <h2>Session continuity</h2>
-    <p style="margin-bottom: 32px;">Claude Code fixes a bug. Session ends. Tomorrow, a new session reads the work item and continues — no re-investigation, no lost context.</p>
+    <div class="label">Use case 01 — you come back tomorrow</div>
+    <h2>You leave Friday. The agent starts from scratch Monday.</h2>
+    <p style="margin-bottom: 32px;">Without shared state, Monday's session has no idea what Friday's session found. Claude Code re-investigates the same bug. With Threadron, it reads the work item and continues — no re-investigation, no lost context.</p>
 
     <div class="code-block">
       <span class="label-tag">Session 1 — Claude Code</span>
@@ -80,8 +79,8 @@
 
     <div style="margin-top: 32px; padding: 24px 32px; border-left: 2px solid var(--gray-3); background: var(--gray-1);">
       <p style="color: var(--gray-4); font-style: italic; font-size: 0.95rem;">
-        "I start a new Claude Code session. It reads the work item, sees that the race condition
-        was already diagnosed, checks out the branch, and writes the tests. It didn't need to re-read
+        "I start a new Claude Code session Monday morning. It reads the work item, sees that the race condition
+        was already diagnosed Friday, checks out the branch, and writes the tests. It didn't need to re-read
         a single line of code to understand what was happening."
       </p>
     </div>
@@ -91,9 +90,9 @@
 
   <!-- USE CASE 2: AGENT HANDOFF -->
   <section>
-    <div class="label">Use case 02</div>
-    <h2>Agent handoff</h2>
-    <p style="margin-bottom: 32px;">Claude Code diagnoses a failing test. OpenClaw picks up the fix. The handoff is structured state — not a chat transcript.</p>
+    <div class="label">Use case 02 — you switch agents</div>
+    <h2>Claude Code fixed it. Hermes has no idea.</h2>
+    <p style="margin-bottom: 32px;">Claude Code diagnoses the bug and writes the fix. Hermes is supposed to deploy it — but Hermes has never seen the work. Without shared state, every handoff is a full re-briefing. With Threadron, the handoff is structured state: current_state, artifacts, full event history.</p>
 
     <div class="card-grid">
       <div class="card">
@@ -126,9 +125,9 @@
 
   <!-- USE CASE 3: PARALLEL AGENTS -->
   <section>
-    <div class="label">Use case 03</div>
-    <h2>Parallel agents, no collisions</h2>
-    <p style="margin-bottom: 32px;">Three agents. Same project. Each claims a different work item. No duplicated work. No stepping on each other.</p>
+    <div class="label">Use case 03 — you switch devices</div>
+    <h2>You debug on your MacBook. Your desktop doesn't know.</h2>
+    <p style="margin-bottom: 32px;">You start debugging on your MacBook. You switch to your desktop to continue — but the context is gone. With Threadron, state is in the cloud. Any agent on any device picks up exactly where the last one left off. No collisions. No duplicate work.</p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-top: 32px;">
       <div style="background: var(--gray-1); padding: 24px;">
@@ -150,9 +149,9 @@
 
     <div style="margin-top: 24px; padding: 24px 32px; border-left: 2px solid var(--gray-3); background: var(--gray-1);">
       <p style="color: var(--gray-4); font-style: italic; font-size: 0.95rem;">
-        "Each agent polls for unclaimed work in the project. Claim semantics mean they can't
+        "Each agent polls for unclaimed work from the cloud. Claim semantics mean they can't
         accidentally start the same item. I check the board once a day and see exactly what
-        each agent did and what's blocked."
+        each agent did and what's blocked — from any device."
       </p>
     </div>
   </section>
@@ -162,8 +161,8 @@
   <!-- BOARD MOCKUP -->
   <section>
     <div class="label">Cross-agent view</div>
-    <h2>The full picture</h2>
-    <p style="margin-bottom: 32px;">The real power is seeing every agent's execution state in one place. Who's doing what. What's blocked. What needs a decision.</p>
+    <h2>The full picture. From anywhere.</h2>
+    <p style="margin-bottom: 32px;">Every agent's execution state in one place — accessible from any device, any session. Who's doing what. What's blocked. What needs a decision.</p>
 
     <div style="background: var(--gray-1); border: 1px solid var(--gray-2); padding: 32px; font-family: var(--mono); font-size: 13px; line-height: 2.2;">
       <div style="color: var(--gray-3); margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 3px;">Project: api-v2 — current state</div>
@@ -204,14 +203,14 @@
 
   <div class="marquee-track">
     <div class="marquee-content">
-      Session continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Parallel execution &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Structured state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
-      Session continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Parallel execution &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Structured state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
+      Cross-device continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Multi-agent coordination &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Persistent state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
+      Cross-device continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Multi-agent coordination &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Persistent state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <section style="text-align: center;">
-    <h2>Ready to give your agents shared state?</h2>
-    <p style="margin: 16px auto;">Get started in under five minutes.</p>
+    <h2>Stop the context loss. Connect your agents.</h2>
+    <p style="margin: 16px auto;">Persistent, shared state — cloud by default. Get started in under five minutes.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="/dashboard/login" class="btn btn-primary">Get Early Access</a>
     </div>
@@ -220,7 +219,7 @@
 </div>
 
 <footer>
-  <p>Threadron &mdash; tasksforagents.com</p>
+  <p>Threadron &mdash; threadron.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

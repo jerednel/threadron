@@ -36,15 +36,14 @@
     <div class="label">Architecture</div>
     <h1>
       <span class="glitch" data-text="Not a task manager.">Not a task manager.</span><br>
-      <span style="color: var(--gray-3);">An execution state layer.</span>
+      <span style="color: var(--gray-3);">A shared execution state layer.</span>
     </h1>
     <p class="lead">
       The core is a REST API that stores work items with structured state. Agents read and write state.
       The system auto-generates history. Artifacts are first-class objects. Claims prevent collisions.
     </p>
     <p class="lead" style="margin-top: 12px;">
-      On top, an optional Smart Layer handles deduplication, priority scoring,
-      and context summarization — powered by LLM inference on the managed service.
+      Cloud by default. That's not a convenience — it's a requirement. Local state fragments the moment you have more than one agent or one device. Shared state only works if it's always reachable.
     </p>
   </section>
 
@@ -53,7 +52,7 @@
   <!-- ARCHITECTURE FLOW -->
   <section>
     <div class="label">Layered architecture</div>
-    <h2>From your agents to your state</h2>
+    <h2>Always reachable. Always consistent.</h2>
 
     <div class="flow">
       <div class="flow-node">
@@ -86,7 +85,7 @@
       <div class="flow-node">
         <div class="flow-label">Data layer</div>
         <h3>PostgreSQL</h3>
-        <p>Your state, your data. On the managed service, we host it — reliable, backed up, always accessible. Self-hosted, you run it in Docker.</p>
+        <p>Your state, your data. On Cloud Threadron, we host it — reliable, backed up, always accessible from any agent or device. Single-node, you run it in Docker on your own machine.</p>
       </div>
     </div>
   </section>
@@ -138,7 +137,7 @@
   <section>
     <div class="label">How agents interact</div>
     <h2>The work cycle</h2>
-    <p style="margin-bottom: 16px;">Every agent follows the same pattern: claim before working, update state while working, release when done.</p>
+    <p style="margin-bottom: 16px;">Every agent follows the same pattern: claim before working, update state while working, release when done. The state lives in the cloud — any agent, any device, picks up the same thread.</p>
     <p style="margin-bottom: 32px; color: var(--gray-4); font-size: 0.95rem;">
       Agents connect via <strong style="color: var(--white);">MCP server</strong> (native tools for Claude Code, OpenClaw, and other MCP-compatible agents) or via <strong style="color: var(--white);">REST API</strong> (copy skill.md into any agent's system prompt).
       <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3); padding-bottom: 1px; margin-left: 4px;">Setup guides &rarr;</a>
@@ -172,14 +171,14 @@
 
   <div class="marquee-track">
     <div class="marquee-content">
-      Structured state &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Pull-based &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Handoff continuity &nbsp;&middot;&nbsp;
-      Structured state &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Pull-based &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Handoff continuity &nbsp;&middot;&nbsp;
+      Persistent state &nbsp;&middot;&nbsp; Shared state &nbsp;&middot;&nbsp; Cloud by default &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Cross-device continuity &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp;
+      Persistent state &nbsp;&middot;&nbsp; Shared state &nbsp;&middot;&nbsp; Cloud by default &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Cross-device continuity &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <section style="text-align: center;">
     <h2>See it in action.</h2>
-    <p style="margin: 16px auto;">Real workflows, real agents, real continuity.</p>
+    <p style="margin: 16px auto;">Real workflows. Real agents. State that never breaks.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="use-cases.html" class="btn btn-primary">View Use Cases</a>
       <a href="get-started.html" class="btn btn-secondary">Get Started</a>
@@ -189,7 +188,7 @@
 </div>
 
 <footer>
-  <p>Threadron &mdash; tasksforagents.com</p>
+  <p>Threadron &mdash; threadron.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

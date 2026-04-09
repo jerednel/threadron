@@ -29,14 +29,15 @@
   <section class="hero">
     <div style="display: flex; align-items: flex-start; gap: 40px; flex-wrap: wrap;">
     <div style="flex: 1; min-width: 280px;">
-    <div class="label">Open source</div>
+    <div class="label">Single-node Threadron</div>
     <h1>
       <span class="glitch" data-text="Your state. Your server.">Your state. Your server.</span>
     </h1>
     <p class="lead">
-      The core of Threadron is open source and always will be.
-      Run it on your own machine, your own cloud, your own terms.
-      No lock-in. No execution state leaving your network.
+      The core of Threadron is open source and always will be. Run single-node Threadron on your own machine — ideal for local dev, testing, and solo agent workflows.
+    </p>
+    <p class="lead" style="margin-top: 12px;">
+      When you need multi-agent coordination, cross-device continuity, or long-running workflows, you need Cloud Threadron. Single-node is one machine. Cloud is everywhere.
     </p>
     <div class="btn-group">
       <a href="#" class="btn btn-primary">View on GitHub</a>
@@ -54,7 +55,7 @@
   <!-- WHAT'S INCLUDED -->
   <section>
     <div class="label">What you get</div>
-    <h2>The full core. No asterisks.</h2>
+    <h2>The full core. Good for single-node. No asterisks.</h2>
 
     <div class="card-grid" style="margin-top: 40px;">
       <div class="card">
@@ -80,7 +81,7 @@
 
   <!-- DOCKER QUICKSTART -->
   <section id="docker">
-    <div class="label">Self-hosting</div>
+    <div class="label">Single-node setup</div>
     <h2>Up and running in 60 seconds</h2>
 
     <div class="code-block" style="margin-top: 32px;">
@@ -158,13 +159,13 @@ curl http://localhost:8080/v1/auth/setup \
   <!-- MANAGED vs SELF-HOSTED -->
   <section>
     <div class="label">Trade-offs</div>
-    <h2>Self-hosted vs. managed</h2>
+    <h2>Single-node vs. Cloud Threadron</h2>
 
     <div style="margin-top: 32px; font-family: var(--mono); font-size: 13px;">
       <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0; border: 1px solid var(--gray-2);">
         <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">&nbsp;</div>
-        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Self-hosted</div>
-        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Managed</div>
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Single-node</div>
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Cloud</div>
 
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Reachable from any agent or device</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">You configure</div>
@@ -179,8 +180,8 @@ curl http://localhost:8080/v1/auth/setup \
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Included</div>
 
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Portability</div>
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Tied to machine</div>
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Any agent, anywhere</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">One machine only</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Any agent, any device, anywhere</div>
 
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Data location</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Your network</div>
@@ -193,32 +194,30 @@ curl http://localhost:8080/v1/auth/setup \
     </div>
 
     <p style="margin-top: 24px; color: var(--gray-4); font-size: 0.9rem;">
-      The managed service pitch: your execution state travels with your agents, is always backed up,
-      and you get AI-powered coordination out of the box. Self-hosted is for developers who
-      want full control and are comfortable running Docker.
+      Single-node is the right choice for local development, experimentation, and solo workflows where everything runs on one machine. Cloud Threadron is for real multi-agent work — state that travels with your agents, is always backed up, and is reachable from any device or session.
     </p>
   </section>
 
   <div class="marquee-track">
     <div class="marquee-content">
-      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Community-driven &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
-      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Community-driven &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
+      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Single-node Threadron &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Cloud Threadron for distributed work &nbsp;&middot;&nbsp;
+      Open source &nbsp;&middot;&nbsp; MIT License &nbsp;&middot;&nbsp; Single-node Threadron &nbsp;&middot;&nbsp; Docker Compose &nbsp;&middot;&nbsp; PostgreSQL &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; No vendor lock-in &nbsp;&middot;&nbsp; Cloud Threadron for distributed work &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <section style="text-align: center;">
-    <h2>Run it yourself. Or let us run it for you.</h2>
-    <p style="margin: 16px auto;">Either way, your agents get persistent execution state.</p>
+    <h2>Start single-node. Scale to cloud when you need it.</h2>
+    <p style="margin: 16px auto;">Same API, same agents. The only difference is whether your state can travel.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="#" class="btn btn-primary">GitHub Repo</a>
-      <a href="get-started.html" class="btn btn-secondary">Managed Service</a>
+      <a href="get-started.html" class="btn btn-secondary">Cloud Threadron</a>
     </div>
   </section>
 
 </div>
 
 <footer>
-  <p>Threadron &mdash; tasksforagents.com</p>
+  <p>Threadron &mdash; threadron.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>

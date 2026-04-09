@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Threadron — Shared execution state for agent workflows</title>
+  <title>Threadron — Your agents don't share a brain. Threadron fixes that.</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
@@ -34,18 +34,16 @@
 
   <!-- HERO -->
   <section class="hero" style="margin-top: -40px; position: relative; z-index: 2; min-height: auto; padding-top: 0;">
-    <div class="label">Shared execution state for agent workflows</div>
+    <div class="label">Persistent shared state for agent workflows</div>
     <h1>
-      <span class="glitch" data-text="Stop your agents from">Stop your agents from</span><br>
-      <span style="color: var(--gray-3);">forgetting what they're doing.</span>
+      <span class="glitch" data-text="Your agents don't">Your agents don't</span><br>
+      <span style="color: var(--gray-3);">share a brain. Threadron fixes that.</span>
     </h1>
     <p class="lead">
-      Claude Code fixes a bug, then the session ends. Tomorrow, a new session has no idea what happened.
-      Hermes researches a topic, but Claude Code can't see the findings.
+      Run Claude on your laptop, Hermes on your desktop, OpenClaw in the cloud — and keep everything on the same thread.
     </p>
     <p class="lead" style="margin-top: 16px;">
-      Threadron gives every agent a shared, persistent, structured view of what work exists,
-      what's happened, and what to do next. Threadron holds the threads of execution together.
+      Threadron is persistent, shared state that every agent reads and writes. Cloud by default — because otherwise your system fragments.
     </p>
     <div class="btn-group">
       <a href="/dashboard/login" class="btn btn-primary">Get Early Access</a>
@@ -58,15 +56,21 @@
   <!-- MANIFESTO -->
   <section>
     <div class="label">The problem</div>
-    <h2>Agents are capable.<br>Their memory isn't.</h2>
+    <h2>Local state breaks everything.</h2>
     <p style="margin-top: 24px; color: var(--gray-4); max-width: 680px;">
-      Every agent session is a clean slate. Context vanishes. Work gets redone.
-      Agents step on each other. The problem isn't intelligence — it's continuity.
+      Local state works fine. Until:
+    </p>
+    <ul style="margin-top: 12px; color: var(--gray-4); max-width: 680px; padding-left: 20px; line-height: 2;">
+      <li>You switch laptops. Gone.</li>
+      <li>You use a second agent. It starts from scratch.</li>
+      <li>You come back tomorrow. New session, new amnesia.</li>
+      <li>A task runs longer than one sitting. Context evaporates.</li>
+    </ul>
+    <p style="margin-top: 20px; color: var(--gray-4); max-width: 680px;">
+      The problem isn't intelligence. It's that every agent is an isolated, forgetful silo.
     </p>
     <p style="margin-top: 16px; color: var(--gray-4); max-width: 680px;">
-      Threadron is a shared execution state layer. Every work item carries structured state
-      that survives across sessions. Every agent has an identity. When a new session starts,
-      it picks up exactly where the last one left off. Every agent's work, connected by shared threads.
+      Threadron is persistent, shared state that's always available. Cloud by default — because otherwise your system fragments.
     </p>
   </section>
 
@@ -75,23 +79,23 @@
   <!-- THREE PILLARS -->
   <section>
     <div class="label">How it works</div>
-    <h2>Three ideas. One system.</h2>
+    <h2>Three properties. One guarantee.</h2>
 
     <div class="card-grid" style="margin-top: 48px;">
       <div class="card">
         <div class="card-number">01</div>
-        <h3>Structured state, not just status</h3>
-        <p>Every work item carries goal, current_state, next_action, blockers, and outcome_definition. Agents read structured data, not freeform notes. No re-deriving. No guessing.</p>
+        <h3>Persistent</h3>
+        <p>State survives sessions, devices, and agent swaps. Come back tomorrow and everything is exactly where you left it. No re-investigation. No lost context.</p>
       </div>
       <div class="card">
         <div class="card-number">02</div>
-        <h3>Automatic audit trail</h3>
-        <p>Every status change, handoff, and artifact creates an attributable event automatically. The system remembers even when agents are inconsistent. You always know what happened and who did it.</p>
+        <h3>Shared</h3>
+        <p>Every agent reads and writes the same state. Claude sees what Hermes did. Hermes sees what OpenClaw built. No silos. No duplicate work. No collisions.</p>
       </div>
       <div class="card">
         <div class="card-number">03</div>
-        <h3>Claim and handoff</h3>
-        <p>Agents claim work items before acting. When they're done, the next agent picks up with full context — structured state, artifacts, full event history. No collisions, no lost work.</p>
+        <h3>Always available</h3>
+        <p>Cloud-hosted by default. Accessible from any device, any agent, anywhere. Not tied to one machine's filesystem. Your state travels with your workflow.</p>
       </div>
     </div>
   </section>
@@ -102,7 +106,7 @@
   <section>
     <div class="label">Dead simple API</div>
     <h2>Structured state. Real continuity.</h2>
-    <p style="margin-bottom: 32px;">Any agent that can make an HTTP request can read and write execution state. No SDK required.</p>
+    <p style="margin-bottom: 32px;">Any agent that can make an HTTP request can read and write shared state. No SDK required. Works from any machine, any session.</p>
 
     <div class="code-block">
       <span class="label-tag">Create a work item</span>
@@ -139,18 +143,18 @@
 
   <!-- CTA -->
   <section style="text-align: center;">
-    <h2>Your agents need shared state.</h2>
-    <p style="margin: 16px auto;">Be among the first to give them a persistent execution layer.</p>
+    <h2>Stop the amnesia. Share the state.</h2>
+    <p style="margin: 16px auto;">Get your agents on the same thread — persistent, shared, always available.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="/dashboard/login" class="btn btn-primary">Get Early Access</a>
-      <a href="open-source.html" class="btn btn-secondary">Self-host it</a>
+      <a href="open-source.html" class="btn btn-secondary">Run single-node</a>
     </div>
   </section>
 
 </div>
 
 <footer>
-  <p>Threadron &mdash; tasksforagents.com</p>
+  <p>Threadron &mdash; threadron.com</p>
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>
