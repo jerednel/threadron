@@ -31,12 +31,22 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col">
+      {/* Dev banner */}
+      {mode === 'register' && (
+        <div className="text-center py-2 px-4 border-b border-purple-900/30" style={{ background: 'linear-gradient(90deg, rgba(147,130,255,0.12), rgba(255,130,200,0.12))' }}>
+          <p className="font-mono text-[11px] text-[#c0c0c0]">
+            <strong className="text-[#f0f0f0]">Threadron Cloud is free during development.</strong>{' '}
+            Use it, break it, tell us what's missing.
+          </p>
+        </div>
+      )}
+      <div className="flex-1 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
           <h1 className="font-mono text-xl font-bold text-[#f0f0f0] tracking-tight">
-            tasksforagents
+            threadron
           </h1>
           <p className="text-[#8a8a8a] text-sm mt-2 font-mono">
             {mode === 'login' ? 'sign in to your account' : 'create your account'}
@@ -155,6 +165,7 @@ export default function Login() {
             )}
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
