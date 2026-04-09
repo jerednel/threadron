@@ -196,17 +196,19 @@ server.tool(
 
 server.tool(
   "threadron_claim",
-  "Claim a work item before starting. Prevents other agents from working on it. Claims auto-expire.",
+  "Claim a work item before starting. By default, exclusive — rejects if already claimed. Pass allow_parallel: true to join as a parallel worker alongside other agents.",
   {
     task_id: z.string().describe("Work item ID to claim"),
     duration_minutes: z.number().optional().describe("How long to hold the claim (default 60)"),
+    allow_parallel: z.boolean().optional().describe("If true, multiple agents can work this item simultaneously. Use for fan-out work that will be reconciled."),
   },
-  async ({ task_id, duration_minutes }) => {
+  async ({ task_id, duration_minutes, allow_parallel }) => {
     const data = await api(`/tasks/${task_id}/claim`, {
       method: "POST",
       body: JSON.stringify({
         agent_id: AGENT_ID,
         duration_minutes: duration_minutes || 60,
+        allow_parallel: allow_parallel || false,
       }),
     });
     return {

@@ -84,8 +84,8 @@ describe("POST /v1/tasks/:id/claim", () => {
 
     expect(res.status).toBe(409);
     const body = await res.json();
-    expect(body.error).toBe("Already claimed");
-    expect(body.claimed_by).toBe("agent-a");
+    expect(body.error).toContain("Already claimed");
+    expect(body.claimed_by).toEqual(["agent-a"]);
   });
 
   it("allows same agent to reclaim", async () => {

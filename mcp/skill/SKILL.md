@@ -89,6 +89,9 @@ Always log context FIRST, then update state. This ensures the timeline explains 
 ### Starting work
 
 1. **Claim it** — `threadron_claim` before starting (prevents other agents from colliding)
+   - If another agent already claimed it, you'll get a 409 error
+   - If the user explicitly wants parallel work (e.g., "have both of you work on this"), use `allow_parallel: true` to join alongside the other agent
+   - Parallel claims are for fan-out work that will be reconciled later — don't use them by default
 2. **Update status** — `threadron_update_state(status: "in_progress")`
 
 ### Producing outputs

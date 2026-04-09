@@ -356,6 +356,7 @@ export function taskRoutes(db: DrizzleDb) {
     const body = await c.req.json<{
       agent_id: string;
       duration_minutes?: number;
+      allow_parallel?: boolean;
     }>();
 
     const existingRows = await db
@@ -371,26 +372,49 @@ export function taskRoutes(db: DrizzleDb) {
 
     const row = existingRows[0].task;
     const now = new Date();
+    const currentClaims = row.claimedBy ? row.claimedBy.split(",").map(s => s.trim()).filter(Boolean) : [];
+    const isExpired = row.claimExpiresAt && row.claimExpiresAt <= now;
+    const alreadyClaimedByOther = currentClaims.length > 0 && !currentClaims.includes(body.agent_id) && !isExpired;
 
-    // Check if already claimed by someone else (and not expired)
-    if (row.claimedBy && row.claimedBy !== body.agent_id) {
-      const isExpired = row.claimExpiresAt && row.claimExpiresAt <= now;
-      if (!isExpired) {
-        return c.json({ error: "Already claimed", claimed_by: row.claimedBy, claim_expires_at: row.claimExpiresAt }, 409);
-      }
+    if (alreadyClaimedByOther && !body.allow_parallel) {
+      return c.json({
+        error: "Already claimed. Pass allow_parallel: true to join as a parallel worker.",
+        claimed_by: currentClaims,
+        claim_expires_at: row.claimExpiresAt,
+      }, 409);
     }
 
     const durationMinutes = body.duration_minutes ?? 30;
     const claimExpiresAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
 
+    // Build new claimedBy — add this agent if not already present
+    let newClaims: string[];
+    if (isExpired) {
+      // Expired claims get replaced
+      newClaims = [body.agent_id];
+    } else if (body.allow_parallel) {
+      // Parallel — add to existing claims
+      newClaims = [...new Set([...currentClaims, body.agent_id])];
+    } else {
+      // Exclusive — replace
+      newClaims = [body.agent_id];
+    }
+
     const [updated] = await db
       .update(tasks)
-      .set({ claimedBy: body.agent_id, claimExpiresAt, updatedAt: now })
+      .set({
+        claimedBy: newClaims.join(","),
+        claimExpiresAt,
+        updatedAt: now,
+      })
       .where(eq(tasks.id, id))
       .returning();
 
+    const parallel = newClaims.length > 1;
     await recordEvent(db, id, "claim",
-      `Claimed by ${body.agent_id} for ${durationMinutes} minutes`,
+      parallel
+        ? `${body.agent_id} joined parallel claim (${newClaims.length} agents: ${newClaims.join(", ")})`
+        : `Claimed by ${body.agent_id} for ${durationMinutes} minutes`,
       body.agent_id, "agent");
 
     return c.json(toApi(updated));
@@ -415,15 +439,27 @@ export function taskRoutes(db: DrizzleDb) {
       return c.json({ error: "Not found" }, 404);
     }
 
+    const row = existingRows[0].task;
+    const actor = (body as Record<string, unknown>).agent_id as string || "system";
+    const currentClaims = row.claimedBy ? row.claimedBy.split(",").map(s => s.trim()).filter(Boolean) : [];
+
+    // Remove this agent from claims
+    const remaining = currentClaims.filter(a => a !== actor);
+
     const [updated] = await db
       .update(tasks)
-      .set({ claimedBy: null, claimExpiresAt: null, updatedAt: new Date() })
+      .set({
+        claimedBy: remaining.length > 0 ? remaining.join(",") : null,
+        claimExpiresAt: remaining.length > 0 ? row.claimExpiresAt : null,
+        updatedAt: new Date(),
+      })
       .where(eq(tasks.id, id))
       .returning();
 
-    const actor = (body as any).agent_id || "system";
     await recordEvent(db, id, "release",
-      `Claim released by ${actor}`,
+      remaining.length > 0
+        ? `${actor} released claim (${remaining.length} agents still working: ${remaining.join(", ")})`
+        : `Claim released by ${actor}`,
       actor, "agent");
 
     return c.json(toApi(updated));
