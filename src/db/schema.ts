@@ -53,6 +53,15 @@ export const tasks = pgTable(
     dueDate: timestamp("due_date"),
     tags: jsonb("tags"),
     metadata: jsonb("metadata"),
+    // Work item / agent execution state fields
+    goal: text("goal"),
+    currentState: text("current_state"),
+    nextAction: text("next_action"),
+    blockers: jsonb("blockers").$type<string[]>().default([]),
+    outcomeDefinition: text("outcome_definition"),
+    confidence: text("confidence"),
+    claimedBy: text("claimed_by"),
+    claimExpiresAt: timestamp("claim_expires_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -75,10 +84,30 @@ export const contextEntries = pgTable(
     type: text("type").notNull(),
     body: text("body").notNull(),
     author: text("author").notNull(),
+    actorType: text("actor_type").notNull().default("agent"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (table) => [index("context_entries_task_idx").on(table.taskId)]
+);
+
+// Artifacts
+export const artifacts = pgTable(
+  "artifacts",
+  {
+    id: text("id").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    uri: text("uri"),
+    body: text("body"),
+    title: text("title"),
+    createdBy: text("created_by").notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("artifacts_task_idx").on(t.taskId)]
 );
 
 // Agents

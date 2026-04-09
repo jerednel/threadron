@@ -12,6 +12,7 @@ import { domainRoutes } from "./routes/domains.js";
 import { projectRoutes } from "./routes/projects.js";
 import { taskRoutes } from "./routes/tasks.js";
 import { contextRoutes } from "./routes/context.js";
+import { artifactRoutes, artifactLookupRoutes } from "./routes/artifacts.js";
 import { agentRoutes } from "./routes/agents.js";
 import { configRoutes } from "./routes/config.js";
 
@@ -43,6 +44,8 @@ protected_.route("/domains", domainRoutes(db));
 protected_.route("/projects", projectRoutes(db));
 protected_.route("/tasks", taskRoutes(db));
 protected_.route("/tasks", contextRoutes(db));
+protected_.route("/tasks", artifactRoutes(db));
+protected_.route("/artifacts", artifactLookupRoutes(db));
 protected_.route("/agents", agentRoutes(db));
 protected_.route("/config", configRoutes(db));
 

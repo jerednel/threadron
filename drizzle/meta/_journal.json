@@ -15,6 +15,13 @@
       "when": 1775692304563,
       "tag": "0001_ambiguous_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775693644820,
+      "tag": "0002_new_madripoor",
+      "breakpoints": true
     }
   ]
 }
