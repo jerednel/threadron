@@ -17,6 +17,7 @@ import { artifactRoutes, artifactLookupRoutes } from "./routes/artifacts.js";
 import { agentRoutes } from "./routes/agents.js";
 import { configRoutes } from "./routes/config.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
+import { mcpRoutes } from "./routes/mcp.js";
 
 const app = new Hono();
 
@@ -55,6 +56,9 @@ protected_.route("/config", configRoutes(db));
 
 v1.route("/", protected_);
 app.route("/v1", v1);
+
+// MCP endpoint — zero-install agent integration
+app.route("/mcp", mcpRoutes());
 
 // Serve dashboard SPA at /dashboard/
 app.use("/dashboard/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: (path) => path.replace(/^\/dashboard/, '') }));
