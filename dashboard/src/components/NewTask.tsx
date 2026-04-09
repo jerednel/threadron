@@ -50,6 +50,7 @@ export default function NewTask({ onClose, onCreated, defaultDomainId }: NewTask
       await api.createTask({
         title: title.trim(),
         domain_id: domainId,
+        created_by: 'user',
         ...(projectId ? { project_id: projectId } : {}),
         ...(assignee ? { assignee } : {}),
         priority,

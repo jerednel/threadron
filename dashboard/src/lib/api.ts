@@ -161,24 +161,24 @@ export const api = {
   },
 
   // Domains
-  listDomains: (): Promise<Domain[]> => request('/domains'),
+  listDomains: (): Promise<Domain[]> => request('/domains').then(r => r.domains ?? r),
   createDomain: (data: { name: string; default_guardrail: string }): Promise<Domain> =>
     request('/domains', { method: 'POST', body: JSON.stringify(data) }),
   deleteDomain: (id: string) => request(`/domains/${id}`, { method: 'DELETE' }),
 
   // Projects
   listProjects: (domainId?: string): Promise<Project[]> =>
-    request(`/projects${domainId ? `?domain_id=${domainId}` : ''}`),
+    request(`/projects${domainId ? `?domain_id=${domainId}` : ''}`).then(r => r.projects ?? r),
   createProject: (data: { name: string; domain_id: string; description?: string }): Promise<Project> =>
     request('/projects', { method: 'POST', body: JSON.stringify(data) }),
 
   // Tasks
   listTasks: (params?: Record<string, string>): Promise<Task[]> => {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request(`/tasks${qs}`);
+    return request(`/tasks${qs}`).then(r => r.tasks ?? r);
   },
   getTask: (id: string): Promise<TaskDetail> => request(`/tasks/${id}`),
-  createTask: (data: Partial<Task> & { title: string }): Promise<Task> =>
+  createTask: (data: Partial<Task> & { title: string; created_by?: string; domain_id?: string; project_id?: string }): Promise<Task> =>
     request('/tasks', { method: 'POST', body: JSON.stringify(data) }),
   updateTask: (id: string, data: Partial<Task>): Promise<Task> =>
     request(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -188,7 +188,7 @@ export const api = {
     request(`/tasks/${taskId}/context`, { method: 'POST', body: JSON.stringify(data) }),
 
   // Artifacts
-  listArtifacts: (taskId: string) => request(`/tasks/${taskId}/artifacts`),
+  listArtifacts: (taskId: string) => request(`/tasks/${taskId}/artifacts`).then(r => r.artifacts ?? r),
   createArtifact: (taskId: string, data: { type: string; uri?: string; body?: string; title?: string; created_by: string }) =>
     request(`/tasks/${taskId}/artifacts`, { method: 'POST', body: JSON.stringify(data) }),
 
@@ -199,16 +199,16 @@ export const api = {
     request(`/tasks/${taskId}/release`, { method: 'POST' }),
 
   // Agents
-  listAgents: (): Promise<Agent[]> => request('/agents'),
+  listAgents: (): Promise<Agent[]> => request('/agents').then(r => r.agents ?? r),
 
   // Config
-  getConfig: () => request('/config'),
+  getConfig: () => request('/config').then(r => r.config ?? r),
   setConfig: (key: string, value: unknown) =>
     request('/config', { method: 'POST', body: JSON.stringify({ key, value }) }),
 
   // Auth keys
   createApiKey: (data: { name: string; agent_id?: string }) =>
     request('/auth/keys', { method: 'POST', body: JSON.stringify(data) }),
-  listApiKeys: () => request('/auth/keys'),
+  listApiKeys: () => request('/auth/keys').then(r => r.keys ?? r),
   revokeApiKey: (id: string) => request(`/auth/keys/${id}`, { method: 'DELETE' }),
 };
