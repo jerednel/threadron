@@ -6,6 +6,25 @@ import { eq, asc } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
+const VALID_TYPES = new Set([
+  "observation",
+  "action_taken",
+  "decision",
+  "blocker",
+  "state_transition",
+  "handoff",
+  "proposal",
+  "approval_requested",
+  "approval_received",
+  "artifact_created",
+  "claim",
+  "release",
+  // Legacy types kept for compatibility
+  "note",
+  "comment",
+  "status_change",
+]);
+
 function toApi(row: typeof contextEntries.$inferSelect) {
   return {
     id: row.id,
@@ -13,6 +32,7 @@ function toApi(row: typeof contextEntries.$inferSelect) {
     type: row.type,
     body: row.body,
     author: row.author,
+    actor_type: row.actorType,
     created_at: row.createdAt,
   };
 }
@@ -33,6 +53,7 @@ export function contextRoutes(db: DrizzleDb) {
       type: string;
       body: string;
       author: string;
+      actor_type?: string;
     }>();
 
     const id = genId("ctx");
@@ -45,6 +66,7 @@ export function contextRoutes(db: DrizzleDb) {
         type: body.type,
         body: body.body,
         author: body.author,
+        actorType: body.actor_type ?? "agent",
       })
       .returning();
 
