@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { contextEntries, tasks } from "../db/schema.js";
+import { contextEntries, tasks, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
-import { eq, asc } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -37,15 +37,26 @@ function toApi(row: typeof contextEntries.$inferSelect) {
   };
 }
 
+async function verifyTaskOwnership(db: DrizzleDb, taskId: string, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+    .where(eq(tasks.id, taskId))
+    .limit(1);
+  return !!row;
+}
+
 export function contextRoutes(db: DrizzleDb) {
   const router = new Hono();
 
   // POST /:id/context — Append context entry
   router.post("/:id/context", async (c) => {
     const taskId = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
-    if (taskRows.length === 0) {
+    const owned = await verifyTaskOwnership(db, taskId, userId);
+    if (!owned) {
       return c.json({ error: "Task not found" }, 404);
     }
 
@@ -76,9 +87,10 @@ export function contextRoutes(db: DrizzleDb) {
   // GET /:id/context — List context entries (chronological)
   router.get("/:id/context", async (c) => {
     const taskId = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
-    if (taskRows.length === 0) {
+    const owned = await verifyTaskOwnership(db, taskId, userId);
+    if (!owned) {
       return c.json({ error: "Task not found" }, 404);
     }
 

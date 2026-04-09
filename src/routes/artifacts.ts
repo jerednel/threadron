@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { artifacts, tasks } from "../db/schema.js";
+import { artifacts, tasks, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
-import { eq, asc } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -21,15 +21,26 @@ function toApi(row: typeof artifacts.$inferSelect) {
   };
 }
 
+async function verifyTaskOwnership(db: DrizzleDb, taskId: string, userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+    .where(eq(tasks.id, taskId))
+    .limit(1);
+  return !!row;
+}
+
 export function artifactRoutes(db: DrizzleDb) {
   const router = new Hono();
 
   // POST /tasks/:id/artifacts — Create artifact
   router.post("/:id/artifacts", async (c) => {
     const taskId = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
-    if (taskRows.length === 0) {
+    const owned = await verifyTaskOwnership(db, taskId, userId);
+    if (!owned) {
       return c.json({ error: "Task not found" }, 404);
     }
 
@@ -68,9 +79,10 @@ export function artifactRoutes(db: DrizzleDb) {
   // GET /tasks/:id/artifacts — List artifacts for a task
   router.get("/:id/artifacts", async (c) => {
     const taskId = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const taskRows = await db.select().from(tasks).where(eq(tasks.id, taskId)).limit(1);
-    if (taskRows.length === 0) {
+    const owned = await verifyTaskOwnership(db, taskId, userId);
+    if (!owned) {
       return c.json({ error: "Task not found" }, 404);
     }
 
@@ -93,13 +105,22 @@ export function artifactLookupRoutes(db: DrizzleDb) {
   // GET /artifacts/:id — Get single artifact
   router.get("/:id", async (c) => {
     const id = c.req.param("id");
-    const rows = await db.select().from(artifacts).where(eq(artifacts.id, id)).limit(1);
+    const userId: string = c.get("userId") as string;
+
+    // Verify the artifact's task belongs to the user
+    const rows = await db
+      .select({ artifact: artifacts })
+      .from(artifacts)
+      .innerJoin(tasks, eq(artifacts.taskId, tasks.id))
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(artifacts.id, id))
+      .limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
-    return c.json(toApi(rows[0]));
+    return c.json(toApi(rows[0].artifact));
   });
 
   return router;

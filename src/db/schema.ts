@@ -5,16 +5,18 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // Domains
 export const domains = pgTable("domains", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  userId: text("user_id").notNull(),
   defaultGuardrail: text("default_guardrail"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [index("domains_user_idx").on(t.userId)]);
 
 // Projects
 export const projects = pgTable(
@@ -115,11 +117,12 @@ export const agents = pgTable("agents", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(),
+  userId: text("user_id").notNull(),
   capabilities: jsonb("capabilities"),
   lastSeen: timestamp("last_seen"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (t) => [index("agents_user_idx").on(t.userId)]);
 
 // API Keys
 export const apiKeys = pgTable(
@@ -140,9 +143,21 @@ export const apiKeys = pgTable(
 
 // Config
 export const config = pgTable("config", {
-  key: text("key").primaryKey(),
+  id: text("id").primaryKey(),
+  key: text("key").notNull(),
+  userId: text("user_id").notNull(),
   value: jsonb("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => [
+  index("config_user_key_idx").on(t.userId, t.key),
+  unique("config_user_key_unique").on(t.userId, t.key),
+]);
+
+// Waitlist
+export const waitlist = pgTable("waitlist", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Users

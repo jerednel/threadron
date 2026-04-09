@@ -38,6 +38,7 @@ export function authMiddleware(db: DrizzleDb): MiddlewareHandler {
     }
 
     c.set("apiKey", row);
+    c.set("userId", row.userId ?? row.id);
     await next();
   };
 }

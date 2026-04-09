@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Hono } from "hono";
-import { createTestContext } from "../helpers/api.js";
+import { createTestContext, TEST_USER_ID } from "../helpers/api.js";
 import { agentRoutes } from "../../src/routes/agents.js";
 
 let ctx: Awaited<ReturnType<typeof createTestContext>>;
@@ -15,6 +15,10 @@ afterEach(async () => {
 
 function buildApp() {
   const app = new Hono().basePath("/v1");
+  app.use("/*", async (c, next) => {
+    c.set("userId", TEST_USER_ID);
+    await next();
+  });
   app.route("/agents", agentRoutes(ctx.db));
   return app;
 }

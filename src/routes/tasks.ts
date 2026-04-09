@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { tasks, contextEntries } from "../db/schema.js";
+import { tasks, contextEntries, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
 import { eq, and, ilike, asc } from "drizzle-orm";
@@ -40,6 +40,18 @@ function toApi(row: typeof tasks.$inferSelect) {
   };
 }
 
+async function verifyDomainOwnership(db: DrizzleDb, domainId: string, userId: string): Promise<boolean> {
+  const [domain] = await db.select().from(domains)
+    .where(and(eq(domains.id, domainId), eq(domains.userId, userId))).limit(1);
+  return !!domain;
+}
+
+async function getTaskDomainId(db: DrizzleDb, taskId: string): Promise<string | null> {
+  const [task] = await db.select({ domainId: tasks.domainId }).from(tasks)
+    .where(eq(tasks.id, taskId)).limit(1);
+  return task?.domainId ?? null;
+}
+
 export function taskRoutes(db: DrizzleDb) {
   const router = new Hono();
 
@@ -66,6 +78,14 @@ export function taskRoutes(db: DrizzleDb) {
       claimed_by?: string;
       claim_expires_at?: string;
     }>();
+
+    const userId: string = c.get("userId") as string;
+
+    // Verify domain belongs to user
+    const owned = await verifyDomainOwnership(db, body.domain_id, userId);
+    if (!owned) {
+      return c.json({ error: "Domain not found" }, 404);
+    }
 
     const id = genId("t");
 
@@ -98,8 +118,9 @@ export function taskRoutes(db: DrizzleDb) {
     return c.json(toApi(row), 201);
   });
 
-  // GET / — List tasks with optional filters
+  // GET / — List tasks with optional filters (scoped to user via domain join)
   router.get("/", async (c) => {
+    const userId: string = c.get("userId") as string;
     const filters: SQL[] = [];
 
     const assignee = c.req.query("assignee");
@@ -116,18 +137,27 @@ export function taskRoutes(db: DrizzleDb) {
     if (guardrail) filters.push(eq(tasks.guardrail, guardrail));
     if (search) filters.push(ilike(tasks.title, `%${escapeIlike(search)}%`));
 
-    const rows =
-      filters.length > 0
-        ? await db.select().from(tasks).where(and(...filters))
-        : await db.select().from(tasks);
+    // Always scope to user's domains
+    const rows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(filters.length > 0 ? and(...filters) : undefined);
 
-    return c.json({ tasks: rows.map(toApi) });
+    return c.json({ tasks: rows.map((r) => toApi(r.task)) });
   });
 
   // GET /:id — Get single task with full context log and artifacts
   router.get("/:id", async (c) => {
     const id = c.req.param("id");
-    const rows = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+    const userId: string = c.get("userId") as string;
+
+    const rows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
@@ -170,7 +200,7 @@ export function taskRoutes(db: DrizzleDb) {
     });
 
     return c.json({
-      ...toApi(rows[0]),
+      ...toApi(rows[0].task),
       context: context.map(ctxToApi),
       artifacts: artifactRows.map(artifactToApi),
     });
@@ -179,6 +209,7 @@ export function taskRoutes(db: DrizzleDb) {
   // PATCH /:id — Update task
   router.patch("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{
       title?: string;
       status?: string;
@@ -203,12 +234,18 @@ export function taskRoutes(db: DrizzleDb) {
       _actor_type?: string;
     }>();
 
-    const existing = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-    if (existing.length === 0) {
+    const existingRows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
+
+    if (existingRows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
-    const oldRow = existing[0];
+    const oldRow = existingRows[0].task;
 
     const updates: Partial<typeof tasks.$inferInsert> = {
       updatedAt: new Date(),
@@ -269,9 +306,16 @@ export function taskRoutes(db: DrizzleDb) {
   // DELETE /:id — Delete task
   router.delete("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const existing = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-    if (existing.length === 0) {
+    const existingRows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
+
+    if (existingRows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
@@ -282,17 +326,24 @@ export function taskRoutes(db: DrizzleDb) {
   // POST /:id/claim — Claim a work item
   router.post("/:id/claim", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{
       agent_id: string;
       duration_minutes?: number;
     }>();
 
-    const existing = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-    if (existing.length === 0) {
+    const existingRows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
+
+    if (existingRows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
-    const row = existing[0];
+    const row = existingRows[0].task;
     const now = new Date();
 
     // Check if already claimed by someone else (and not expired)
@@ -322,12 +373,19 @@ export function taskRoutes(db: DrizzleDb) {
   // POST /:id/release — Release a claim
   router.post("/:id/release", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{
       agent_id?: string;
     }>().catch(() => ({}));
 
-    const existing = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-    if (existing.length === 0) {
+    const existingRows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
+
+    if (existingRows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 

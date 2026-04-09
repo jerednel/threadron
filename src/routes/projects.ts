@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { projects } from "../db/schema.js";
+import { projects, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -17,6 +17,12 @@ function toApi(row: typeof projects.$inferSelect) {
   };
 }
 
+async function verifyDomainOwnership(db: DrizzleDb, domainId: string, userId: string): Promise<boolean> {
+  const [domain] = await db.select().from(domains)
+    .where(and(eq(domains.id, domainId), eq(domains.userId, userId))).limit(1);
+  return !!domain;
+}
+
 export function projectRoutes(db: DrizzleDb) {
   const router = new Hono();
 
@@ -27,6 +33,13 @@ export function projectRoutes(db: DrizzleDb) {
       domain_id: string;
       description?: string;
     }>();
+    const userId: string = c.get("userId") as string;
+
+    const owned = await verifyDomainOwnership(db, body.domain_id, userId);
+    if (!owned) {
+      return c.json({ error: "Domain not found" }, 404);
+    }
+
     const id = genId("p");
 
     const [row] = await db
@@ -42,37 +55,58 @@ export function projectRoutes(db: DrizzleDb) {
     return c.json(toApi(row), 201);
   });
 
-  // GET / — List projects (optional ?domain_id= filter)
+  // GET / — List projects (scoped to user's domains, optional ?domain_id= filter)
   router.get("/", async (c) => {
+    const userId: string = c.get("userId") as string;
     const domainId = c.req.query("domain_id");
-    const rows = domainId
-      ? await db.select().from(projects).where(eq(projects.domainId, domainId))
-      : await db.select().from(projects);
 
-    return c.json({ projects: rows.map(toApi) });
+    const conditions = [eq(domains.userId, userId)];
+    if (domainId) conditions.push(eq(projects.domainId, domainId));
+
+    const rows = await db
+      .select({ project: projects })
+      .from(projects)
+      .innerJoin(domains, and(eq(projects.domainId, domains.id), eq(domains.userId, userId)))
+      .where(domainId ? eq(projects.domainId, domainId) : undefined);
+
+    return c.json({ projects: rows.map((r) => toApi(r.project)) });
   });
 
   // GET /:id — Get single project
   router.get("/:id", async (c) => {
     const id = c.req.param("id");
-    const rows = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    const userId: string = c.get("userId") as string;
+
+    const rows = await db
+      .select({ project: projects })
+      .from(projects)
+      .innerJoin(domains, and(eq(projects.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(projects.id, id))
+      .limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
-    return c.json(toApi(rows[0]));
+    return c.json(toApi(rows[0].project));
   });
 
   // PATCH /:id — Update project
   router.patch("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{
       name?: string;
       description?: string;
     }>();
 
-    const existing = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    const existing = await db
+      .select({ project: projects })
+      .from(projects)
+      .innerJoin(domains, and(eq(projects.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(projects.id, id))
+      .limit(1);
+
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
@@ -95,8 +129,15 @@ export function projectRoutes(db: DrizzleDb) {
   // DELETE /:id — Delete project
   router.delete("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const existing = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    const existing = await db
+      .select({ project: projects })
+      .from(projects)
+      .innerJoin(domains, and(eq(projects.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(projects.id, id))
+      .limit(1);
+
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }

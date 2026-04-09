@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
 import { domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -22,29 +22,33 @@ export function domainRoutes(db: DrizzleDb) {
   // POST / — Create domain
   router.post("/", async (c) => {
     const body = await c.req.json<{ name: string; default_guardrail?: string }>();
+    const userId: string = c.get("userId") as string;
     const id = genId("d");
     const defaultGuardrail = body.default_guardrail ?? "autonomous";
 
     const [row] = await db
       .insert(domains)
-      .values({ id, name: body.name, defaultGuardrail })
+      .values({ id, name: body.name, userId, defaultGuardrail })
       .returning();
 
     return c.json(toApi(row), 201);
   });
 
-  // GET / — List domains
+  // GET / — List domains (scoped to user)
   router.get("/", async (c) => {
-    const rows = await db.select().from(domains);
+    const userId: string = c.get("userId") as string;
+    const rows = await db.select().from(domains).where(eq(domains.userId, userId));
     return c.json({ domains: rows.map(toApi) });
   });
 
   // PATCH /:id — Update domain
   router.patch("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{ name?: string; default_guardrail?: string }>();
 
-    const existing = await db.select().from(domains).where(eq(domains.id, id)).limit(1);
+    const existing = await db.select().from(domains)
+      .where(and(eq(domains.id, id), eq(domains.userId, userId))).limit(1);
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
@@ -58,7 +62,7 @@ export function domainRoutes(db: DrizzleDb) {
     const [row] = await db
       .update(domains)
       .set(updates)
-      .where(eq(domains.id, id))
+      .where(and(eq(domains.id, id), eq(domains.userId, userId)))
       .returning();
 
     return c.json(toApi(row));
@@ -67,13 +71,15 @@ export function domainRoutes(db: DrizzleDb) {
   // DELETE /:id — Delete domain
   router.delete("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const existing = await db.select().from(domains).where(eq(domains.id, id)).limit(1);
+    const existing = await db.select().from(domains)
+      .where(and(eq(domains.id, id), eq(domains.userId, userId))).limit(1);
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
 
-    await db.delete(domains).where(eq(domains.id, id));
+    await db.delete(domains).where(and(eq(domains.id, id), eq(domains.userId, userId)));
     return c.json({ deleted: true });
   });
 

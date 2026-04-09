@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
 import { config } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { genId } from "../lib/id.js";
+import { eq, and } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -19,15 +20,18 @@ export function configRoutes(db: DrizzleDb) {
   // POST / — Set/upsert config entry
   router.post("/", async (c) => {
     const body = await c.req.json<{ key: string; value: unknown }>();
+    const userId: string = c.get("userId") as string;
 
     const [row] = await db
       .insert(config)
       .values({
+        id: genId("cfg"),
         key: body.key,
+        userId,
         value: body.value,
       })
       .onConflictDoUpdate({
-        target: config.key,
+        target: [config.userId, config.key],
         set: {
           value: body.value,
           updatedAt: new Date(),
@@ -38,16 +42,19 @@ export function configRoutes(db: DrizzleDb) {
     return c.json(toApi(row), 201);
   });
 
-  // GET / — List all config entries
+  // GET / — List all config entries (scoped to user)
   router.get("/", async (c) => {
-    const rows = await db.select().from(config);
+    const userId: string = c.get("userId") as string;
+    const rows = await db.select().from(config).where(eq(config.userId, userId));
     return c.json({ config: rows.map(toApi) });
   });
 
   // GET /:key — Get single config entry
   router.get("/:key", async (c) => {
     const key = c.req.param("key");
-    const rows = await db.select().from(config).where(eq(config.key, key)).limit(1);
+    const userId: string = c.get("userId") as string;
+    const rows = await db.select().from(config)
+      .where(and(eq(config.userId, userId), eq(config.key, key))).limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
@@ -59,9 +66,11 @@ export function configRoutes(db: DrizzleDb) {
   // PATCH /:key — Update config entry
   router.patch("/:key", async (c) => {
     const key = c.req.param("key");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{ value: unknown }>();
 
-    const existing = await db.select().from(config).where(eq(config.key, key)).limit(1);
+    const existing = await db.select().from(config)
+      .where(and(eq(config.userId, userId), eq(config.key, key))).limit(1);
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
@@ -69,7 +78,7 @@ export function configRoutes(db: DrizzleDb) {
     const [row] = await db
       .update(config)
       .set({ value: body.value, updatedAt: new Date() })
-      .where(eq(config.key, key))
+      .where(and(eq(config.userId, userId), eq(config.key, key)))
       .returning();
 
     return c.json(toApi(row));

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
 import { agents } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -28,6 +28,7 @@ export function agentRoutes(db: DrizzleDb) {
       type?: string;
       capabilities?: unknown;
     }>();
+    const userId: string = c.get("userId") as string;
 
     const [row] = await db
       .insert(agents)
@@ -35,6 +36,7 @@ export function agentRoutes(db: DrizzleDb) {
         id: body.id,
         name: body.name,
         type: body.type ?? "generic",
+        userId,
         capabilities: body.capabilities ?? null,
         lastSeen: new Date(),
       })
@@ -43,16 +45,19 @@ export function agentRoutes(db: DrizzleDb) {
     return c.json(toApi(row), 201);
   });
 
-  // GET / — List agents
+  // GET / — List agents (scoped to user)
   router.get("/", async (c) => {
-    const rows = await db.select().from(agents);
+    const userId: string = c.get("userId") as string;
+    const rows = await db.select().from(agents).where(eq(agents.userId, userId));
     return c.json({ agents: rows.map(toApi) });
   });
 
   // GET /:id — Get single agent
   router.get("/:id", async (c) => {
     const id = c.req.param("id");
-    const rows = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+    const userId: string = c.get("userId") as string;
+    const rows = await db.select().from(agents)
+      .where(and(eq(agents.id, id), eq(agents.userId, userId))).limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
@@ -64,6 +69,7 @@ export function agentRoutes(db: DrizzleDb) {
   // PATCH /:id — Update agent
   router.patch("/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
     const body = await c.req.json<{
       name?: string;
       type?: string;
@@ -71,7 +77,8 @@ export function agentRoutes(db: DrizzleDb) {
       last_seen?: string;
     }>();
 
-    const existing = await db.select().from(agents).where(eq(agents.id, id)).limit(1);
+    const existing = await db.select().from(agents)
+      .where(and(eq(agents.id, id), eq(agents.userId, userId))).limit(1);
     if (existing.length === 0) {
       return c.json({ error: "Not found" }, 404);
     }
@@ -87,7 +94,7 @@ export function agentRoutes(db: DrizzleDb) {
     const [row] = await db
       .update(agents)
       .set(updates)
-      .where(eq(agents.id, id))
+      .where(and(eq(agents.id, id), eq(agents.userId, userId)))
       .returning();
 
     return c.json(toApi(row));

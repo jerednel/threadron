@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { Hono } from "hono";
-import { createTestContext } from "../helpers/api.js";
+import { createTestContext, TEST_USER_ID } from "../helpers/api.js";
 import { domainRoutes } from "../../src/routes/domains.js";
 import { projectRoutes } from "../../src/routes/projects.js";
 
@@ -16,6 +16,10 @@ afterEach(async () => {
 
 function buildApp() {
   const app = new Hono().basePath("/v1");
+  app.use("/*", async (c, next) => {
+    c.set("userId", TEST_USER_ID);
+    await next();
+  });
   app.route("/domains", domainRoutes(ctx.db));
   app.route("/projects", projectRoutes(ctx.db));
   return app;
