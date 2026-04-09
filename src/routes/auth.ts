@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
 import { apiKeys } from "../db/schema.js";
 import { genId } from "../lib/id.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
 
@@ -54,7 +54,11 @@ export function authProtectedRoutes(db: DrizzleDb) {
 
   // GET /keys — List API keys with redacted key values
   router.get("/keys", async (c) => {
-    const rows = await db.select().from(apiKeys);
+    const userId: string = c.get("userId") as string;
+    const rows = await db
+      .select()
+      .from(apiKeys)
+      .where(eq(apiKeys.userId, userId));
 
     const keys = rows.map((row) => ({
       id: row.id,
@@ -70,14 +74,15 @@ export function authProtectedRoutes(db: DrizzleDb) {
   // DELETE /keys/:id — Revoke an API key
   router.delete("/keys/:id", async (c) => {
     const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
 
-    const existing = await db
+    const [existing] = await db
       .select()
       .from(apiKeys)
-      .where(eq(apiKeys.id, id))
+      .where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)))
       .limit(1);
 
-    if (existing.length === 0) {
+    if (!existing) {
       return c.json({ error: "Not found" }, 404);
     }
 
