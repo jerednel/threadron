@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api, type Task, type Domain } from '../lib/api';
+import { api, type Task, type Domain, type Project } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import NewTask from '../components/NewTask';
@@ -9,6 +9,9 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -19,12 +22,31 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Load projects when domain changes
+  useEffect(() => {
+    if (selectedDomainId) {
+      api.listProjects(selectedDomainId).then(setProjects).catch(() => setProjects([]));
+    } else {
+      setProjects([]);
+    }
+    setSelectedProjectId('');
+    setSelectedTags(new Set());
+  }, [selectedDomainId]);
+
+  // Reset tags when project changes
+  useEffect(() => {
+    setSelectedTags(new Set());
+  }, [selectedProjectId]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
+      const params: Record<string, string> = {};
+      if (selectedDomainId) params.domain_id = selectedDomainId;
+      if (selectedProjectId) params.project_id = selectedProjectId;
       const [tasksRes, domainsRes] = await Promise.all([
-        api.listTasks(selectedDomainId ? { domain_id: selectedDomainId } : undefined),
+        api.listTasks(Object.keys(params).length > 0 ? params : undefined),
         api.listDomains(),
       ]);
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
@@ -38,55 +60,125 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDomainId, onboardingDismissed]);
+  }, [selectedDomainId, selectedProjectId, onboardingDismissed]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const activeTasks = tasks.filter(t => t.status === 'in_progress' || t.status === 'blocked');
+  // Collect unique tags from all fetched tasks
+  const allTags = [...new Set(tasks.flatMap(t => t.tags || []))].sort();
+
+  // Client-side tag filtering
+  const filteredTasks = selectedTags.size > 0
+    ? tasks.filter(t => t.tags?.some(tag => selectedTags.has(tag)))
+    : tasks;
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => {
+      const next = new Set(prev);
+      if (next.has(tag)) {
+        next.delete(tag);
+      } else {
+        next.add(tag);
+      }
+      return next;
+    });
+  };
+
+  const activeTasks = filteredTasks.filter(t => t.status === 'in_progress' || t.status === 'blocked');
   const inProgressTasks = activeTasks.filter(t => t.status === 'in_progress');
   const blockedTasks = activeTasks.filter(t => t.status === 'blocked');
-  const pendingTasks = tasks.filter(t => t.status === 'pending');
-  const completedTasks = tasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
+  const pendingTasks = filteredTasks.filter(t => t.status === 'pending');
+  const completedTasks = filteredTasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
 
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex items-center justify-between shrink-0 gap-2">
-        {/* Domain filter tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto min-w-0">
-          <button
-            onClick={() => setSelectedDomainId('')}
-            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
-              selectedDomainId === ''
-                ? 'bg-[#f0f0f0] text-[#0a0a0a]'
-                : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
-            }`}
-          >
-            All
-          </button>
-          {domains.map(d => (
+      <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex flex-col gap-2 shrink-0">
+        {/* Domain tabs row */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto min-w-0">
             <button
-              key={d.id}
-              onClick={() => setSelectedDomainId(d.id)}
+              onClick={() => setSelectedDomainId('')}
               className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
-                selectedDomainId === d.id
+                selectedDomainId === ''
                   ? 'bg-[#f0f0f0] text-[#0a0a0a]'
                   : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
               }`}
             >
-              {d.name}
+              All
             </button>
-          ))}
+            {domains.map(d => (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDomainId(d.id)}
+                className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
+                  selectedDomainId === d.id
+                    ? 'bg-[#f0f0f0] text-[#0a0a0a]'
+                    : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
+                }`}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setShowNewTask(true)}
+            className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer shrink-0"
+          >
+            + New Task
+          </button>
         </div>
 
-        <button
-          onClick={() => setShowNewTask(true)}
-          className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer shrink-0 ml-4"
-        >
-          + New Task
-        </button>
+        {/* Project filter row — only when a domain is selected and has projects */}
+        {selectedDomainId && projects.length > 0 && (
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <button
+              onClick={() => setSelectedProjectId('')}
+              className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                selectedProjectId === ''
+                  ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
+                  : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
+              }`}
+            >
+              All Projects
+            </button>
+            {projects.map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedProjectId(p.id)}
+                className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                  selectedProjectId === p.id
+                    ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
+                    : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
+                }`}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Tag filter row — only when there are tags in the current task set */}
+        {allTags.length > 0 && (
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {allTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                  selectedTags.has(tag)
+                    ? 'bg-purple-900/30 text-purple-400 border-purple-800/40'
+                    : 'text-[#6a6a6a] border-[#2a2a2a] hover:text-[#9a9a9a] hover:border-[#3a3a3a]'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content */}
