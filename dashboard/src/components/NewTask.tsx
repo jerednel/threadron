@@ -70,9 +70,9 @@ export default function NewTask({ onClose, onCreated, defaultDomainId }: NewTask
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg w-full max-w-md mx-4 p-6">
+    <div className="fixed inset-0 z-50 md:flex md:items-center md:justify-center">
+      <div className="absolute inset-0 bg-black/60 hidden md:block" onClick={onClose} />
+      <div className="relative bg-[#1a1a1a] md:border md:border-[#2a2a2a] md:rounded-lg w-full md:max-w-md h-full md:h-auto overflow-y-auto md:overflow-visible p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-mono text-sm font-bold text-[#f0f0f0] uppercase tracking-wide">
             New Task

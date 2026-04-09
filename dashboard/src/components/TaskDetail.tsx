@@ -308,14 +308,23 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div className="flex-1 bg-black/50" onClick={onClose} />
+      {/* Backdrop — desktop only */}
+      <div className="hidden md:flex flex-1 bg-black/50" onClick={onClose} />
 
-      {/* Panel */}
-      <div className="w-[600px] bg-[#0a0a0a] border-l border-[#222] flex flex-col h-full overflow-hidden">
+      {/* Panel — full-screen on mobile, slide-in on desktop */}
+      <div className="fixed inset-0 md:inset-auto md:top-0 md:right-0 md:w-[600px] md:h-full bg-[#0a0a0a] border-l border-[#222] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[#1e1e1e] shrink-0">
-          <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">Work Item</span>
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-[#1e1e1e] shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Back button — mobile */}
+            <button
+              onClick={onClose}
+              className="md:hidden flex items-center gap-1.5 text-[#8a8a8a] hover:text-[#f0f0f0] transition-colors cursor-pointer font-mono text-xs"
+            >
+              ← Back
+            </button>
+            <span className="hidden md:block text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">Work Item</span>
+          </div>
           <button
             onClick={onClose}
             className="text-[#4a4a4a] hover:text-[#f0f0f0] text-lg leading-none cursor-pointer transition-colors"
@@ -331,7 +340,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
         )}
 
         {error && !loading && (
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             <p className="text-red-400 font-mono text-sm">{error}</p>
           </div>
         )}
@@ -340,7 +349,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
           <div className="flex-1 overflow-y-auto">
 
             {/* ── STATE SUMMARY (HERO) ── */}
-            <div className="px-6 pt-6 pb-5 border-b border-[#1e1e1e]">
+            <div className="px-4 md:px-6 pt-6 pb-5 border-b border-[#1e1e1e]">
               {/* Title */}
               <h2 className="text-lg font-semibold text-white mb-1 leading-snug">
                 {task.title}
@@ -509,7 +518,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
             </div>
 
             {/* ── TIMELINE ── */}
-            <div className="px-6 py-5 border-b border-[#1e1e1e]">
+            <div className="px-4 md:px-6 py-5 border-b border-[#1e1e1e]">
               <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-4">Timeline</h3>
 
               {(!task.context || task.context.length === 0) ? (
@@ -606,7 +615,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
             </div>
 
             {/* ── ARTIFACTS ── */}
-            <div className="px-6 py-5">
+            <div className="px-4 md:px-6 py-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">Artifacts</h3>
                 <button

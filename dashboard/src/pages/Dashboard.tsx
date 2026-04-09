@@ -53,9 +53,9 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
-      <div className="border-b border-[#2a2a2a] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex items-center justify-between shrink-0 gap-2">
         {/* Domain filter tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center gap-1 overflow-x-auto min-w-0">
           <button
             onClick={() => setSelectedDomainId('')}
             className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
@@ -90,7 +90,7 @@ export default function Dashboard() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 md:p-6">
         {loading && (
           <div className="flex items-center justify-center h-32">
             <span className="font-mono text-[#8a8a8a] text-sm">loading...</span>

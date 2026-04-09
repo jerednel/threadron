@@ -576,13 +576,44 @@ footer .footer-links a:hover {
   mix-blend-mode: lighten;
 }
 
+/* --- HAMBURGER TOGGLE --- */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 24px;
+  cursor: pointer;
+  font-family: var(--mono);
+  line-height: 1;
+  padding: 0;
+}
+
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-  nav { padding: 16px 24px; }
-  nav .links { gap: 16px; }
-  nav .links a { font-size: 10px; letter-spacing: 1px; }
+  nav { padding: 16px 24px; position: relative; }
+  nav .nav-toggle { display: block; }
+  nav .links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-2);
+    gap: 0;
+    list-style: none;
+    z-index: 200;
+  }
+  nav .links.open { display: flex; }
+  nav .links a { padding: 8px 0; font-size: 12px; letter-spacing: 1px; }
   section { padding: 60px 24px; }
   section.hero { padding: 100px 24px 60px; }
   .pricing-grid { grid-template-columns: 1fr; }
   h1 { letter-spacing: -1px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .mascot { width: 200px !important; height: 200px !important; }
 }
