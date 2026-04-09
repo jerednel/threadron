@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { api, type TaskDetail as TaskDetailType, type ContextEntry, type Artifact } from '../lib/api';
+import { api, type TaskDetail as TaskDetailType, type ContextEntry, type Artifact, type Project } from '../lib/api';
 
 interface TaskDetailProps {
   taskId: string;
@@ -147,6 +147,102 @@ function InlineEdit({ label, value, multiline, prominent, onSave }: InlineEditPr
         }`}
       >
         {value || <span className="text-[#3a3a3a] italic text-sm font-normal">click to edit...</span>}
+      </div>
+    </div>
+  );
+}
+
+// ── Project Selector ──────────────────────────────────────────────
+function ProjectSelector({ domainId, currentProjectId, onSelect }: {
+  domainId: string;
+  currentProjectId: string;
+  onSelect: (projectId: string) => Promise<void>;
+}) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (domainId) {
+      api.listProjects(domainId).then(setProjects).catch(() => setProjects([]));
+    }
+  }, [domainId]);
+
+  return (
+    <div>
+      <label className="block text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Project</label>
+      <select
+        value={currentProjectId}
+        onChange={async (e) => {
+          setLoading(true);
+          try { await onSelect(e.target.value); } finally { setLoading(false); }
+        }}
+        disabled={loading}
+        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#3a3a3a] cursor-pointer disabled:opacity-50"
+      >
+        <option value="">No project</option>
+        {projects.map(p => (
+          <option key={p.id} value={p.id}>{p.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// ── Tag Editor ────────────────────────────────────────────────────
+function TagEditor({ tags, onUpdate }: {
+  tags: string[];
+  onUpdate: (tags: string[]) => Promise<void>;
+}) {
+  const [newTag, setNewTag] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function handleAdd() {
+    const tag = newTag.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    if (!tag || tags.includes(tag)) return;
+    setSaving(true);
+    try { await onUpdate([...tags, tag]); setNewTag(''); } finally { setSaving(false); }
+  }
+
+  async function handleRemove(tag: string) {
+    setSaving(true);
+    try { await onUpdate(tags.filter(t => t !== tag)); } finally { setSaving(false); }
+  }
+
+  return (
+    <div>
+      <label className="block text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1.5">Tags</label>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {tags.map(tag => (
+            <span key={tag} className="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#9a9a9a] bg-[#141414]">
+              #{tag}
+              <button
+                onClick={() => handleRemove(tag)}
+                disabled={saving}
+                className="text-[#4a4a4a] hover:text-red-400 transition-colors cursor-pointer disabled:opacity-40 leading-none"
+              >
+                x
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newTag}
+          onChange={e => setNewTag(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}
+          placeholder="Add tag..."
+          className="flex-1 bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
+        />
+        <button
+          onClick={handleAdd}
+          disabled={!newTag.trim() || saving}
+          className="text-xs font-mono px-2 py-1 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer disabled:opacity-40"
+        >
+          Add
+        </button>
       </div>
     </div>
   );
@@ -480,41 +576,48 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                 onSave={v => handleFieldSave('outcome_definition', v)}
               />
 
-              {/* Task metadata */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2 pt-4 border-t border-[#1a1a1a] text-xs">
-                {task.domain && (
+              {/* Task metadata — editable project + tags */}
+              <div className="mt-2 pt-4 border-t border-[#1a1a1a] space-y-3">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                  {task.domain_id && (
+                    <div>
+                      <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Domain</span>
+                      <span className="font-mono text-[#a0a0a0]">{task.domain_id}</span>
+                    </div>
+                  )}
+                  {task.assignee && (
+                    <div>
+                      <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Assignee</span>
+                      <span className="font-mono text-[#a0a0a0]">@{task.assignee}</span>
+                    </div>
+                  )}
                   <div>
-                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Domain</span>
-                    <span className="font-mono text-[#a0a0a0]">{task.domain.name}</span>
+                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Created</span>
+                    <span className="font-mono text-[#6a6a6a]">{formatDate(task.created_at)}</span>
                   </div>
-                )}
-                {task.assignee && (
-                  <div>
-                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Assignee</span>
-                    <span className="font-mono text-[#a0a0a0]">@{task.assignee}</span>
-                  </div>
-                )}
-                {task.project && (
-                  <div>
-                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Project</span>
-                    <span className="font-mono text-[#a0a0a0]">{task.project.name}</span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Created</span>
-                  <span className="font-mono text-[#6a6a6a]">{formatDate(task.created_at)}</span>
                 </div>
-              </div>
 
-              {task.tags && task.tags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {task.tags.map(tag => (
-                    <span key={tag} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a]">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+                {/* Project — editable dropdown */}
+                <ProjectSelector
+                  domainId={task.domain_id || ''}
+                  currentProjectId={task.project_id || ''}
+                  onSelect={async (projectId) => {
+                    await api.updateTask(task.id, { project_id: projectId || undefined } as never);
+                    setTask(prev => prev ? { ...prev, project_id: projectId || undefined } : null);
+                    onUpdate();
+                  }}
+                />
+
+                {/* Tags — editable */}
+                <TagEditor
+                  tags={task.tags || []}
+                  onUpdate={async (newTags) => {
+                    await api.updateTask(task.id, { tags: newTags } as never);
+                    setTask(prev => prev ? { ...prev, tags: newTags } : null);
+                    onUpdate();
+                  }}
+                />
+              </div>
             </div>
 
             {/* ── TIMELINE ── */}
