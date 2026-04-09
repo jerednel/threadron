@@ -21,7 +21,12 @@ import { mcpRoutes } from "./routes/mcp.js";
 
 const app = new Hono();
 
-app.use("/*", cors());
+app.use("/*", cors({
+  origin: process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(",")
+    : ["https://threadron.com", "http://localhost:5173", "http://localhost:3000"],
+  credentials: true,
+}));
 app.use("/*", rateLimit(60000, 200)); // 200 requests per minute
 
 app.onError((err, c) => {

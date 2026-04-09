@@ -1,7 +1,6 @@
 import type { MiddlewareHandler } from "hono";
 import { verify } from "hono/jwt";
-
-const JWT_SECRET = process.env.JWT_SECRET || "tfa-dev-secret-change-me";
+import { JWT_SECRET } from "../lib/config.js";
 
 export function jwtMiddleware(): MiddlewareHandler {
   return async (c, next) => {

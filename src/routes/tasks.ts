@@ -3,7 +3,7 @@ import type { db as DbType } from "../db/connection.js";
 import { tasks, contextEntries, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
-import { eq, and, ilike, asc } from "drizzle-orm";
+import { eq, and, or, isNull, lte, ilike, asc, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
 type DrizzleDb = typeof DbType;
@@ -359,6 +359,7 @@ export function taskRoutes(db: DrizzleDb) {
       allow_parallel?: boolean;
     }>();
 
+    // Ownership check — verify task belongs to a domain owned by this user
     const existingRows = await db
       .select({ task: tasks })
       .from(tasks)
@@ -373,7 +374,8 @@ export function taskRoutes(db: DrizzleDb) {
     const row = existingRows[0].task;
     const now = new Date();
     const currentClaims = row.claimedBy ? row.claimedBy.split(",").map(s => s.trim()).filter(Boolean) : [];
-    const isExpired = row.claimExpiresAt && row.claimExpiresAt <= now;
+    const expiresAt = row.claimExpiresAt ? new Date(row.claimExpiresAt) : null;
+    const isExpired = expiresAt !== null && expiresAt <= now;
     const alreadyClaimedByOther = currentClaims.length > 0 && !currentClaims.includes(body.agent_id) && !isExpired;
 
     if (alreadyClaimedByOther && !body.allow_parallel) {
@@ -400,6 +402,18 @@ export function taskRoutes(db: DrizzleDb) {
       newClaims = [body.agent_id];
     }
 
+    // Atomic UPDATE — only succeeds if claim state hasn't changed since our SELECT.
+    // Condition: claimedBy is NULL, OR claimedBy contains this agent, OR claimExpiresAt <= now,
+    // OR allow_parallel is requested (any current claimedBy value is acceptable).
+    const atomicClaimCondition = body.allow_parallel
+      // Parallel: always allowed (ownership already verified above)
+      ? undefined
+      : or(
+          isNull(tasks.claimedBy),
+          eq(tasks.claimedBy, body.agent_id),
+          lte(tasks.claimExpiresAt, now)
+        );
+
     const [updated] = await db
       .update(tasks)
       .set({
@@ -407,8 +421,24 @@ export function taskRoutes(db: DrizzleDb) {
         claimExpiresAt,
         updatedAt: now,
       })
-      .where(eq(tasks.id, id))
+      .where(atomicClaimCondition
+        ? and(eq(tasks.id, id), atomicClaimCondition)
+        : eq(tasks.id, id)
+      )
       .returning();
+
+    if (!updated) {
+      // Another request won the race — re-fetch current state for the error response
+      const [current] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+      const activeClaims = current?.claimedBy
+        ? current.claimedBy.split(",").map(s => s.trim()).filter(Boolean)
+        : [];
+      return c.json({
+        error: "Already claimed or not found",
+        claimed_by: activeClaims,
+        claim_expires_at: current?.claimExpiresAt ?? null,
+      }, 409);
+    }
 
     const parallel = newClaims.length > 1;
     await recordEvent(db, id, "claim",

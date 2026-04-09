@@ -6,10 +6,10 @@ import type { db as DbType } from "../db/connection.js";
 import { users, apiKeys, domains } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { jwtMiddleware } from "../middleware/jwt.js";
+import { JWT_SECRET } from "../lib/config.js";
 
 type DrizzleDb = typeof DbType;
 
-const JWT_SECRET = process.env.JWT_SECRET || "tfa-dev-secret-change-me";
 const JWT_EXPIRY_DAYS = 7;
 
 function generateApiKey(): string {
@@ -126,7 +126,7 @@ export function userPublicRoutes(db: DrizzleDb) {
     return c.json({
       user: { id: user.id, email: user.email, name: user.name },
       token,
-      api_key: userKey?.key ?? null,
+      api_key_prefix: userKey ? userKey.key.slice(0, 16) + "..." : null,
     });
   });
 
@@ -155,7 +155,7 @@ export function userProtectedRoutes(db: DrizzleDb) {
       .from(apiKeys)
       .where(eq(apiKeys.userId, userId));
 
-    const userDomains = await db.select().from(domains);
+    const userDomains = await db.select().from(domains).where(eq(domains.userId, userId));
 
     return c.json({
       user: {
