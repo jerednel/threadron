@@ -299,6 +299,16 @@ export function taskRoutes(db: DrizzleDb) {
         `Guardrail changed from ${oldRow.guardrail || 'none'} to ${body.guardrail}`,
         actor, actorType);
     }
+    if (body.current_state !== undefined && body.current_state !== oldRow.currentState) {
+      await recordEvent(db, id, "state_transition",
+        `State updated: ${body.current_state}`,
+        actor, actorType);
+    }
+    if (body.next_action !== undefined && body.next_action !== oldRow.nextAction) {
+      await recordEvent(db, id, "state_transition",
+        `Next action: ${body.next_action}`,
+        actor, actorType);
+    }
 
     return c.json(toApi(row));
   });
