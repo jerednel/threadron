@@ -7,6 +7,7 @@ import NewTask from '../components/NewTask';
 const COLUMNS = [
   { id: 'pending', label: 'Pending' },
   { id: 'in_progress', label: 'In Progress' },
+  { id: 'blocked', label: 'Blocked' },
   { id: 'completed', label: 'Completed' },
 ];
 
@@ -105,7 +106,7 @@ export default function Dashboard() {
         )}
 
         {!loading && !error && (
-          <div className="grid grid-cols-3 gap-4 min-h-full">
+          <div className="grid grid-cols-4 gap-4 min-h-full">
             {COLUMNS.map(col => {
               const colTasks = getColumnTasks(col.id);
               return (

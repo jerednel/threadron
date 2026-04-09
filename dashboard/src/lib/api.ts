@@ -84,6 +84,15 @@ export interface Task {
   tags?: string[];
   metadata?: Record<string, unknown>;
   needs_approval?: boolean;
+  // Work item fields
+  goal?: string;
+  current_state?: string;
+  next_action?: string;
+  outcome_definition?: string;
+  blockers?: string[];
+  confidence?: 'low' | 'medium' | 'high';
+  claimed_by?: string;
+  claimed_until?: string;
   created_at: string;
   updated_at: string;
 }
@@ -94,11 +103,24 @@ export interface ContextEntry {
   type: string;
   body: string;
   author: string;
+  actor_type?: 'system' | 'agent' | 'human';
+  created_at: string;
+}
+
+export interface Artifact {
+  id: string;
+  task_id: string;
+  type: string;
+  uri?: string;
+  body?: string;
+  title?: string;
+  created_by: string;
   created_at: string;
 }
 
 export interface TaskDetail extends Task {
   context?: ContextEntry[];
+  artifacts?: Artifact[];
 }
 
 export interface Agent {
@@ -164,6 +186,17 @@ export const api = {
   // Context
   addContext: (taskId: string, data: { type: string; body: string; author: string }): Promise<ContextEntry> =>
     request(`/tasks/${taskId}/context`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Artifacts
+  listArtifacts: (taskId: string) => request(`/tasks/${taskId}/artifacts`),
+  createArtifact: (taskId: string, data: { type: string; uri?: string; body?: string; title?: string; created_by: string }) =>
+    request(`/tasks/${taskId}/artifacts`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Claims
+  claimTask: (taskId: string, data: { agent_id: string; duration_minutes: number }) =>
+    request(`/tasks/${taskId}/claim`, { method: 'POST', body: JSON.stringify(data) }),
+  releaseTask: (taskId: string) =>
+    request(`/tasks/${taskId}/release`, { method: 'POST' }),
 
   // Agents
   listAgents: (): Promise<Agent[]> => request('/agents'),

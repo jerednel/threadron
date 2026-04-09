@@ -12,6 +12,8 @@ const guardrails = ['autonomous', 'notify', 'approval_required'];
 
 export default function NewTask({ onClose, onCreated, defaultDomainId }: NewTaskProps) {
   const [title, setTitle] = useState('');
+  const [goal, setGoal] = useState('');
+  const [outcomeDefinition, setOutcomeDefinition] = useState('');
   const [domainId, setDomainId] = useState(defaultDomainId || '');
   const [projectId, setProjectId] = useState('');
   const [assignee, setAssignee] = useState('');
@@ -53,6 +55,8 @@ export default function NewTask({ onClose, onCreated, defaultDomainId }: NewTask
         priority,
         guardrail,
         ...(tagList.length ? { tags: tagList } : {}),
+        ...(goal.trim() ? { goal: goal.trim() } : {}),
+        ...(outcomeDefinition.trim() ? { outcome_definition: outcomeDefinition.trim() } : {}),
         status: 'pending',
       });
       onCreated();
@@ -93,6 +97,34 @@ export default function NewTask({ onClose, onCreated, defaultDomainId }: NewTask
               placeholder="What needs to be done?"
               required
               className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
+            />
+          </div>
+
+          {/* Goal */}
+          <div>
+            <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1.5">
+              Goal
+            </label>
+            <textarea
+              value={goal}
+              onChange={e => setGoal(e.target.value)}
+              placeholder="What is the agent trying to accomplish?"
+              rows={2}
+              className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+            />
+          </div>
+
+          {/* Outcome Definition */}
+          <div>
+            <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1.5">
+              Outcome Definition
+            </label>
+            <textarea
+              value={outcomeDefinition}
+              onChange={e => setOutcomeDefinition(e.target.value)}
+              placeholder="What does done look like?"
+              rows={2}
+              className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
             />
           </div>
 
