@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docs — Threadron</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    /* Docs-specific styles */
+    .docs-layout {
+      display: flex;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 48px;
+    }
+
+    .docs-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 100px;
+      height: fit-content;
+      padding-right: 40px;
+    }
+
+    .docs-sidebar nav {
+      position: static;
+      background: none;
+      border: none;
+      backdrop-filter: none;
+      padding: 0;
+      display: block;
+    }
+
+    .docs-sidebar .sidebar-section {
+      margin-bottom: 28px;
+    }
+
+    .docs-sidebar .sidebar-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--gray-3);
+      margin-bottom: 10px;
+    }
+
+    .docs-sidebar ul {
+      list-style: none;
+    }
+
+    .docs-sidebar ul li a {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      text-decoration: none;
+      padding: 4px 0;
+      letter-spacing: 0;
+      text-transform: none;
+      transition: color 0.2s;
+      line-height: 1.5;
+    }
+
+    .docs-sidebar ul li a:hover {
+      color: var(--white);
+    }
+
+    .docs-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .docs-section {
+      padding: 0 0 80px 0;
+      border-bottom: 1px solid var(--gray-2);
+      margin-bottom: 80px;
+    }
+
+    .docs-section:last-child {
+      border-bottom: none;
+    }
+
+    .docs-section h2 {
+      margin-bottom: 8px;
+    }
+
+    .docs-section .section-intro {
+      color: var(--gray-4);
+      font-size: 1rem;
+      margin-bottom: 40px;
+      max-width: 680px;
+    }
+
+    /* Tool / endpoint blocks */
+    .tool-block {
+      border: 1px solid var(--gray-2);
+      margin-bottom: 24px;
+      background: var(--gray-1);
+    }
+
+    .tool-block:hover {
+      border-color: var(--gray-3);
+    }
+
+    .tool-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gray-2);
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tool-name {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .tool-desc {
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      color: var(--gray-4);
+      flex: 1;
+    }
+
+    .tool-body {
+      padding: 20px 24px;
+    }
+
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      font-family: var(--mono);
+      margin-top: 12px;
+    }
+
+    .param-table th {
+      text-align: left;
+      padding: 6px 12px 6px 0;
+      color: var(--gray-3);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--gray-2);
+      font-weight: 400;
+    }
+
+    .param-table td {
+      padding: 8px 12px 8px 0;
+      border-bottom: 1px solid var(--gray-1);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .param-table td:first-child {
+      color: var(--gray-5);
+      white-space: nowrap;
+      min-width: 160px;
+    }
+
+    .param-table td:nth-child(2) {
+      color: var(--gray-3);
+      white-space: nowrap;
+      padding-right: 24px;
+    }
+
+    .param-table td:last-child {
+      color: var(--gray-4);
+    }
+
+    .param-req {
+      color: var(--glitch-1) !important;
+      font-size: 10px;
+    }
+
+    .param-opt {
+      color: var(--gray-3) !important;
+      font-size: 10px;
+    }
+
+    /* Endpoint table */
+    .endpoint-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 24px 0;
+    }
+
+    .endpoint-table th {
+      text-align: left;
+      padding: 8px 16px 8px 0;
+      color: var(--gray-3);
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--gray-2);
+      font-weight: 400;
+    }
+
+    .endpoint-table td {
+      padding: 10px 16px 10px 0;
+      border-bottom: 1px solid var(--gray-2);
+      vertical-align: top;
+    }
+
+    .endpoint-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .method-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border: 1px solid var(--gray-2);
+      white-space: nowrap;
+    }
+
+    .method-get { color: var(--gray-5); border-color: var(--gray-3); }
+    .method-post { color: var(--white); border-color: var(--gray-4); }
+    .method-patch { color: var(--gray-4); border-color: var(--gray-3); }
+    .method-delete { color: var(--glitch-1); border-color: var(--glitch-1); opacity: 0.7; }
+
+    .endpoint-path {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gray-5);
+    }
+
+    .endpoint-desc {
+      font-size: 0.875rem;
+      color: var(--gray-4);
+    }
+
+    /* Sub-sections */
+    .sub-section {
+      margin-top: 48px;
+    }
+
+    .sub-section h3 {
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--gray-2);
+    }
+
+    /* Data model fields */
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--gray-2);
+      border: 1px solid var(--gray-2);
+      margin: 16px 0 32px;
+    }
+
+    .field-item {
+      background: var(--gray-1);
+      padding: 14px 18px;
+    }
+
+    .field-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .field-type {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gray-3);
+      margin-bottom: 4px;
+    }
+
+    .field-desc {
+      font-size: 0.8rem;
+      color: var(--gray-4);
+      line-height: 1.5;
+    }
+
+    /* Type enum list */
+    .type-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .type-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      background: var(--black);
+      border: 1px solid var(--gray-2);
+      padding: 3px 10px;
+    }
+
+    /* Behavior steps */
+    .behavior-step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 32px;
+      align-items: flex-start;
+    }
+
+    .behavior-num {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-2);
+      line-height: 1;
+      min-width: 40px;
+    }
+
+    .behavior-body h4 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .behavior-body p {
+      font-size: 0.9rem;
+      color: var(--gray-4);
+      max-width: none;
+      margin-bottom: 12px;
+    }
+
+    /* Quick start tabs */
+    .qs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--gray-2);
+      border: 1px solid var(--gray-2);
+      margin: 32px 0;
+    }
+
+    .qs-card {
+      background: var(--gray-1);
+      padding: 28px 24px;
+    }
+
+    .qs-card h3 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .qs-card p {
+      font-size: 0.85rem;
+      color: var(--gray-4);
+      margin-bottom: 16px;
+      max-width: none;
+    }
+
+    .inline-code {
+      font-family: var(--mono);
+      font-size: 0.85em;
+      color: var(--gray-5);
+      background: var(--gray-1);
+      border: 1px solid var(--gray-2);
+      padding: 1px 6px;
+    }
+
+    /* Rule / callout box */
+    .callout {
+      border-left: 2px solid var(--gray-4);
+      background: var(--gray-1);
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+
+    .callout.critical {
+      border-left-color: var(--glitch-1);
+    }
+
+    .callout p {
+      font-size: 0.9rem;
+      color: var(--gray-4);
+      max-width: none;
+      margin: 0;
+    }
+
+    .callout strong {
+      color: var(--white);
+    }
+
+    /* Section anchor links */
+    h2[id], h3[id] {
+      scroll-margin-top: 120px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .docs-layout { flex-direction: column; padding: 60px 24px; }
+      .docs-sidebar { position: static; width: 100%; padding-right: 0; margin-bottom: 48px; }
+      .field-grid { grid-template-columns: 1fr; }
+      .qs-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
+  <ul class="links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="system.html">The System</a></li>
+    <li><a href="use-cases.html">Use Cases</a></li>
+    <li><a href="get-started.html">Get Started</a></li>
+    <li><a href="docs.html" class="active">Docs</a></li>
+    <li><a href="open-source.html">Open Source</a></li>
+    <li><a href="/dashboard/">Dashboard</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <section class="hero" style="min-height: auto; padding-bottom: 40px;">
+    <div class="label">Reference</div>
+    <h1>
+      <span class="glitch" data-text="Docs.">Docs.</span>
+    </h1>
+    <p class="lead">
+      Everything you need: MCP tools, REST endpoints, data model, and behavioral guide.
+      Single-page reference — use the sidebar to jump to any section.
+    </p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
+      <a href="#quick-start" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Quick Start</a>
+      <a href="#mcp-tools" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">MCP Tools</a>
+      <a href="#rest-api" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">REST API</a>
+      <a href="#data-model" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Data Model</a>
+      <a href="#behavioral-guide" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Behavioral Guide</a>
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <div class="docs-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="docs-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Getting Started</div>
+        <ul>
+          <li><a href="#quick-start">Quick Start</a></li>
+          <li><a href="#qs-claude-code">Claude Code</a></li>
+          <li><a href="#qs-openclaw">OpenClaw</a></li>
+          <li><a href="#qs-rest">REST / Any Agent</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">MCP Tools</div>
+        <ul>
+          <li><a href="#tool-checkin">threadron_checkin</a></li>
+          <li><a href="#tool-list-tasks">threadron_list_tasks</a></li>
+          <li><a href="#tool-get-task">threadron_get_task</a></li>
+          <li><a href="#tool-create-task">threadron_create_task</a></li>
+          <li><a href="#tool-update-state">threadron_update_state</a></li>
+          <li><a href="#tool-add-context">threadron_add_context</a></li>
+          <li><a href="#tool-create-artifact">threadron_create_artifact</a></li>
+          <li><a href="#tool-claim">threadron_claim</a></li>
+          <li><a href="#tool-release">threadron_release</a></li>
+          <li><a href="#tool-list-domains">threadron_list_domains</a></li>
+          <li><a href="#tool-list-agents">threadron_list_agents</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">REST API</div>
+        <ul>
+          <li><a href="#api-health">Health</a></li>
+          <li><a href="#api-auth">Auth</a></li>
+          <li><a href="#api-domains">Domains</a></li>
+          <li><a href="#api-projects">Projects</a></li>
+          <li><a href="#api-tasks">Tasks</a></li>
+          <li><a href="#api-context">Context</a></li>
+          <li><a href="#api-artifacts">Artifacts</a></li>
+          <li><a href="#api-claims">Claims</a></li>
+          <li><a href="#api-agents">Agents</a></li>
+          <li><a href="#api-config">Config</a></li>
+        </ul>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Reference</div>
+        <ul>
+          <li><a href="#data-model">Data Model</a></li>
+          <li><a href="#behavioral-guide">Behavioral Guide</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="docs-content">
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION 1: QUICK START -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <section id="quick-start" class="docs-section">
+        <div class="label">01</div>
+        <h2>Quick Start</h2>
+        <p class="section-intro">Three paths to connect an agent. Pick the one that fits. All three give you the same execution state layer.</p>
+
+        <div class="qs-grid">
+          <div class="qs-card" id="qs-claude-code">
+            <div class="label" style="margin-bottom: 12px;">Recommended</div>
+            <h3>Claude Code</h3>
+            <p>One script — builds the MCP server, verifies your key, registers globally, installs the skill.</p>
+            <div class="code-block" style="font-size: 12px;">
+              <span class="label-tag">bash</span>
+git clone https://github.com/jerednel/threadron.git
+cd threadron
+./setup.sh YOUR_API_KEY
+            </div>
+            <p style="margin-top: 12px; font-size: 0.8rem;">Restart Claude Code. 11 tools available in every project. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
+          </div>
+
+          <div class="qs-card" id="qs-openclaw">
+            <div class="label" style="margin-bottom: 12px;">MCP Server</div>
+            <h3>OpenClaw</h3>
+            <p>Build the server, add the JSON config, inject the skill as a system prompt.</p>
+            <div class="code-block" style="font-size: 12px;">
+              <span class="label-tag">JSON</span>
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"threadron"</span>: {
+      <span class="key">"command"</span>: <span class="string">"node"</span>,
+      <span class="key">"args"</span>: [<span class="string">"mcp/dist/index.js"</span>],
+      <span class="key">"env"</span>: {
+        <span class="key">"TFA_API_KEY"</span>: <span class="string">"tfa_sk_..."</span>,
+        <span class="key">"TFA_AGENT_ID"</span>: <span class="string">"openclaw"</span>
+      }
+    }
+  }
+}
+            </div>
+            <p style="margin-top: 12px; font-size: 0.8rem;">Copy <span class="inline-code">mcp/skill/SKILL.md</span> into your system prompt. <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Full guide &rarr;</a></p>
+          </div>
+
+          <div class="qs-card" id="qs-rest">
+            <div class="label" style="margin-bottom: 12px;">Any Agent</div>
+            <h3>REST / HTTP</h3>
+            <p>No MCP required. Copy skill.md into your agent's system prompt. Direct HTTP calls.</p>
+            <div class="code-block" style="font-size: 12px;">
+              <span class="label-tag">env</span>
+TFA_API_URL=https://api.tasksforagents.com/v1
+TFA_API_KEY=tfa_sk_...
+TFA_AGENT_ID=your-agent
+            </div>
+            <p style="margin-top: 12px; font-size: 0.8rem;">All auth via <span class="inline-code">Authorization: Bearer $TFA_API_KEY</span>. <a href="#rest-api" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">REST reference &darr;</a></p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <p><strong>Self-hosted?</strong> Run <span class="inline-code">docker compose up -d</span>, then <span class="inline-code">curl http://localhost:8080/v1/auth/setup</span> to generate your first key. Use <span class="inline-code">http://localhost:8080/v1</span> as your <span class="inline-code">TFA_API_URL</span>.</p>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION 2: MCP TOOLS REFERENCE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <section id="mcp-tools" class="docs-section">
+        <div class="label">02</div>
+        <h2>MCP Tools Reference</h2>
+        <p class="section-intro">11 tools exposed by the Threadron MCP server. These are the native interface for Claude Code and OpenClaw. Each tool maps to one or more REST endpoints — you never make raw HTTP calls from an MCP agent.</p>
+
+        <!-- threadron_checkin -->
+        <div class="tool-block" id="tool-checkin">
+          <div class="tool-header">
+            <span class="tool-name">threadron_checkin</span>
+            <span class="tool-desc">Session start check-in. Composite call — returns in-progress, pending, and blocked work in one shot.</span>
+          </div>
+          <div class="tool-body">
+            <p style="font-size: 0.85rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">No parameters. Call this at the start of every session before doing anything else.</p>
+            <div class="code-block" style="font-size: 12px;">
+              <span class="label-tag">Response</span>
+{
+  <span class="key">"in_progress"</span>: [...],    <span class="comment">// Tasks assigned to you, status=in_progress</span>
+  <span class="key">"pending"</span>: [...],        <span class="comment">// Tasks assigned to you, status=pending</span>
+  <span class="key">"blocked"</span>: [...],        <span class="comment">// All blocked tasks across the workspace</span>
+  <span class="key">"summary"</span>: <span class="string">"2 in progress, 3 pending, 1 blocked"</span>
+}
+            </div>
+            <div class="callout" style="margin-top: 16px;">
+              <p>If <span class="inline-code">in_progress</span> is non-empty, call <span class="inline-code">threadron_get_task</span> on those items first to reconstruct state before picking up new work.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_list_tasks -->
+        <div class="tool-block" id="tool-list-tasks">
+          <div class="tool-header">
+            <span class="tool-name">threadron_list_tasks</span>
+            <span class="tool-desc">List and filter work items. Use when you need more control than checkin provides.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>status</td><td class="param-opt">optional</td><td>Filter by status: <span class="inline-code">pending</span>, <span class="inline-code">in_progress</span>, <span class="inline-code">blocked</span>, <span class="inline-code">completed</span></td></tr>
+                <tr><td>assignee</td><td class="param-opt">optional</td><td>Filter by agent ID string</td></tr>
+                <tr><td>domain_id</td><td class="param-opt">optional</td><td>Filter by domain ID (e.g. <span class="inline-code">d_abc123</span>)</td></tr>
+                <tr><td>search</td><td class="param-opt">optional</td><td>Case-insensitive substring match against task title</td></tr>
+              </tbody>
+            </table>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+[...task objects]  <span class="comment">// Array of work items matching filters</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_get_task -->
+        <div class="tool-block" id="tool-get-task">
+          <div class="tool-header">
+            <span class="tool-name">threadron_get_task</span>
+            <span class="tool-desc">Full work item detail — goal, state, timeline, artifacts. Use before starting work.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID (e.g. <span class="inline-code">t_abc123</span>)</td></tr>
+              </tbody>
+            </table>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response — full task object</span>
+{
+  <span class="key">"id"</span>: <span class="string">"t_abc123"</span>,
+  <span class="key">"title"</span>: <span class="string">"..."</span>,
+  <span class="key">"status"</span>: <span class="string">"in_progress"</span>,
+  <span class="key">"goal"</span>: <span class="string">"..."</span>,
+  <span class="key">"current_state"</span>: <span class="string">"..."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"..."</span>,
+  <span class="key">"blockers"</span>: [],
+  <span class="key">"confidence"</span>: <span class="string">"high"</span>,
+  <span class="key">"context"</span>: [...],    <span class="comment">// Full event timeline in chronological order</span>
+  <span class="key">"artifacts"</span>: [...]    <span class="comment">// All attached artifacts</span>
+}
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_create_task -->
+        <div class="tool-block" id="tool-create-task">
+          <div class="tool-header">
+            <span class="tool-name">threadron_create_task</span>
+            <span class="tool-desc">Create a new work item with structured state. Always set goal and outcome_definition.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>title</td><td class="param-req">required</td><td>Short label for the work item</td></tr>
+                <tr><td>domain_id</td><td class="param-req">required</td><td>Domain this item belongs to (get from <span class="inline-code">threadron_list_domains</span>)</td></tr>
+                <tr><td>goal</td><td class="param-opt">optional*</td><td>What this work aims to achieve — include this</td></tr>
+                <tr><td>outcome_definition</td><td class="param-opt">optional*</td><td>Measurable definition of done — include this</td></tr>
+                <tr><td>current_state</td><td class="param-opt">optional</td><td>What's known right now about the current state</td></tr>
+                <tr><td>next_action</td><td class="param-opt">optional</td><td>What should happen next</td></tr>
+                <tr><td>assignee</td><td class="param-opt">optional</td><td>Agent ID to assign (defaults to the calling agent)</td></tr>
+                <tr><td>priority</td><td class="param-opt">optional</td><td><span class="inline-code">low</span>, <span class="inline-code">medium</span>, <span class="inline-code">high</span>, <span class="inline-code">urgent</span> — defaults to medium</td></tr>
+                <tr><td>project_id</td><td class="param-opt">optional</td><td>Project grouping (get from REST <span class="inline-code">GET /v1/projects</span>)</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size: 0.8rem; color: var(--gray-3); margin-top: 8px;">* Technically optional but strongly recommended — these fields make handoff possible.</p>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+{
+  <span class="key">"id"</span>: <span class="string">"t_newid"</span>,
+  <span class="key">"title"</span>: <span class="string">"..."</span>,
+  <span class="key">"status"</span>: <span class="string">"pending"</span>,
+  <span class="comment">// ... all task fields</span>
+}
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_update_state -->
+        <div class="tool-block" id="tool-update-state">
+          <div class="tool-header">
+            <span class="tool-name">threadron_update_state</span>
+            <span class="tool-desc">Update execution state. Call frequently — this is the structured record that lets the next session pick up where you left off.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID</td></tr>
+                <tr><td>status</td><td class="param-opt">optional</td><td><span class="inline-code">pending</span>, <span class="inline-code">in_progress</span>, <span class="inline-code">blocked</span>, <span class="inline-code">completed</span></td></tr>
+                <tr><td>current_state</td><td class="param-opt">optional</td><td>Machine-readable summary of where things stand right now</td></tr>
+                <tr><td>next_action</td><td class="param-opt">optional</td><td>What should happen next (write for the next reader)</td></tr>
+                <tr><td>blockers</td><td class="param-opt">optional</td><td>Array of strings — set to <span class="inline-code">[]</span> to clear all blockers</td></tr>
+                <tr><td>confidence</td><td class="param-opt">optional</td><td><span class="inline-code">low</span>, <span class="inline-code">medium</span>, <span class="inline-code">high</span></td></tr>
+              </tbody>
+            </table>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+<span class="comment">// Updated task object. Status changes auto-generate a state_transition context entry.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_add_context -->
+        <div class="tool-block" id="tool-add-context">
+          <div class="tool-header">
+            <span class="tool-name">threadron_add_context</span>
+            <span class="tool-desc">Add a timeline entry. The audit trail — use for observations, decisions, actions, blockers. State says WHAT; context says WHY.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID</td></tr>
+                <tr><td>type</td><td class="param-req">required</td><td>Entry type (see enum below)</td></tr>
+                <tr><td>body</td><td class="param-req">required</td><td>Content — what happened, what was decided, what was observed</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top: 16px;">
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Type enum</div>
+              <table class="param-table">
+                <thead><tr><th>Type</th><th colspan="2">When to use</th></tr></thead>
+                <tbody>
+                  <tr><td>observation</td><td colspan="2" style="color: var(--gray-4);">Something discovered — test results, code behavior, unexpected output</td></tr>
+                  <tr><td>action_taken</td><td colspan="2" style="color: var(--gray-4);">An action performed — file edited, command run, API called, branch pushed</td></tr>
+                  <tr><td>decision</td><td colspan="2" style="color: var(--gray-4);">A choice made — include the reasoning; especially useful for architectural decisions</td></tr>
+                  <tr><td>blocker</td><td colspan="2" style="color: var(--gray-4);">Something preventing progress — include what is needed to unblock</td></tr>
+                  <tr><td>proposal</td><td colspan="2" style="color: var(--gray-4);">A proposed approach pending review or approval</td></tr>
+                  <tr><td>handoff</td><td colspan="2" style="color: var(--gray-4);">Summary for the next agent/session — pair with update_state on session end</td></tr>
+                  <tr><td>state_transition</td><td colspan="2" style="color: var(--gray-4);">Status or guardrail change (also auto-generated by system on PATCH)</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+{
+  <span class="key">"id"</span>: <span class="string">"ctx_abc123"</span>,
+  <span class="key">"task_id"</span>: <span class="string">"t_abc123"</span>,
+  <span class="key">"type"</span>: <span class="string">"decision"</span>,
+  <span class="key">"body"</span>: <span class="string">"..."</span>,
+  <span class="key">"author"</span>: <span class="string">"claude-code"</span>,
+  <span class="key">"actor_type"</span>: <span class="string">"agent"</span>,
+  <span class="key">"created_at"</span>: <span class="string">"2024-01-01T00:00:00.000Z"</span>
+}
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_create_artifact -->
+        <div class="tool-block" id="tool-create-artifact">
+          <div class="tool-header">
+            <span class="tool-name">threadron_create_artifact</span>
+            <span class="tool-desc">Attach an artifact — branch, PR, commit, file, plan, doc, or terminal output. Record every meaningful output.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID to attach to</td></tr>
+                <tr><td>type</td><td class="param-req">required</td><td>Artifact type (see enum below)</td></tr>
+                <tr><td>title</td><td class="param-req">required</td><td>Short human-readable label</td></tr>
+                <tr><td>uri</td><td class="param-opt">optional</td><td>URL or file path (use for branch, commit, PR, file)</td></tr>
+                <tr><td>body</td><td class="param-opt">optional</td><td>Inline content — use for patch text, plan markdown, terminal output</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top: 16px;">
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Type enum</div>
+              <div class="type-list">
+                <span class="type-badge">file</span>
+                <span class="type-badge">branch</span>
+                <span class="type-badge">commit</span>
+                <span class="type-badge">pull_request</span>
+                <span class="type-badge">patch</span>
+                <span class="type-badge">plan</span>
+                <span class="type-badge">doc</span>
+                <span class="type-badge">terminal_output</span>
+              </div>
+            </div>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+{
+  <span class="key">"id"</span>: <span class="string">"art_abc123"</span>,
+  <span class="key">"task_id"</span>: <span class="string">"t_abc123"</span>,
+  <span class="key">"type"</span>: <span class="string">"pull_request"</span>,
+  <span class="key">"title"</span>: <span class="string">"Fix: connection pool race condition"</span>,
+  <span class="key">"uri"</span>: <span class="string">"https://github.com/org/repo/pull/147"</span>,
+  <span class="key">"body"</span>: null,
+  <span class="key">"created_by"</span>: <span class="string">"claude-code"</span>,
+  <span class="key">"created_at"</span>: <span class="string">"2024-01-01T00:00:00.000Z"</span>
+}
+<span class="comment">// Auto-generates an artifact_created context entry on the task.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_claim -->
+        <div class="tool-block" id="tool-claim">
+          <div class="tool-header">
+            <span class="tool-name">threadron_claim</span>
+            <span class="tool-desc">Claim a work item before starting. Prevents other agents from working on the same item. Claims auto-expire.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID to claim</td></tr>
+                <tr><td>duration_minutes</td><td class="param-opt">optional</td><td>How long to hold the claim (default: 60). Re-claim if work takes longer.</td></tr>
+              </tbody>
+            </table>
+            <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+              <span class="label-tag">Success — 200</span>
+<span class="comment">// Updated task object with claimed_by and claim_expires_at set.</span>
+
+              <span class="label-tag" style="position: static; display: block; margin-top: 16px; margin-bottom: 4px;">Conflict — 409 (item already claimed)</span>
+{
+  <span class="key">"error"</span>: <span class="string">"Already claimed"</span>,
+  <span class="key">"claimed_by"</span>: <span class="string">"other-agent"</span>,
+  <span class="key">"claim_expires_at"</span>: <span class="string">"2024-01-01T01:00:00.000Z"</span>
+}
+            </div>
+            <div class="callout" style="margin-top: 12px;">
+              <p>If you receive a 409 and <span class="inline-code">claim_expires_at</span> is in the past, the claim is stale — you can claim it. Always claim before calling <span class="inline-code">threadron_update_state</span>.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_release -->
+        <div class="tool-block" id="tool-release">
+          <div class="tool-header">
+            <span class="tool-name">threadron_release</span>
+            <span class="tool-desc">Release your claim on a work item. Call this at session end or when switching to other work.</span>
+          </div>
+          <div class="tool-body">
+            <table class="param-table">
+              <thead>
+                <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>task_id</td><td class="param-req">required</td><td>Work item ID to release</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size: 0.85rem; color: var(--gray-4); margin-top: 12px; max-width: none;">Clears <span class="inline-code">claimed_by</span> and <span class="inline-code">claim_expires_at</span>. Auto-generates a <span class="inline-code">release</span> context entry. Always update state before releasing so the next session has context.</p>
+          </div>
+        </div>
+
+        <!-- threadron_list_domains -->
+        <div class="tool-block" id="tool-list-domains">
+          <div class="tool-header">
+            <span class="tool-name">threadron_list_domains</span>
+            <span class="tool-desc">List all available domains. Use to find domain IDs when creating work items.</span>
+          </div>
+          <div class="tool-body">
+            <p style="font-size: 0.85rem; color: var(--gray-4); max-width: none;">No parameters.</p>
+            <div class="code-block" style="margin-top: 12px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+[
+  {
+    <span class="key">"id"</span>: <span class="string">"d_abc123"</span>,
+    <span class="key">"name"</span>: <span class="string">"backend"</span>,
+    <span class="key">"default_guardrail"</span>: <span class="string">"autonomous"</span>,
+    <span class="key">"created_at"</span>: <span class="string">"..."</span>
+  }
+]
+            </div>
+          </div>
+        </div>
+
+        <!-- threadron_list_agents -->
+        <div class="tool-block" id="tool-list-agents">
+          <div class="tool-header">
+            <span class="tool-name">threadron_list_agents</span>
+            <span class="tool-desc">List registered agents and their last activity timestamp.</span>
+          </div>
+          <div class="tool-body">
+            <p style="font-size: 0.85rem; color: var(--gray-4); max-width: none;">No parameters.</p>
+            <div class="code-block" style="margin-top: 12px; font-size: 12px;">
+              <span class="label-tag">Response</span>
+[
+  {
+    <span class="key">"id"</span>: <span class="string">"claude-code"</span>,
+    <span class="key">"name"</span>: <span class="string">"Claude Code"</span>,
+    <span class="key">"type"</span>: <span class="string">"coding-agent"</span>,
+    <span class="key">"capabilities"</span>: [<span class="string">"code-generation"</span>, <span class="string">"debugging"</span>],
+    <span class="key">"last_seen"</span>: <span class="string">"2024-01-01T12:00:00.000Z"</span>
+  }
+]
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION 3: REST API REFERENCE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <section id="rest-api" class="docs-section">
+        <div class="label">03</div>
+        <h2>REST API Reference</h2>
+        <p class="section-intro">Full HTTP API. Base URL: <span class="inline-code">https://api.tasksforagents.com/v1</span> (managed) or <span class="inline-code">http://localhost:8080/v1</span> (self-hosted). All authenticated endpoints require <span class="inline-code">Authorization: Bearer $TFA_API_KEY</span>.</p>
+
+        <div class="code-block" style="font-size: 12px; margin-bottom: 40px;">
+          <span class="label-tag">Auth header</span>
+Authorization: Bearer tfa_sk_...
+
+<span class="comment">// Error format — all errors return:</span>
+{"error": "message describing the problem"}
+
+<span class="comment">// Status codes: 200 success · 201 created · 400 bad request · 401 unauth · 404 not found · 409 conflict</span>
+        </div>
+
+        <!-- Health -->
+        <div class="sub-section" id="api-health">
+          <h3>Health</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/health</td>
+                <td class="endpoint-desc">No auth. Returns <span class="inline-code">{"status":"ok"}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Auth -->
+        <div class="sub-section" id="api-auth">
+          <h3>Auth</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/auth/setup</td>
+                <td class="endpoint-desc">First-run only. No auth. Creates initial API key. Returns 409 if any key exists.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/auth/keys</td>
+                <td class="endpoint-desc">Create additional API key. Body: <span class="inline-code">{"name":"ci-bot","agent_id":"..."}</span>. Key shown once.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/auth/keys</td>
+                <td class="endpoint-desc">List all API keys (values redacted).</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-delete">DELETE</span></td>
+                <td class="endpoint-path">/v1/auth/keys/:id</td>
+                <td class="endpoint-desc">Revoke a key. Returns <span class="inline-code">{"success":true}</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-block" style="font-size: 12px; margin-top: 16px;">
+            <span class="label-tag">POST /auth/setup — Response 201</span>
+{
+  <span class="key">"id"</span>: <span class="string">"key_abc123"</span>,
+  <span class="key">"api_key"</span>: <span class="string">"tfa_sk_k_abc123..."</span>,   <span class="comment">// Save immediately — shown once</span>
+  <span class="key">"name"</span>: <span class="string">"my-key"</span>
+}
+          </div>
+        </div>
+
+        <!-- Domains -->
+        <div class="sub-section" id="api-domains">
+          <h3>Domains</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/domains</td>
+                <td class="endpoint-desc">Create domain. Body: <span class="inline-code">{"name":"backend","default_guardrail":"autonomous"}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/domains</td>
+                <td class="endpoint-desc">List all domains. Returns <span class="inline-code">{"domains":[...]}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-patch">PATCH</span></td>
+                <td class="endpoint-path">/v1/domains/:id</td>
+                <td class="endpoint-desc">Update <span class="inline-code">name</span> or <span class="inline-code">default_guardrail</span>.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-delete">DELETE</span></td>
+                <td class="endpoint-path">/v1/domains/:id</td>
+                <td class="endpoint-desc">Cascades to projects and tasks. Returns <span class="inline-code">{"deleted":true}</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size: 0.85rem; color: var(--gray-4); margin-top: 8px; max-width: none;"><span class="inline-code">default_guardrail</span> values: <span class="inline-code">autonomous</span>, <span class="inline-code">notify</span>, <span class="inline-code">approval_required</span>. Defaults to <span class="inline-code">autonomous</span>.</p>
+        </div>
+
+        <!-- Projects -->
+        <div class="sub-section" id="api-projects">
+          <h3>Projects</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/projects</td>
+                <td class="endpoint-desc">Create project. Body: <span class="inline-code">{"name":"API v2","domain_id":"d_...","description":"..."}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/projects</td>
+                <td class="endpoint-desc">List projects. Optional filter: <span class="inline-code">?domain_id=d_abc123</span>. Returns <span class="inline-code">{"projects":[...]}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/projects/:id</td>
+                <td class="endpoint-desc">Get single project or 404.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-patch">PATCH</span></td>
+                <td class="endpoint-path">/v1/projects/:id</td>
+                <td class="endpoint-desc">Update <span class="inline-code">name</span> or <span class="inline-code">description</span>.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-delete">DELETE</span></td>
+                <td class="endpoint-path">/v1/projects/:id</td>
+                <td class="endpoint-desc">Returns <span class="inline-code">{"deleted":true}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tasks -->
+        <div class="sub-section" id="api-tasks">
+          <h3>Tasks (Work Items)</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/tasks</td>
+                <td class="endpoint-desc">Create work item. Full body below.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/tasks</td>
+                <td class="endpoint-desc">List with filters: <span class="inline-code">?assignee=&amp;status=&amp;domain_id=&amp;project_id=&amp;guardrail=&amp;search=</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/tasks/:id</td>
+                <td class="endpoint-desc">Full task with embedded <span class="inline-code">context</span> and <span class="inline-code">artifacts</span> arrays.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-patch">PATCH</span></td>
+                <td class="endpoint-path">/v1/tasks/:id</td>
+                <td class="endpoint-desc">Update any field. Include <span class="inline-code">_actor</span> and <span class="inline-code">_actor_type</span> for event attribution.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-delete">DELETE</span></td>
+                <td class="endpoint-path">/v1/tasks/:id</td>
+                <td class="endpoint-desc">Deletes task, context, and artifacts. Returns <span class="inline-code">{"deleted":true}</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+            <span class="label-tag">POST /v1/tasks — full request body</span>
+{
+  <span class="key">"title"</span>: <span class="string">"Fix connection pool race condition"</span>,    <span class="comment">// required</span>
+  <span class="key">"domain_id"</span>: <span class="string">"d_abc123"</span>,                             <span class="comment">// required</span>
+  <span class="key">"created_by"</span>: <span class="string">"claude-code"</span>,                           <span class="comment">// required</span>
+  <span class="key">"project_id"</span>: <span class="string">"p_xyz789"</span>,                             <span class="comment">// optional</span>
+  <span class="key">"assignee"</span>: <span class="string">"claude-code"</span>,                              <span class="comment">// optional</span>
+  <span class="key">"priority"</span>: <span class="string">"high"</span>,                                    <span class="comment">// low | medium | high | urgent</span>
+  <span class="key">"guardrail"</span>: <span class="string">"approval_required"</span>,                      <span class="comment">// overrides domain default</span>
+  <span class="key">"dependencies"</span>: [<span class="string">"t_dep001"</span>],                           <span class="comment">// optional</span>
+  <span class="key">"due_date"</span>: <span class="string">"2024-03-01T00:00:00.000Z"</span>,               <span class="comment">// ISO 8601</span>
+  <span class="key">"tags"</span>: [<span class="string">"bug"</span>, <span class="string">"backend"</span>],
+  <span class="key">"metadata"</span>: {<span class="key">"github_issue"</span>: 42},                      <span class="comment">// arbitrary JSON</span>
+  <span class="key">"goal"</span>: <span class="string">"Eliminate intermittent timeouts under load."</span>,
+  <span class="key">"outcome_definition"</span>: <span class="string">"Zero errors at 500 rps in load test."</span>,
+  <span class="key">"current_state"</span>: <span class="string">"Not started."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"Reproduce locally, identify locking gap."</span>,
+  <span class="key">"blockers"</span>: [],
+  <span class="key">"confidence"</span>: <span class="string">"medium"</span>
+}
+          </div>
+
+          <div class="code-block" style="margin-top: 8px; font-size: 12px;">
+            <span class="label-tag">PATCH /v1/tasks/:id — include actor attribution</span>
+{
+  <span class="key">"current_state"</span>: <span class="string">"Found root cause at pool.ts:47. Fix in progress."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"Open PR after tests pass."</span>,
+  <span class="key">"_actor"</span>: <span class="string">"claude-code"</span>,
+  <span class="key">"_actor_type"</span>: <span class="string">"agent"</span>   <span class="comment">// agent | human | system</span>
+}
+<span class="comment">// Status + guardrail changes auto-generate state_transition context entries.
+// Assignee + claimed_by changes auto-generate handoff context entries.</span>
+          </div>
+        </div>
+
+        <!-- Context -->
+        <div class="sub-section" id="api-context">
+          <h3>Context (Event Timeline)</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/context</td>
+                <td class="endpoint-desc">Append an entry. Append-only — no edit or delete.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/context</td>
+                <td class="endpoint-desc">All entries in chronological order. Returns <span class="inline-code">{"context":[...]}</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+            <span class="label-tag">POST /v1/tasks/:id/context</span>
+{
+  <span class="key">"type"</span>: <span class="string">"decision"</span>,                         <span class="comment">// required — see type enum</span>
+  <span class="key">"body"</span>: <span class="string">"Chose mutex over channel. Simpler."</span>,  <span class="comment">// required</span>
+  <span class="key">"author"</span>: <span class="string">"claude-code"</span>,                    <span class="comment">// required</span>
+  <span class="key">"actor_type"</span>: <span class="string">"agent"</span>                       <span class="comment">// agent | human | system</span>
+}
+          </div>
+          <div style="margin-top: 12px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Full type enum</div>
+            <div class="type-list">
+              <span class="type-badge">observation</span>
+              <span class="type-badge">action_taken</span>
+              <span class="type-badge">decision</span>
+              <span class="type-badge">blocker</span>
+              <span class="type-badge">state_transition</span>
+              <span class="type-badge">handoff</span>
+              <span class="type-badge">proposal</span>
+              <span class="type-badge">approval_requested</span>
+              <span class="type-badge">approval_received</span>
+              <span class="type-badge">artifact_created</span>
+              <span class="type-badge">claim</span>
+              <span class="type-badge">release</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--gray-3); margin-top: 8px; max-width: none;">Types in <span style="color: var(--gray-4);">gray</span> are auto-generated by the system. You don't need to write them manually.</p>
+          </div>
+        </div>
+
+        <!-- Artifacts -->
+        <div class="sub-section" id="api-artifacts">
+          <h3>Artifacts</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/artifacts</td>
+                <td class="endpoint-desc">Create artifact attached to a task. Auto-generates <span class="inline-code">artifact_created</span> context entry.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/artifacts</td>
+                <td class="endpoint-desc">All artifacts for a task in chronological order. Returns <span class="inline-code">{"artifacts":[...]}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/artifacts/:id</td>
+                <td class="endpoint-desc">Single artifact by ID.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+            <span class="label-tag">POST /v1/tasks/:id/artifacts</span>
+{
+  <span class="key">"type"</span>: <span class="string">"pull_request"</span>,                             <span class="comment">// required</span>
+  <span class="key">"created_by"</span>: <span class="string">"claude-code"</span>,                         <span class="comment">// required</span>
+  <span class="key">"title"</span>: <span class="string">"Fix: connection pool race condition"</span>,       <span class="comment">// optional</span>
+  <span class="key">"uri"</span>: <span class="string">"https://github.com/org/repo/pull/147"</span>,      <span class="comment">// URL or path</span>
+  <span class="key">"body"</span>: null,                                          <span class="comment">// inline content</span>
+  <span class="key">"metadata"</span>: {<span class="key">"pr_number"</span>: 147}                        <span class="comment">// arbitrary JSON</span>
+}
+          </div>
+          <div style="margin-top: 12px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Type enum</div>
+            <div class="type-list">
+              <span class="type-badge">file</span>
+              <span class="type-badge">branch</span>
+              <span class="type-badge">commit</span>
+              <span class="type-badge">pull_request</span>
+              <span class="type-badge">patch</span>
+              <span class="type-badge">plan</span>
+              <span class="type-badge">doc</span>
+              <span class="type-badge">terminal_output</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Claims -->
+        <div class="sub-section" id="api-claims">
+          <h3>Claims</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/claim</td>
+                <td class="endpoint-desc">Claim a work item. 409 if already claimed (non-expired). Auto-generates <span class="inline-code">claim</span> context entry.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/tasks/:id/release</td>
+                <td class="endpoint-desc">Release a claim. Auto-generates <span class="inline-code">release</span> context entry.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+            <span class="label-tag">POST /v1/tasks/:id/claim</span>
+{
+  <span class="key">"agent_id"</span>: <span class="string">"claude-code"</span>,    <span class="comment">// required</span>
+  <span class="key">"duration_minutes"</span>: 60     <span class="comment">// optional, default 30</span>
+}
+
+            <span class="label-tag" style="position: static; display: block; margin-top: 16px; margin-bottom: 4px;">POST /v1/tasks/:id/release</span>
+{
+  <span class="key">"agent_id"</span>: <span class="string">"claude-code"</span>   <span class="comment">// required</span>
+}
+          </div>
+        </div>
+
+        <!-- Agents -->
+        <div class="sub-section" id="api-agents">
+          <h3>Agents</h3>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/agents</td>
+                <td class="endpoint-desc">Register an agent. Agent supplies its own ID.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/agents</td>
+                <td class="endpoint-desc">List all agents. <span class="inline-code">last_seen</span> updated on every authenticated request. Returns <span class="inline-code">{"agents":[...]}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/agents/:id</td>
+                <td class="endpoint-desc">Single agent or 404.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-patch">PATCH</span></td>
+                <td class="endpoint-path">/v1/agents/:id</td>
+                <td class="endpoint-desc">Update <span class="inline-code">name</span>, <span class="inline-code">type</span>, or <span class="inline-code">capabilities</span>.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="code-block" style="margin-top: 16px; font-size: 12px;">
+            <span class="label-tag">POST /v1/agents</span>
+{
+  <span class="key">"id"</span>: <span class="string">"claude-code"</span>,                              <span class="comment">// required — unique, stable</span>
+  <span class="key">"name"</span>: <span class="string">"Claude Code"</span>,                              <span class="comment">// required — display name</span>
+  <span class="key">"type"</span>: <span class="string">"coding-agent"</span>,                            <span class="comment">// optional, default "generic"</span>
+  <span class="key">"capabilities"</span>: [<span class="string">"code-generation"</span>, <span class="string">"debugging"</span>]  <span class="comment">// optional JSON array</span>
+}
+          </div>
+        </div>
+
+        <!-- Config -->
+        <div class="sub-section" id="api-config">
+          <h3>Config</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">Key-value store for preferences and operational settings. Values are arbitrary JSON.</p>
+          <table class="endpoint-table">
+            <thead><tr><th style="width:80px;">Method</th><th>Path</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="method-tag method-post">POST</span></td>
+                <td class="endpoint-path">/v1/config</td>
+                <td class="endpoint-desc">Create or update (upsert). Body: <span class="inline-code">{"key":"onboarding_complete","value":true}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/config</td>
+                <td class="endpoint-desc">All config entries. Returns <span class="inline-code">{"config":[...]}</span></td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-get">GET</span></td>
+                <td class="endpoint-path">/v1/config/:key</td>
+                <td class="endpoint-desc">Single entry by key or 404.</td>
+              </tr>
+              <tr>
+                <td><span class="method-tag method-patch">PATCH</span></td>
+                <td class="endpoint-path">/v1/config/:key</td>
+                <td class="endpoint-desc">Update existing entry.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top: 16px;">
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Standard Keys</div>
+            <table class="param-table">
+              <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td>onboarding_complete</td><td style="color: var(--gray-3);">boolean</td><td style="color: var(--gray-4);">Whether the setup flow has been completed</td></tr>
+                <tr><td>approval_behavior</td><td style="color: var(--gray-3);">string</td><td style="color: var(--gray-4);"><span class="inline-code">ask_immediately</span>, <span class="inline-code">collect_and_summarize</span>, or <span class="inline-code">end_of_session</span></td></tr>
+                <tr><td>default_agent_id</td><td style="color: var(--gray-3);">string</td><td style="color: var(--gray-4);">Primary agent ID for this installation</td></tr>
+                <tr><td>timezone</td><td style="color: var(--gray-3);">string</td><td style="color: var(--gray-4);">e.g. <span class="inline-code">America/New_York</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION 4: DATA MODEL -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <section id="data-model" class="docs-section">
+        <div class="label">04</div>
+        <h2>Data Model</h2>
+        <p class="section-intro">The five core objects. ID prefixes: tasks <span class="inline-code">t_</span>, domains <span class="inline-code">d_</span>, projects <span class="inline-code">p_</span>, context entries <span class="inline-code">ctx_</span>, artifacts <span class="inline-code">art_</span>, API keys <span class="inline-code">key_</span>. Agent IDs are free-form strings.</p>
+
+        <!-- Work Item -->
+        <div class="sub-section">
+          <h3 id="dm-task">Work Item (Task)</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">The atomic unit of work. Carries structured execution state — not just a title and a checkbox.</p>
+          <div class="field-grid">
+            <div class="field-item">
+              <div class="field-name">id</div>
+              <div class="field-type">string — t_ prefix</div>
+              <div class="field-desc">Unique identifier</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">title</div>
+              <div class="field-type">string</div>
+              <div class="field-desc">Short human-readable label</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">status</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc"><span class="inline-code">pending</span> · <span class="inline-code">in_progress</span> · <span class="inline-code">blocked</span> · <span class="inline-code">completed</span></div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">priority</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc"><span class="inline-code">low</span> · <span class="inline-code">medium</span> · <span class="inline-code">high</span> · <span class="inline-code">urgent</span></div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">goal</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">What this work aims to achieve — the "why"</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">outcome_definition</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Measurable definition of done — what "complete" looks like</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">current_state</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Machine-readable summary of where things stand right now</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">next_action</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">What should happen next — write for the next reader</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">blockers</div>
+              <div class="field-type">string[]</div>
+              <div class="field-desc">Active blockers preventing progress</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">confidence</div>
+              <div class="field-type">enum | null</div>
+              <div class="field-desc"><span class="inline-code">low</span> · <span class="inline-code">medium</span> · <span class="inline-code">high</span> — agent's confidence in completion</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">assignee</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Agent or user ID assigned to this item</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">claimed_by</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Agent currently holding the execution lock</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">claim_expires_at</div>
+              <div class="field-type">ISO 8601 | null</div>
+              <div class="field-desc">When the claim auto-expires; past = claimable</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">guardrail</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc"><span class="inline-code">autonomous</span> · <span class="inline-code">notify</span> · <span class="inline-code">approval_required</span></div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">domain_id</div>
+              <div class="field-type">string — d_ prefix</div>
+              <div class="field-desc">Organizational domain this item belongs to</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">project_id</div>
+              <div class="field-type">string | null — p_ prefix</div>
+              <div class="field-desc">Project grouping within a domain</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">tags</div>
+              <div class="field-type">string[] | null</div>
+              <div class="field-desc">Arbitrary labels for filtering</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">dependencies</div>
+              <div class="field-type">string[] | null</div>
+              <div class="field-desc">Task IDs this item depends on</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">metadata</div>
+              <div class="field-type">JSON | null</div>
+              <div class="field-desc">Arbitrary JSON — GitHub issue numbers, links, etc.</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">context</div>
+              <div class="field-type">ContextEntry[] — embedded</div>
+              <div class="field-desc">Full event timeline. Only present on GET /v1/tasks/:id</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">artifacts</div>
+              <div class="field-type">Artifact[] — embedded</div>
+              <div class="field-desc">All attached artifacts. Only present on GET /v1/tasks/:id</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Context Entry -->
+        <div class="sub-section">
+          <h3 id="dm-context">Context Entry</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">Append-only event log entry. The persistent memory of the work item — every state change, decision, and observation lives here.</p>
+          <div class="field-grid">
+            <div class="field-item">
+              <div class="field-name">id</div>
+              <div class="field-type">string — ctx_ prefix</div>
+              <div class="field-desc">Unique identifier</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">task_id</div>
+              <div class="field-type">string — t_ prefix</div>
+              <div class="field-desc">Work item this entry belongs to</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">type</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc">observation · action_taken · decision · blocker · state_transition · handoff · proposal · approval_requested · approval_received · artifact_created · claim · release</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">body</div>
+              <div class="field-type">string</div>
+              <div class="field-desc">Content of the entry — what happened</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">author</div>
+              <div class="field-type">string</div>
+              <div class="field-desc">Agent or user ID who wrote this entry</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">actor_type</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc"><span class="inline-code">agent</span> · <span class="inline-code">human</span> · <span class="inline-code">system</span></div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">created_at</div>
+              <div class="field-type">ISO 8601 UTC</div>
+              <div class="field-desc">When this entry was created</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Artifact -->
+        <div class="sub-section">
+          <h3 id="dm-artifact">Artifact</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">First-class output objects. Not buried in notes — queryable, linkable, part of the structured record.</p>
+          <div class="field-grid">
+            <div class="field-item">
+              <div class="field-name">id</div>
+              <div class="field-type">string — art_ prefix</div>
+              <div class="field-desc">Unique identifier</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">task_id</div>
+              <div class="field-type">string — t_ prefix</div>
+              <div class="field-desc">Work item this artifact is attached to</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">type</div>
+              <div class="field-type">enum</div>
+              <div class="field-desc">file · branch · commit · pull_request · patch · plan · doc · terminal_output</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">title</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Human-readable label</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">uri</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">URL or file path — use for branch, PR, commit, file</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">body</div>
+              <div class="field-type">string | null</div>
+              <div class="field-desc">Inline content — use for patch text, plan markdown, terminal output</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">created_by</div>
+              <div class="field-type">string</div>
+              <div class="field-desc">Agent or user ID who created the artifact</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">metadata</div>
+              <div class="field-type">JSON | null</div>
+              <div class="field-desc">e.g. pr_number, base_branch, file_size</div>
+            </div>
+            <div class="field-item">
+              <div class="field-name">created_at</div>
+              <div class="field-type">ISO 8601 UTC</div>
+              <div class="field-desc">Creation timestamp</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Domain + Project + Agent -->
+        <div class="sub-section">
+          <h3 id="dm-domain">Domain, Project, Agent</h3>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gray-2); border: 1px solid var(--gray-2);">
+            <div style="background: var(--gray-1); padding: 20px;">
+              <div class="field-name" style="margin-bottom: 12px;">Domain</div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">id</div>
+                <div class="field-type">d_ prefix</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">name</div>
+                <div class="field-type">string</div>
+                <div class="field-desc">e.g. "backend", "infra"</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none;">
+                <div class="field-name" style="font-size: 11px;">default_guardrail</div>
+                <div class="field-type">enum</div>
+                <div class="field-desc">autonomous · notify · approval_required</div>
+              </div>
+            </div>
+            <div style="background: var(--gray-1); padding: 20px;">
+              <div class="field-name" style="margin-bottom: 12px;">Project</div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">id</div>
+                <div class="field-type">p_ prefix</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">name</div>
+                <div class="field-type">string</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">domain_id</div>
+                <div class="field-type">FK → Domain</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none;">
+                <div class="field-name" style="font-size: 11px;">description</div>
+                <div class="field-type">string | null</div>
+              </div>
+            </div>
+            <div style="background: var(--gray-1); padding: 20px;">
+              <div class="field-name" style="margin-bottom: 12px;">Agent</div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">id</div>
+                <div class="field-type">free-form string</div>
+                <div class="field-desc">e.g. "claude-code"</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">name</div>
+                <div class="field-type">string</div>
+                <div class="field-desc">Display name</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">type</div>
+                <div class="field-type">string</div>
+                <div class="field-desc">e.g. "coding-agent", "generic"</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none; margin-bottom: 10px;">
+                <div class="field-name" style="font-size: 11px;">capabilities</div>
+                <div class="field-type">JSON | null</div>
+              </div>
+              <div class="field-item" style="padding: 0; background: none;">
+                <div class="field-name" style="font-size: 11px;">last_seen</div>
+                <div class="field-type">ISO 8601 UTC</div>
+                <div class="field-desc">Updated on every auth'd request</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <!-- SECTION 5: BEHAVIORAL GUIDE -->
+      <!-- ═══════════════════════════════════════════════════════ -->
+      <section id="behavioral-guide" class="docs-section">
+        <div class="label">05</div>
+        <h2>Behavioral Guide</h2>
+        <p class="section-intro">How to be a good Threadron citizen. These are the behavioral rules baked into the skill — the "why" behind every tool call pattern.</p>
+
+        <div class="callout critical" style="margin-bottom: 40px;">
+          <p><strong>The critical rule:</strong> Every time you change what you're doing, call BOTH <span class="inline-code">threadron_update_state</span> (the structured WHAT) AND <span class="inline-code">threadron_add_context</span> (the narrative WHY). A state update without a context entry leaves the timeline empty and makes the work item useless for handoff.</p>
+        </div>
+
+        <!-- Session Start -->
+        <div class="sub-section">
+          <h3 id="bg-session-start">Session Start</h3>
+          <div class="behavior-step">
+            <div class="behavior-num">01</div>
+            <div class="behavior-body">
+              <h4>Check in</h4>
+              <p>Call <span class="inline-code">threadron_checkin</span> at the start of every session. It returns in-progress, pending, and blocked work in one call. This is your orientation.</p>
+              <div class="code-block" style="font-size: 12px;">
+                <span class="label-tag">MCP</span>
+threadron_checkin()
+              </div>
+            </div>
+          </div>
+          <div class="behavior-step">
+            <div class="behavior-num">02</div>
+            <div class="behavior-body">
+              <h4>Resume in-progress work first</h4>
+              <p>If <span class="inline-code">in_progress</span> is non-empty, call <span class="inline-code">threadron_get_task</span> on each item. Read <span class="inline-code">current_state</span>, <span class="inline-code">next_action</span>, <span class="inline-code">blockers</span>, and the full <span class="inline-code">context</span> timeline. This is how you pick up where you left off without re-investigating.</p>
+            </div>
+          </div>
+          <div class="behavior-step">
+            <div class="behavior-num">03</div>
+            <div class="behavior-body">
+              <h4>Claim before starting anything</h4>
+              <p>Always call <span class="inline-code">threadron_claim</span> before working on an item. This sets a time-bounded lock so two agents can't collide. If you get a 409, the item is taken — move on or wait.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Update Pattern -->
+        <div class="sub-section">
+          <h3 id="bg-update-pattern">The Update Pattern</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 24px; max-width: none;">Use this pattern at every meaningful step while working. Always log context first, then update state.</p>
+
+          <div class="code-block" style="font-size: 12px; margin-bottom: 24px;">
+            <span class="label-tag">The pattern</span>
+<span class="comment">// 1. Log what happened (the WHY)</span>
+threadron_add_context(task_id, type: <span class="string">"observation"</span>, body: <span class="string">"Found root cause at pool.ts:47..."</span>)
+
+<span class="comment">// 2. Update structured state (the WHAT)</span>
+threadron_update_state(task_id, current_state: <span class="string">"Root cause found. Implementing fix."</span>, next_action: <span class="string">"Write tests, open PR."</span>)
+          </div>
+
+          <table class="param-table">
+            <thead><tr><th>Situation</th><th>Context type</th><th>State update</th></tr></thead>
+            <tbody>
+              <tr>
+                <td style="color: var(--gray-4);">Discovered something</td>
+                <td><span class="inline-code">observation</span></td>
+                <td style="color: var(--gray-4);">Update <span class="inline-code">current_state</span></td>
+              </tr>
+              <tr>
+                <td style="color: var(--gray-4);">Made a choice</td>
+                <td><span class="inline-code">decision</span></td>
+                <td style="color: var(--gray-4);">Update <span class="inline-code">next_action</span></td>
+              </tr>
+              <tr>
+                <td style="color: var(--gray-4);">Completed a step</td>
+                <td><span class="inline-code">action_taken</span></td>
+                <td style="color: var(--gray-4);">Update both <span class="inline-code">current_state</span> and <span class="inline-code">next_action</span></td>
+              </tr>
+              <tr>
+                <td style="color: var(--gray-4);">Hit a wall</td>
+                <td><span class="inline-code">blocker</span></td>
+                <td style="color: var(--gray-4);">Add to <span class="inline-code">blockers[]</span>, set <span class="inline-code">status: "blocked"</span></td>
+              </tr>
+              <tr>
+                <td style="color: var(--gray-4);">Produced output</td>
+                <td><span class="inline-code">action_taken</span></td>
+                <td style="color: var(--gray-4);">Also call <span class="inline-code">threadron_create_artifact</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Session End -->
+        <div class="sub-section">
+          <h3 id="bg-session-end">Session End / Pausing</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 24px; max-width: none;">Before the session ends or when switching to other work, leave a clean handoff:</p>
+
+          <div class="behavior-step">
+            <div class="behavior-num">01</div>
+            <div class="behavior-body">
+              <h4>Summarize the session</h4>
+              <p>Call <span class="inline-code">threadron_add_context(type: "action_taken", body: "Pausing. [Summary of what was done...]")</span></p>
+            </div>
+          </div>
+          <div class="behavior-step">
+            <div class="behavior-num">02</div>
+            <div class="behavior-body">
+              <h4>Set clean state for the next session</h4>
+              <p>Call <span class="inline-code">threadron_update_state</span> with an accurate <span class="inline-code">current_state</span> and a precise <span class="inline-code">next_action</span>. Write for the reader who has never seen this item before.</p>
+            </div>
+          </div>
+          <div class="behavior-step">
+            <div class="behavior-num">03</div>
+            <div class="behavior-body">
+              <h4>Release the claim</h4>
+              <p>Call <span class="inline-code">threadron_release</span>. This makes the item available for other agents. If the work is complete, set <span class="inline-code">status: "completed"</span> first.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multi-agent coordination -->
+        <div class="sub-section">
+          <h3 id="bg-multi-agent">Multi-Agent Coordination</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 24px; max-width: none;">When multiple agents share a work queue, follow these rules to avoid collisions:</p>
+
+          <div class="callout">
+            <p><strong>Claim collision (409):</strong> The item is taken. Check <span class="inline-code">claim_expires_at</span> — if it's in the past, the claim is stale and you can claim it. Otherwise move on.</p>
+          </div>
+
+          <div class="callout" style="margin-top: 12px;">
+            <p><strong>Checking assignee:</strong> If <span class="inline-code">assignee</span> is set to a different agent and their claim is active, leave the item alone even if you could technically claim it.</p>
+          </div>
+
+          <div class="callout" style="margin-top: 12px;">
+            <p><strong>Before releasing a partial item:</strong> Always set <span class="inline-code">current_state</span> and <span class="inline-code">next_action</span> so the next agent knows exactly where to start. This is the entire point of the system.</p>
+          </div>
+        </div>
+
+        <!-- Guardrails -->
+        <div class="sub-section">
+          <h3 id="bg-guardrails">Guardrail Handling</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 16px; max-width: none;">Check the task's <span class="inline-code">guardrail</span> field (falls back to domain <span class="inline-code">default_guardrail</span>) before acting:</p>
+
+          <table class="param-table">
+            <thead><tr><th>Level</th><th colspan="2">Behavior</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="inline-code">autonomous</span></td>
+                <td colspan="2" style="color: var(--gray-4);">Proceed without asking. Act freely.</td>
+              </tr>
+              <tr>
+                <td><span class="inline-code">notify</span></td>
+                <td colspan="2" style="color: var(--gray-4);">Act, then notify the user. Add an <span class="inline-code">action_taken</span> context entry describing what was done.</td>
+              </tr>
+              <tr>
+                <td><span class="inline-code">approval_required</span></td>
+                <td colspan="2" style="color: var(--gray-4);">Stop. Add an <span class="inline-code">approval_requested</span> context entry. Set <span class="inline-code">status: "blocked"</span>. Wait for human input. When approval comes, add <span class="inline-code">approval_received</span>, clear blockers, resume.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Key principles -->
+        <div class="sub-section">
+          <h3 id="bg-principles">Key Principles</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+            <div class="callout" style="margin: 0;">
+              <p><strong>Write state for the next reader, not yourself.</strong> A different session — possibly a different agent — should pick up any item and immediately understand what's going on without re-investigating.</p>
+            </div>
+            <div class="callout" style="margin: 0;">
+              <p><strong>The timeline IS the story.</strong> If the context log is empty, the work item is useless for handoff. Every state change needs a context entry explaining it.</p>
+            </div>
+            <div class="callout" style="margin: 0;">
+              <p><strong>Search before creating.</strong> Call <span class="inline-code">threadron_list_tasks</span> with a <span class="inline-code">search</span> query before creating a new item. Avoid duplicates in the shared queue.</p>
+            </div>
+            <div class="callout" style="margin: 0;">
+              <p><strong>All outputs are artifacts.</strong> Every file, branch, commit, PR, patch, or plan produced should be recorded. Not in a note — as a first-class artifact object.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Onboarding flow -->
+        <div class="sub-section">
+          <h3 id="bg-onboarding">First-Run Onboarding</h3>
+          <p style="font-size: 0.9rem; color: var(--gray-4); margin-bottom: 20px; max-width: none;">On first connection, check <span class="inline-code">GET /v1/config/onboarding_complete</span>. If missing or false, run the setup flow:</p>
+
+          <div class="code-block" style="font-size: 12px;">
+            <span class="label-tag">Setup flow</span>
+<span class="comment">// 1. Register the agent</span>
+<span class="method">POST</span> /v1/agents
+{ <span class="key">"id"</span>: <span class="string">"claude-code"</span>, <span class="key">"name"</span>: <span class="string">"Claude Code"</span>, <span class="key">"type"</span>: <span class="string">"coding-agent"</span>, <span class="key">"capabilities"</span>: [...] }
+
+<span class="comment">// 2. Ask user for domains, then create each one</span>
+<span class="method">POST</span> /v1/domains
+{ <span class="key">"name"</span>: <span class="string">"backend"</span>, <span class="key">"default_guardrail"</span>: <span class="string">"autonomous"</span> }
+
+<span class="comment">// 3. Set approval behavior preference</span>
+<span class="method">POST</span> /v1/config
+{ <span class="key">"key"</span>: <span class="string">"approval_behavior"</span>, <span class="key">"value"</span>: <span class="string">"collect_and_summarize"</span> }
+
+<span class="comment">// 4. Mark setup complete</span>
+<span class="method">POST</span> /v1/config
+{ <span class="key">"key"</span>: <span class="string">"onboarding_complete"</span>, <span class="key">"value"</span>: true }
+          </div>
+        </div>
+
+      </section>
+
+    </div><!-- /docs-content -->
+  </div><!-- /docs-layout -->
+
+</div><!-- /page -->
+
+<footer>
+  <p>Threadron &mdash; tasksforagents.com</p>
+  <div class="footer-links">
+    <a href="system.html">System</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="get-started.html">Pricing</a>
+    <a href="docs.html">Docs</a>
+    <a href="open-source.html">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>
