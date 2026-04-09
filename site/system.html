@@ -137,7 +137,11 @@
   <section>
     <div class="label">How agents interact</div>
     <h2>The work cycle</h2>
-    <p style="margin-bottom: 32px;">Every agent follows the same pattern: claim before working, update state while working, release when done.</p>
+    <p style="margin-bottom: 16px;">Every agent follows the same pattern: claim before working, update state while working, release when done.</p>
+    <p style="margin-bottom: 32px; color: var(--gray-4); font-size: 0.95rem;">
+      Agents connect via <strong style="color: var(--white);">MCP server</strong> (native tools for Claude Code, OpenClaw, and other MCP-compatible agents) or via <strong style="color: var(--white);">REST API</strong> (copy skill.md into any agent's system prompt).
+      <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3); padding-bottom: 1px; margin-left: 4px;">Setup guides &rarr;</a>
+    </p>
 
     <div class="code-block">
       <span class="label-tag">Claim → Work → Handoff</span>

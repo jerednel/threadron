@@ -1,6 +1,82 @@
-# AgentTask (TFA) — Agent Guide
+# Threadron — Agent Guide
 
-AgentTask is a **shared execution state layer for agents**. It gives multiple agents a common work queue, structured per-item state, a persistent event log, and first-class artifact tracking — so any agent can pick up where another left off, and humans can observe what happened without asking.
+Threadron is a **shared execution state layer for agents**. It gives multiple agents a common work queue, structured per-item state, a persistent event log, and first-class artifact tracking — so any agent can pick up where another left off, and humans can observe what happened without asking.
+
+---
+
+## Connection Options
+
+There are two ways to connect an agent to Threadron. Use whichever fits your agent's capabilities.
+
+---
+
+### Option 1 — MCP Server (recommended for Claude Code / OpenClaw)
+
+If your agent supports the Model Context Protocol, use the MCP server. Tools are discovered automatically — no manual API calls needed.
+
+**Install:**
+```bash
+cd your-project
+npm install threadron-mcp
+```
+
+**Add `.mcp.json` to your project root:**
+```json
+{
+  "mcpServers": {
+    "threadron": {
+      "command": "node",
+      "args": ["node_modules/threadron-mcp/dist/index.js"],
+      "env": {
+        "TFA_API_URL": "https://api.tasksforagents.com/v1",
+        "TFA_API_KEY": "tfa_sk_...",
+        "TFA_AGENT_ID": "claude-code"
+      }
+    }
+  }
+}
+```
+
+**Add to `CLAUDE.md` (behavioral instructions):**
+```markdown
+## Threadron
+
+Use Threadron tools to track work across sessions:
+- Start each session with `threadron_checkin` to see what's in progress
+- Before starting work, `threadron_claim` the item
+- Update `threadron_update_state` as you make progress
+- Record decisions and observations with `threadron_add_context`
+- Attach outputs with `threadron_create_artifact`
+- When done or pausing, `threadron_release` the item
+```
+
+**Available MCP tools:**
+
+| Tool | Purpose |
+|------|---------|
+| `threadron_checkin` | Session start — returns in-progress, pending, and blocked work |
+| `threadron_list_tasks` | List / filter work items by status, assignee, domain, search |
+| `threadron_get_task` | Full work item with goal, state, timeline, artifacts |
+| `threadron_create_task` | Create with structured fields (goal, current_state, outcome) |
+| `threadron_update_state` | Update current_state, next_action, blockers, confidence |
+| `threadron_add_context` | Add timeline entries: observation, decision, action_taken, etc. |
+| `threadron_create_artifact` | Attach branches, PRs, commits, files, docs |
+| `threadron_claim` | Claim before working — prevents collisions, auto-expires |
+| `threadron_release` | Release claim when done or pausing |
+| `threadron_list_domains` | List available domains |
+| `threadron_list_agents` | List registered agents and activity |
+
+If you are using MCP, the tools above replace the REST API documented below. You do not need to make manual HTTP calls.
+
+---
+
+### Option 2 — REST API (for any agent)
+
+If your agent does not support MCP — or you prefer direct API calls — use the REST API documented in the rest of this file. Copy this skill.md into your agent's system prompt or instruction file, set the environment variables below, and the agent will call the API directly.
+
+This is the approach for Hermes, custom agents, CI bots, and any agent that can make HTTP requests but does not support MCP.
+
+---
 
 Core concepts:
 - **Work items (tasks)** — carry structured state: goal, current_state, next_action, blockers, confidence
