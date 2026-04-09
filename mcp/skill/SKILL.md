@@ -51,6 +51,10 @@ Do NOT create work items for:
 
 When in doubt, **ask the user** if they want you to track something in Threadron.
 
+### Rule 4: Identify yourself
+
+When setting up the MCP connection, pass your agent name via the `X-Agent-Id` header. Each agent should have a unique identity — "openclaw", "hermes", "claude-code", etc. Don't reuse another agent's identity. If you see work claimed by another agent, that's a different agent — don't take over their work without the user's permission.
+
 ## Session Start
 
 At the **start of every session**, call `threadron_checkin` to see:

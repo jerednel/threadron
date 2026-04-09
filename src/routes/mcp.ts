@@ -16,7 +16,30 @@ export function mcpRoutes() {
     // For the hosted MCP endpoint, always use internal localhost to avoid DNS loops
     const port = process.env.PORT || "8080";
     const apiUrl = `http://localhost:${port}/v1`;
-    const agentId = c.req.header("X-Agent-Id") || "claude-code";
+
+    // Derive agent ID: X-Agent-Id header > API key name > "unknown-agent"
+    let agentId = c.req.header("X-Agent-Id") || "";
+    if (!agentId) {
+      // Look up the API key to get its name as a fallback agent ID
+      try {
+        const keyRes = await fetch(`${apiUrl}/auth/keys`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        if (keyRes.ok) {
+          const data = await keyRes.json();
+          const keys = data.keys || [];
+          const match = keys.find((k: { key_prefix: string }) => apiKey.startsWith(k.key_prefix.replace("...", "")));
+          if (match?.agent_id) {
+            agentId = match.agent_id;
+          } else if (match?.name) {
+            agentId = match.name.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+          }
+        }
+      } catch {
+        // ignore lookup failure
+      }
+      if (!agentId) agentId = "unknown-agent";
+    }
 
     const server = createThreadronMcp(apiUrl, apiKey, agentId);
     const transport = new WebStandardStreamableHTTPServerTransport({
