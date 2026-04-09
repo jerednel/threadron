@@ -8,7 +8,7 @@
   --gray-1: #1a1a1a;
   --gray-2: #2a2a2a;
   --gray-3: #4a4a4a;
-  --gray-4: #8a8a8a;
+  --gray-4: #9a9a9a;
   --gray-5: #c0c0c0;
   --mono: 'Space Mono', monospace;
   --sans: 'Inter', -apple-system, sans-serif;
@@ -539,6 +539,23 @@ footer .footer-links a {
 
 footer .footer-links a:hover {
   color: var(--white);
+}
+
+/* --- HERO GLOW --- */
+.hero-glow {
+  position: relative;
+}
+.hero-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(147, 130, 255, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* --- MASCOT --- */

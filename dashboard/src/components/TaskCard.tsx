@@ -12,88 +12,92 @@ const priorityColors: Record<string, string> = {
   urgent: '#ef4444',
 };
 
-const confidenceColors: Record<string, string> = {
-  low: 'text-red-400',
-  medium: 'text-yellow-400',
-  high: 'text-green-400',
-};
+function timeAgo(dateStr: string): string {
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  } catch {
+    return '';
+  }
+}
 
 export default function TaskCard({ task, onClick }: TaskCardProps) {
   const priorityDot = priorityColors[task.priority] || '#8a8a8a';
-  const isBlocked = task.blockers && task.blockers.length > 0;
+  const blockerCount = task.blockers?.length ?? 0;
+  const hasBlockers = blockerCount > 0;
 
   return (
     <div
       onClick={onClick}
-      className={`bg-[#1a1a1a] border rounded-lg p-3 cursor-pointer hover:border-[#4a4a4a] transition-colors group ${
-        isBlocked
-          ? 'border-red-900/60 border-l-2 border-l-red-500 opacity-80'
-          : 'border-[#2a2a2a]'
-      }`}
+      className="bg-[#141414] border border-[#222] hover:border-[#333] rounded-lg p-4 cursor-pointer transition-colors group"
     >
-      <div className="flex items-start justify-between gap-2 mb-1">
+      {/* Title row */}
+      <div className="flex items-start justify-between gap-2 mb-3">
         <h3 className="text-sm font-medium text-[#f0f0f0] leading-snug group-hover:text-white flex-1">
           {task.title}
         </h3>
-        <div className="flex items-center gap-1.5 shrink-0 mt-1">
-          {isBlocked && (
-            <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-red-900/40 text-red-400 border border-red-800/50 uppercase">
-              blocked
+        <div className="flex items-center gap-2 shrink-0 mt-0.5">
+          {task.claimed_by && (
+            <span className="text-[9px] font-mono text-[#6a6a6a]" title={`claimed by ${task.claimed_by}`}>
+              &#x1F512;
+            </span>
+          )}
+          {task.guardrail === 'approval_required' && (
+            <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-yellow-900/40 text-yellow-400 border border-yellow-800/50 uppercase">
+              approval
             </span>
           )}
           <span
-            className="w-2 h-2 rounded-full"
+            className="w-2 h-2 rounded-full shrink-0"
             style={{ backgroundColor: priorityDot }}
             title={task.priority}
           />
         </div>
       </div>
 
-      {task.goal && (
-        <p className="text-[11px] text-[#6a6a6a] leading-snug mb-2 line-clamp-2">
-          {task.goal}
+      {/* Current state — hero field */}
+      <div className="mb-2">
+        <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">STATE</span>
+        <p className="text-[13px] text-white leading-snug mt-0.5 line-clamp-2">
+          {task.current_state || <span className="text-[#3a3a3a] italic">No state set</span>}
         </p>
-      )}
+      </div>
 
-      <div className="flex flex-wrap gap-1.5 mt-2">
-        {task.claimed_by && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-800/40">
-            {task.claimed_by}
+      {/* Next action */}
+      {task.next_action && (
+        <div className="mb-3">
+          <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">NEXT</span>
+          <p className="text-[12px] text-gray-400 leading-snug mt-0.5 line-clamp-1">
+            {task.next_action}
+          </p>
+        </div>
+      )}
+      {!task.next_action && <div className="mb-3" />}
+
+      {/* Footer row */}
+      <div className="flex items-center justify-between mt-1">
+        <span className="text-[10px] font-mono text-gray-500">
+          {task.assignee ? task.assignee : task.claimed_by ? task.claimed_by : '—'}
+          {' · '}
+          {timeAgo(task.updated_at)}
+        </span>
+
+        {hasBlockers && (
+          <span className="flex items-center gap-1 text-[10px] font-mono text-red-400">
+            <span className="inline-flex gap-0.5">
+              {Array.from({ length: Math.min(blockerCount, 4) }).map((_, i) => (
+                <span key={i} className="w-1.5 h-2 bg-red-500 rounded-sm inline-block" />
+              ))}
+            </span>
+            {blockerCount} {blockerCount === 1 ? 'blocker' : 'blockers'}
           </span>
         )}
-        {task.confidence && (
-          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a] ${confidenceColors[task.confidence] || 'text-[#8a8a8a]'}`}>
-            {task.confidence}
-          </span>
-        )}
-        {task.domain && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#2a2a2a] text-[#8a8a8a] uppercase tracking-wide">
-            {task.domain.name}
-          </span>
-        )}
-        {!task.domain && task.domain_id && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#2a2a2a] text-[#8a8a8a]">
-            {task.domain_id.slice(0, 8)}
-          </span>
-        )}
-        {task.assignee && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#2a2a2a] text-[#4a4a4a]">
-            @{task.assignee}
-          </span>
-        )}
-        {task.guardrail === 'approval_required' && (
-          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-900/40 text-yellow-400 border border-yellow-800/50">
-            approval
-          </span>
-        )}
-        {task.tags?.map(tag => (
-          <span
-            key={tag}
-            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a] text-[#8a8a8a]"
-          >
-            {tag}
-          </span>
-        ))}
       </div>
     </div>
   );

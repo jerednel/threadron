@@ -7,29 +7,38 @@ interface TaskDetailProps {
   onUpdate: () => void;
 }
 
-const contextTypeColors: Record<string, string> = {
-  observation: 'bg-blue-900/40 text-blue-400 border-blue-800/50',
-  decision: 'bg-green-900/40 text-green-400 border-green-800/50',
-  blocker: 'bg-red-900/40 text-red-400 border-red-800/50',
-  progress: 'bg-yellow-900/40 text-yellow-400 border-yellow-800/50',
-  artifact: 'bg-purple-900/40 text-purple-400 border-purple-800/50',
+// Timeline type badge config
+const timelineTypeConfig: Record<string, { label: string; cls: string; dim?: boolean }> = {
+  state_transition:    { label: 'state_transition',    cls: 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]', dim: true },
+  observation:         { label: 'observation',         cls: 'bg-blue-900/40 text-blue-400 border-blue-800/50' },
+  action_taken:        { label: 'action_taken',        cls: 'bg-green-900/40 text-green-400 border-green-800/50' },
+  decision:            { label: 'decision',            cls: 'bg-purple-900/40 text-purple-400 border-purple-800/50' },
+  blocker:             { label: 'blocker',             cls: 'bg-red-900/40 text-red-400 border-red-800/50' },
+  handoff:             { label: 'handoff',             cls: 'bg-orange-900/40 text-orange-400 border-orange-800/50' },
+  proposal:            { label: 'proposal',            cls: 'bg-cyan-900/40 text-cyan-400 border-cyan-800/50' },
+  artifact_created:    { label: 'artifact_created',    cls: 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]', dim: true },
+  approval_requested:  { label: 'approval_requested',  cls: 'bg-yellow-900/40 text-yellow-400 border-yellow-800/50' },
+  approval_received:   { label: 'approval_received',   cls: 'bg-green-900/40 text-green-400 border-green-800/50' },
+  // Legacy types
+  progress:            { label: 'progress',            cls: 'bg-yellow-900/40 text-yellow-400 border-yellow-800/50' },
+  artifact:            { label: 'artifact',            cls: 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]', dim: true },
 };
 
 const actorTypeBadge: Record<string, { label: string; cls: string }> = {
-  system: { label: 'SYS', cls: 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]' },
-  agent:  { label: 'AGT', cls: 'bg-blue-900/40 text-blue-400 border-blue-800/50' },
-  human:  { label: 'HMN', cls: 'bg-green-900/40 text-green-400 border-green-800/50' },
+  system: { label: 'SYS', cls: 'bg-[#1e1e1e] text-[#4a4a4a] border-[#2a2a2a]' },
+  agent:  { label: 'AGT', cls: 'bg-blue-900/30 text-blue-500 border-blue-900/50' },
+  human:  { label: 'HMN', cls: 'bg-green-900/30 text-green-500 border-green-900/50' },
 };
 
-const artifactTypeColors: Record<string, string> = {
-  file:            'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]',
-  branch:          'bg-blue-900/40 text-blue-400 border-blue-800/50',
-  commit:          'bg-purple-900/40 text-purple-400 border-purple-800/50',
-  pull_request:    'bg-green-900/40 text-green-400 border-green-800/50',
-  patch:           'bg-yellow-900/40 text-yellow-400 border-yellow-800/50',
-  plan:            'bg-cyan-900/40 text-cyan-400 border-cyan-800/50',
-  doc:             'bg-[#2a2a2a] text-[#f0f0f0] border-[#4a4a4a]',
-  terminal_output: 'bg-orange-900/40 text-orange-400 border-orange-800/50',
+const artifactTypeColors: Record<string, { cls: string; icon: string }> = {
+  file:            { cls: 'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]',        icon: '◻' },
+  branch:          { cls: 'bg-blue-900/40 text-blue-400 border-blue-800/50',       icon: '⑂' },
+  commit:          { cls: 'bg-purple-900/40 text-purple-400 border-purple-800/50', icon: '◎' },
+  pull_request:    { cls: 'bg-green-900/40 text-green-400 border-green-800/50',    icon: '⤴' },
+  patch:           { cls: 'bg-yellow-900/40 text-yellow-400 border-yellow-800/50', icon: '⊞' },
+  plan:            { cls: 'bg-cyan-900/40 text-cyan-400 border-cyan-800/50',       icon: '≡' },
+  doc:             { cls: 'bg-[#2a2a2a] text-[#f0f0f0] border-[#4a4a4a]',         icon: '▤' },
+  terminal_output: { cls: 'bg-orange-900/40 text-orange-400 border-orange-800/50', icon: '>' },
 };
 
 const priorityColors: Record<string, string> = {
@@ -46,7 +55,7 @@ const confidenceColors: Record<string, string> = {
 };
 
 const statusOptions = ['pending', 'in_progress', 'completed', 'cancelled', 'blocked'];
-const contextTypes = ['observation', 'decision', 'blocker', 'progress', 'artifact'];
+const contextTypes = ['observation', 'action_taken', 'decision', 'blocker', 'handoff', 'proposal', 'approval_requested', 'approval_received', 'progress', 'artifact'];
 const artifactTypes = ['file', 'branch', 'commit', 'pull_request', 'patch', 'plan', 'doc', 'terminal_output'];
 
 function formatDate(dateStr: string) {
@@ -57,14 +66,30 @@ function formatDate(dateStr: string) {
   }
 }
 
+function timeAgo(dateStr: string): string {
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  } catch {
+    return '';
+  }
+}
+
 interface InlineEditProps {
   label: string;
   value: string;
   multiline?: boolean;
+  prominent?: boolean;
   onSave: (val: string) => Promise<void>;
 }
 
-function InlineEdit({ label, value, multiline, onSave }: InlineEditProps) {
+function InlineEdit({ label, value, multiline, prominent, onSave }: InlineEditProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
@@ -82,8 +107,8 @@ function InlineEdit({ label, value, multiline, onSave }: InlineEditProps) {
 
   if (editing) {
     return (
-      <div className="mb-3">
-        <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">{label}</label>
+      <div className="mb-5">
+        <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">{label}</label>
         {multiline ? (
           <textarea
             autoFocus
@@ -92,7 +117,7 @@ function InlineEdit({ label, value, multiline, onSave }: InlineEditProps) {
             onBlur={handleSave}
             onKeyDown={e => { if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
             rows={3}
-            className="w-full bg-[#0a0a0a] border border-[#4a4a4a] rounded px-2 py-1.5 text-[#f0f0f0] text-sm font-mono focus:outline-none resize-none"
+            className="w-full bg-[#0f0f0f] border border-[#4a4a4a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none resize-none"
           />
         ) : (
           <input
@@ -102,7 +127,7 @@ function InlineEdit({ label, value, multiline, onSave }: InlineEditProps) {
             onChange={e => setDraft(e.target.value)}
             onBlur={handleSave}
             onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') { setDraft(value); setEditing(false); } }}
-            className="w-full bg-[#0a0a0a] border border-[#4a4a4a] rounded px-2 py-1.5 text-[#f0f0f0] text-sm font-mono focus:outline-none"
+            className="w-full bg-[#0f0f0f] border border-[#4a4a4a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none"
           />
         )}
         {saving && <span className="text-[10px] font-mono text-[#6a6a6a]">saving...</span>}
@@ -111,13 +136,17 @@ function InlineEdit({ label, value, multiline, onSave }: InlineEditProps) {
   }
 
   return (
-    <div className="mb-3 group/inline">
-      <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">{label}</label>
+    <div className="mb-5 group/inline">
+      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">{label}</label>
       <div
         onClick={() => { setDraft(value); setEditing(true); }}
-        className="text-sm text-[#f0f0f0] leading-relaxed cursor-text min-h-[1.5rem] rounded px-1 -mx-1 group-hover/inline:bg-[#1a1a1a] transition-colors whitespace-pre-wrap"
+        className={`leading-relaxed cursor-text min-h-[1.5rem] rounded px-2 py-1 -mx-2 group-hover/inline:bg-[#141414] transition-colors whitespace-pre-wrap ${
+          prominent
+            ? 'text-[15px] text-white font-medium'
+            : 'text-sm text-[#d0d0d0]'
+        }`}
       >
-        {value || <span className="text-[#4a4a4a] italic">click to edit...</span>}
+        {value || <span className="text-[#3a3a3a] italic text-sm font-normal">click to edit...</span>}
       </div>
     </div>
   );
@@ -148,7 +177,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
   const [artLoading, setArtLoading] = useState(false);
   const [artError, setArtError] = useState('');
 
-  // Add blocker form
+  // Blockers
   const [newBlocker, setNewBlocker] = useState('');
 
   async function loadTask() {
@@ -156,7 +185,6 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
     try {
       const t = await api.getTask(taskId);
       setTask(t);
-      // Load artifacts separately if not embedded
       if (t.artifacts) {
         setArtifacts(t.artifacts);
       } else {
@@ -284,13 +312,13 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
       <div className="flex-1 bg-black/50" onClick={onClose} />
 
       {/* Panel */}
-      <div className="w-[580px] bg-[#0a0a0a] border-l border-[#2a2a2a] flex flex-col h-full overflow-hidden">
+      <div className="w-[600px] bg-[#0a0a0a] border-l border-[#222] flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a2a] shrink-0">
-          <span className="text-xs font-mono text-[#8a8a8a] uppercase tracking-wide">Task Detail</span>
+        <div className="flex items-center justify-between px-6 py-3 border-b border-[#1e1e1e] shrink-0">
+          <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">Work Item</span>
           <button
             onClick={onClose}
-            className="text-[#8a8a8a] hover:text-[#f0f0f0] text-lg leading-none cursor-pointer"
+            className="text-[#4a4a4a] hover:text-[#f0f0f0] text-lg leading-none cursor-pointer transition-colors"
           >
             ✕
           </button>
@@ -311,145 +339,95 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
         {task && !loading && (
           <div className="flex-1 overflow-y-auto">
 
-            {/* ── Header section ── */}
-            <div className="p-6 border-b border-[#2a2a2a]">
-              <h2 className="text-lg font-semibold text-[#f0f0f0] mb-4 leading-snug">
+            {/* ── STATE SUMMARY (HERO) ── */}
+            <div className="px-6 pt-6 pb-5 border-b border-[#1e1e1e]">
+              {/* Title */}
+              <h2 className="text-lg font-semibold text-white mb-1 leading-snug">
                 {task.title}
               </h2>
 
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                {/* Status */}
+              {/* Meta row */}
+              <div className="flex flex-wrap items-center gap-2 mb-5">
                 <select
                   value={task.status}
                   onChange={e => handleStatusChange(e.target.value)}
                   disabled={updatingStatus}
-                  className="bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#4a4a4a] cursor-pointer disabled:opacity-50"
+                  className="bg-[#141414] border border-[#2a2a2a] rounded px-2 py-1 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#4a4a4a] cursor-pointer disabled:opacity-50"
                 >
                   {statusOptions.map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
 
-                {/* Priority */}
                 <span className={`text-xs font-mono font-bold ${priorityColors[task.priority] || 'text-[#8a8a8a]'}`}>
                   {task.priority}
                 </span>
 
-                {/* Confidence */}
                 {task.confidence && (
                   <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${confidenceColors[task.confidence] || ''}`}>
                     {task.confidence} confidence
                   </span>
                 )}
 
-                {/* Guardrail */}
                 {task.guardrail === 'approval_required' && (
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-900/40 text-yellow-400 border border-yellow-800/50">
                     approval required
                   </span>
                 )}
-              </div>
 
-              {/* Claimed by */}
-              {task.claimed_by && (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-800/40">
-                    claimed by {task.claimed_by}
-                  </span>
-                  {task.claimed_until && (
-                    <span className="text-[10px] font-mono text-[#6a6a6a]">
-                      until {formatDate(task.claimed_until)}
+                {task.claimed_by && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-800/40">
+                      &#x1F512; {task.claimed_by}
                     </span>
-                  )}
-                  <button
-                    onClick={handleRelease}
-                    disabled={releasingClaim}
-                    className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#3a3a3a] text-[#8a8a8a] hover:text-[#f0f0f0] hover:border-[#5a5a5a] transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {releasingClaim ? '...' : 'Release'}
-                  </button>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                {task.domain && (
-                  <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Domain</label>
-                    <span className="font-mono text-[#f0f0f0]">{task.domain.name}</span>
+                    <button
+                      onClick={handleRelease}
+                      disabled={releasingClaim}
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {releasingClaim ? '...' : 'Release'}
+                    </button>
                   </div>
                 )}
-                {task.project && (
-                  <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Project</label>
-                    <span className="font-mono text-[#f0f0f0]">{task.project.name}</span>
-                  </div>
-                )}
-                {task.assignee && (
-                  <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Assignee</label>
-                    <span className="font-mono text-[#f0f0f0]">@{task.assignee}</span>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Created</label>
-                  <span className="font-mono text-[#8a8a8a]">{formatDate(task.created_at)}</span>
-                </div>
               </div>
 
-              {task.tags && task.tags.length > 0 && (
-                <div className="mt-3">
-                  <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Tags</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {task.tags.map(tag => (
-                      <span key={tag} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a]">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ── Work State section ── */}
-            <div className="p-6 border-b border-[#2a2a2a]">
-              <h3 className="text-xs font-mono text-[#8a8a8a] uppercase tracking-wide mb-4">Work State</h3>
-
+              {/* ━━━ State fields ━━━ */}
               <InlineEdit
                 label="Goal"
                 value={task.goal || ''}
                 multiline
                 onSave={v => handleFieldSave('goal', v)}
               />
+
               <InlineEdit
                 label="Current State"
                 value={task.current_state || ''}
                 multiline
+                prominent
                 onSave={v => handleFieldSave('current_state', v)}
               />
+
               <InlineEdit
                 label="Next Action"
                 value={task.next_action || ''}
                 multiline
                 onSave={v => handleFieldSave('next_action', v)}
               />
-              <InlineEdit
-                label="Outcome Definition"
-                value={task.outcome_definition || ''}
-                multiline
-                onSave={v => handleFieldSave('outcome_definition', v)}
-              />
 
               {/* Blockers */}
-              <div className="mb-3">
-                <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-2">Blockers</label>
+              <div className="mb-5">
+                <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">
+                  Blockers
+                </label>
                 {task.blockers && task.blockers.length > 0 ? (
                   <div className="space-y-1.5 mb-2">
                     {task.blockers.map((b, i) => (
-                      <div key={i} className="flex items-start gap-2 bg-red-900/10 border border-red-900/30 rounded px-2 py-1.5">
+                      <div key={i} className="flex items-start gap-2 bg-red-950/20 border border-red-900/30 rounded px-3 py-2">
+                        <span className="text-red-500 font-mono text-xs mt-0.5">●</span>
                         <span className="text-sm text-[#f0f0f0] flex-1 leading-snug">{b}</span>
                         <button
                           onClick={() => handleRemoveBlocker(i)}
-                          className="text-[#6a6a6a] hover:text-red-400 font-mono text-xs mt-0.5 cursor-pointer shrink-0"
+                          className="text-[#4a4a4a] hover:text-red-400 font-mono text-xs mt-0.5 cursor-pointer shrink-0 transition-colors"
                           title="Remove blocker"
                         >
                           ✕
@@ -458,7 +436,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[#4a4a4a] text-xs font-mono mb-2">No blockers.</p>
+                  <p className="text-[#3a3a3a] text-xs font-mono mb-2">No blockers.</p>
                 )}
                 <div className="flex gap-2">
                   <input
@@ -466,76 +444,219 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     value={newBlocker}
                     onChange={e => setNewBlocker(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddBlocker(); } }}
-                    placeholder="Describe a blocker..."
-                    className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
+                    placeholder="Add a blocker..."
+                    className="flex-1 bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
                   />
                   <button
                     onClick={handleAddBlocker}
                     disabled={!newBlocker.trim()}
-                    className="text-xs font-mono px-2 py-1 rounded border border-[#2a2a2a] text-[#8a8a8a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer disabled:opacity-40"
+                    className="text-xs font-mono px-2 py-1 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer disabled:opacity-40"
                   >
                     Add
                   </button>
                 </div>
               </div>
+
+              <InlineEdit
+                label="Outcome"
+                value={task.outcome_definition || ''}
+                multiline
+                onSave={v => handleFieldSave('outcome_definition', v)}
+              />
+
+              {/* Task metadata */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2 pt-4 border-t border-[#1a1a1a] text-xs">
+                {task.domain && (
+                  <div>
+                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Domain</span>
+                    <span className="font-mono text-[#a0a0a0]">{task.domain.name}</span>
+                  </div>
+                )}
+                {task.assignee && (
+                  <div>
+                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Assignee</span>
+                    <span className="font-mono text-[#a0a0a0]">@{task.assignee}</span>
+                  </div>
+                )}
+                {task.project && (
+                  <div>
+                    <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Project</span>
+                    <span className="font-mono text-[#a0a0a0]">{task.project.name}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-0.5">Created</span>
+                  <span className="font-mono text-[#6a6a6a]">{formatDate(task.created_at)}</span>
+                </div>
+              </div>
+
+              {task.tags && task.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {task.tags.map(tag => (
+                    <span key={tag} className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* ── Artifacts section ── */}
-            <div className="p-6 border-b border-[#2a2a2a]">
+            {/* ── TIMELINE ── */}
+            <div className="px-6 py-5 border-b border-[#1e1e1e]">
+              <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-4">Timeline</h3>
+
+              {(!task.context || task.context.length === 0) ? (
+                <p className="text-[#3a3a3a] text-xs font-mono">No entries yet.</p>
+              ) : (
+                <div className="space-y-0">
+                  {[...task.context].reverse().map((entry: ContextEntry, idx: number, arr: ContextEntry[]) => {
+                    const isSystem = entry.actor_type === 'system' || (!entry.actor_type && (entry.type === 'state_transition' || entry.type === 'artifact_created'));
+                    const typeCfg = timelineTypeConfig[entry.type] || { label: entry.type, cls: 'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]' };
+                    const isDim = isSystem || typeCfg.dim;
+                    const badge = actorTypeBadge[entry.actor_type || (isSystem ? 'system' : 'agent')];
+                    const isLast = idx === arr.length - 1;
+
+                    return (
+                      <div key={entry.id} className={`relative flex gap-3 ${isDim ? 'opacity-50' : ''}`}>
+                        {/* Timeline line + dot */}
+                        <div className="flex flex-col items-center shrink-0 mt-1">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${isDim ? 'bg-[#2a2a2a]' : 'bg-[#4a4a4a]'}`} />
+                          {!isLast && <div className="w-px flex-1 bg-[#1e1e1e] mt-1 mb-0 min-h-[20px]" />}
+                        </div>
+
+                        {/* Content */}
+                        <div className={`pb-4 flex-1 min-w-0 ${isLast ? 'pb-0' : ''}`}>
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="text-[11px] font-mono text-[#8a8a8a]">
+                              {entry.author}
+                            </span>
+                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${typeCfg.cls}`}>
+                              {typeCfg.label}
+                            </span>
+                          </div>
+                          {entry.body && (
+                            <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-1 ${isDim ? 'text-[#5a5a5a]' : 'text-[#d0d0d0]'}`}>
+                              {entry.body}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono text-[#3a3a3a]">
+                              {timeAgo(entry.created_at)}
+                            </span>
+                            {badge && (
+                              <span className={`text-[9px] font-mono px-1 py-0.5 rounded border ${badge.cls}`}>
+                                {badge.label}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Add context form */}
+              <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
+                <h4 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-3">Add Entry</h4>
+                <form onSubmit={handleAddContext} className="space-y-2">
+                  <div className="flex gap-2">
+                    <select
+                      value={ctxType}
+                      onChange={e => setCtxType(e.target.value)}
+                      className="bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#3a3a3a] cursor-pointer"
+                    >
+                      {contextTypes.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={ctxAuthor}
+                      onChange={e => setCtxAuthor(e.target.value)}
+                      placeholder="author"
+                      className="w-32 bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
+                    />
+                  </div>
+                  <textarea
+                    value={ctxBody}
+                    onChange={e => setCtxBody(e.target.value)}
+                    placeholder="Entry body..."
+                    rows={2}
+                    required
+                    className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a] resize-none"
+                  />
+                  {ctxError && <p className="text-red-400 text-xs font-mono">{ctxError}</p>}
+                  <button
+                    type="submit"
+                    disabled={ctxLoading || !ctxBody.trim()}
+                    className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {ctxLoading ? '...' : 'Add Entry'}
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* ── ARTIFACTS ── */}
+            <div className="px-6 py-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-mono text-[#8a8a8a] uppercase tracking-wide">Artifacts</h3>
+                <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">Artifacts</h3>
                 <button
                   onClick={() => setShowArtifactForm(v => !v)}
-                  className="text-[10px] font-mono px-2 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer"
+                  className="text-[10px] font-mono px-2 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer"
                 >
-                  {showArtifactForm ? 'Cancel' : '+ Add Artifact'}
+                  {showArtifactForm ? 'Cancel' : '+ Add'}
                 </button>
               </div>
 
               {artifacts.length === 0 && !showArtifactForm && (
-                <p className="text-[#4a4a4a] text-xs font-mono">No artifacts yet.</p>
+                <p className="text-[#3a3a3a] text-xs font-mono">No artifacts yet.</p>
               )}
 
               {artifacts.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  {artifacts.map(art => (
-                    <div key={art.id} className="border border-[#2a2a2a] rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${artifactTypeColors[art.type] || 'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]'}`}>
-                          {art.type}
+                <div className="space-y-2 mb-4">
+                  {artifacts.map(art => {
+                    const typeCfg = artifactTypeColors[art.type] || { cls: 'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]', icon: '◻' };
+                    return (
+                      <div key={art.id} className="flex items-start gap-3 border border-[#1e1e1e] rounded-lg px-3 py-2.5">
+                        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${typeCfg.cls}`}>
+                          {typeCfg.icon} {art.type}
                         </span>
-                        {art.title && (
-                          <span className="text-sm text-[#f0f0f0] font-medium">{art.title}</span>
-                        )}
-                        <span className="text-[10px] font-mono text-[#4a4a4a] ml-auto">by {art.created_by}</span>
+                        <div className="flex-1 min-w-0">
+                          {art.title && (
+                            <span className="text-sm text-[#f0f0f0] font-medium block">{art.title}</span>
+                          )}
+                          {art.uri && (
+                            <a
+                              href={art.uri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-mono text-blue-400 hover:text-blue-300 break-all block"
+                            >
+                              {art.uri}
+                            </a>
+                          )}
+                          {art.body && (
+                            <p className="text-xs text-[#6a6a6a] mt-1 whitespace-pre-wrap leading-relaxed">{art.body}</p>
+                          )}
+                        </div>
+                        <span className="text-[9px] font-mono text-[#3a3a3a] shrink-0">by {art.created_by}</span>
                       </div>
-                      {art.uri && (
-                        <a
-                          href={art.uri}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-mono text-blue-400 hover:text-blue-300 break-all"
-                        >
-                          {art.uri}
-                        </a>
-                      )}
-                      {art.body && (
-                        <p className="text-xs text-[#8a8a8a] mt-1 whitespace-pre-wrap leading-relaxed">{art.body}</p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
               {showArtifactForm && (
-                <form onSubmit={handleAddArtifact} className="space-y-3 border border-[#2a2a2a] rounded-lg p-3">
+                <form onSubmit={handleAddArtifact} className="space-y-3 border border-[#1e1e1e] rounded-lg p-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Type</label>
+                      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Type</label>
                       <select
                         value={artType}
                         onChange={e => setArtType(e.target.value)}
-                        className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#4a4a4a] cursor-pointer"
+                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#3a3a3a] cursor-pointer"
                       >
                         {artifactTypes.map(t => (
                           <option key={t} value={t}>{t}</option>
@@ -543,44 +664,44 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Created By</label>
+                      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Created By</label>
                       <input
                         type="text"
                         value={artCreatedBy}
                         onChange={e => setArtCreatedBy(e.target.value)}
                         placeholder="dashboard"
-                        className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
+                        className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Title</label>
+                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Title</label>
                     <input
                       type="text"
                       value={artTitle}
                       onChange={e => setArtTitle(e.target.value)}
                       placeholder="Optional title"
-                      className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
+                      className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">URI</label>
+                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">URI</label>
                     <input
                       type="text"
                       value={artUri}
                       onChange={e => setArtUri(e.target.value)}
                       placeholder="https://..."
-                      className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
+                      className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Body</label>
+                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Body</label>
                     <textarea
                       value={artBody}
                       onChange={e => setArtBody(e.target.value)}
                       placeholder="Optional body text..."
                       rows={2}
-                      className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+                      className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a] resize-none"
                     />
                   </div>
                   {artError && <p className="text-red-400 text-xs font-mono">{artError}</p>}
@@ -595,97 +716,6 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
               )}
             </div>
 
-            {/* ── Context Log ── */}
-            <div className="p-6 border-b border-[#2a2a2a]">
-              <h3 className="text-xs font-mono text-[#8a8a8a] uppercase tracking-wide mb-4">Context Log</h3>
-
-              {(!task.context || task.context.length === 0) ? (
-                <p className="text-[#4a4a4a] text-xs font-mono">No context entries yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {task.context.map((entry: ContextEntry) => {
-                    const isSystem = entry.actor_type === 'system' || (!entry.actor_type && entry.author === 'system');
-                    const badge = actorTypeBadge[entry.actor_type || 'human'];
-                    return (
-                      <div
-                        key={entry.id}
-                        className={`border rounded-lg p-3 ${isSystem ? 'border-[#1e1e1e] opacity-60' : 'border-[#2a2a2a]'}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            {badge && (
-                              <span className={`text-[9px] font-mono px-1 py-0.5 rounded border ${badge.cls}`}>
-                                {badge.label}
-                              </span>
-                            )}
-                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${contextTypeColors[entry.type] || 'bg-[#2a2a2a] text-[#8a8a8a] border-[#2a2a2a]'}`}>
-                              {entry.type}
-                            </span>
-                            <span className="text-[10px] font-mono text-[#4a4a4a]">@{entry.author}</span>
-                          </div>
-                          <span className="text-[10px] font-mono text-[#4a4a4a]">
-                            {formatDate(entry.created_at)}
-                          </span>
-                        </div>
-                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isSystem ? 'text-[#6a6a6a]' : 'text-[#f0f0f0]'}`}>
-                          {entry.body}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* ── Add Context ── */}
-            <div className="p-6">
-              <h3 className="text-xs font-mono text-[#8a8a8a] uppercase tracking-wide mb-4">Add Context</h3>
-              <form onSubmit={handleAddContext} className="space-y-3">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Type</label>
-                    <select
-                      value={ctxType}
-                      onChange={e => setCtxType(e.target.value)}
-                      className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#4a4a4a] cursor-pointer"
-                    >
-                      {contextTypes.map(t => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Author</label>
-                    <input
-                      type="text"
-                      value={ctxAuthor}
-                      onChange={e => setCtxAuthor(e.target.value)}
-                      placeholder="dashboard"
-                      className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide mb-1">Body</label>
-                  <textarea
-                    value={ctxBody}
-                    onChange={e => setCtxBody(e.target.value)}
-                    placeholder="Enter context details..."
-                    rows={3}
-                    required
-                    className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
-                  />
-                </div>
-                {ctxError && <p className="text-red-400 text-xs font-mono">{ctxError}</p>}
-                <button
-                  type="submit"
-                  disabled={ctxLoading || !ctxBody.trim()}
-                  className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {ctxLoading ? '...' : 'Add Entry'}
-                </button>
-              </form>
-            </div>
           </div>
         )}
       </div>
