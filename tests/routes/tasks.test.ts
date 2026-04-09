@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { createTestContext } from "../helpers/api.js";
 import { domainRoutes } from "../../src/routes/domains.js";
 import { taskRoutes } from "../../src/routes/tasks.js";
+import { contextRoutes } from "../../src/routes/context.js";
 
 let ctx: Awaited<ReturnType<typeof createTestContext>>;
 
@@ -18,6 +19,7 @@ function buildApp() {
   const app = new Hono().basePath("/v1");
   app.route("/domains", domainRoutes(ctx.db));
   app.route("/tasks", taskRoutes(ctx.db));
+  app.route("/tasks", contextRoutes(ctx.db));
   return app;
 }
 
@@ -93,6 +95,38 @@ describe("POST /v1/tasks", () => {
     expect(body.metadata).toEqual({ ticket: "PROJ-123", sprint: 5 });
     expect(body.priority).toBe("high");
     expect(body.assignee).toBe("dev-agent");
+  });
+
+  it("creates a task with new work item fields", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+
+    const res = await app.request("/v1/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Agent Work Item",
+        domain_id: domain.id,
+        created_by: "claude-code",
+        goal: "Refactor the authentication module",
+        current_state: "Analysis phase — reviewing existing code",
+        next_action: "Create a plan document",
+        blockers: ["Waiting for access to prod logs"],
+        outcome_definition: "Auth module passes all tests with <50ms response time",
+        confidence: "medium",
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.goal).toBe("Refactor the authentication module");
+    expect(body.current_state).toBe("Analysis phase — reviewing existing code");
+    expect(body.next_action).toBe("Create a plan document");
+    expect(body.blockers).toEqual(["Waiting for access to prod logs"]);
+    expect(body.outcome_definition).toBe("Auth module passes all tests with <50ms response time");
+    expect(body.confidence).toBe("medium");
+    expect(body.claimed_by).toBeNull();
+    expect(body.claim_expires_at).toBeNull();
   });
 });
 
@@ -173,6 +207,18 @@ describe("GET /v1/tasks/:id", () => {
     expect(body.metadata).toEqual({ key: "value" });
   });
 
+  it("returns context and artifacts arrays", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id);
+
+    const res = await app.request(`/v1/tasks/${task.id}`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.context)).toBe(true);
+    expect(Array.isArray(body.artifacts)).toBe(true);
+  });
+
   it("returns 404 for nonexistent task", async () => {
     const app = buildApp();
     const res = await app.request("/v1/tasks/t_nonexistent");
@@ -196,6 +242,89 @@ describe("PATCH /v1/tasks/:id", () => {
     const body = await res.json();
     expect(body.status).toBe("in_progress");
     expect(body.assignee).toBe("worker-agent");
+  });
+
+  it("updates new work item fields", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id);
+
+    const res = await app.request(`/v1/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        goal: "Ship the feature by Friday",
+        current_state: "In review",
+        next_action: "Address PR comments",
+        blockers: ["PR has 2 unresolved comments"],
+        confidence: "high",
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.goal).toBe("Ship the feature by Friday");
+    expect(body.current_state).toBe("In review");
+    expect(body.next_action).toBe("Address PR comments");
+    expect(body.blockers).toEqual(["PR has 2 unresolved comments"]);
+    expect(body.confidence).toBe("high");
+  });
+
+  it("auto-generates state_transition event on status change", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id);
+
+    await app.request(`/v1/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "in_progress", _actor: "claude-code", _actor_type: "agent" }),
+    });
+
+    const res = await app.request(`/v1/tasks/${task.id}/context`);
+    const body = await res.json();
+    const event = body.context.find((e: any) => e.type === "state_transition");
+    expect(event).toBeDefined();
+    expect(event.body).toContain("pending");
+    expect(event.body).toContain("in_progress");
+    expect(event.author).toBe("claude-code");
+    expect(event.actor_type).toBe("agent");
+  });
+
+  it("auto-generates handoff event on assignee change", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id, { assignee: "agent-a" });
+
+    await app.request(`/v1/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignee: "agent-b" }),
+    });
+
+    const res = await app.request(`/v1/tasks/${task.id}/context`);
+    const body = await res.json();
+    const event = body.context.find((e: any) => e.type === "handoff");
+    expect(event).toBeDefined();
+    expect(event.body).toContain("agent-a");
+    expect(event.body).toContain("agent-b");
+  });
+
+  it("does not generate events when status unchanged", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id);
+
+    // Patch with same status
+    await app.request(`/v1/tasks/${task.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "pending" }),
+    });
+
+    const res = await app.request(`/v1/tasks/${task.id}/context`);
+    const body = await res.json();
+    expect(body.context).toHaveLength(0);
   });
 });
 

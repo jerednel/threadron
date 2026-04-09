@@ -249,20 +249,30 @@ describe("Full agent lifecycle integration", () => {
     expect(fullTask.tags).toEqual(["bug", "backend", "database"]);
     expect(fullTask.assignee).toBe("claude-code");
 
-    // ─── 13. Verify context log has 3 entries in correct order ──────────────
+    // ─── 13. Verify context log has 5 entries (3 manual + 2 auto state_transition) ──
     const contextRes = await app.request(`/v1/tasks/${taskId}/context`, {
       headers: auth,
     });
     expect(contextRes.status).toBe(200);
     const contextBody = await contextRes.json();
-    expect(contextBody.context).toHaveLength(3);
-    expect(contextBody.context[0].type).toBe("observation");
-    expect(contextBody.context[1].type).toBe("decision");
-    expect(contextBody.context[2].type).toBe("artifact");
+    // 2 status changes (pending→in_progress, in_progress→completed) fire auto-events
+    expect(contextBody.context).toHaveLength(5);
+    // The 3 manually created entries are present
+    const manualEntries = contextBody.context.filter(
+      (e: { type: string }) => ["observation", "decision", "artifact"].includes(e.type)
+    );
+    expect(manualEntries).toHaveLength(3);
+    expect(manualEntries[0].type).toBe("observation");
+    expect(manualEntries[1].type).toBe("decision");
+    expect(manualEntries[2].type).toBe("artifact");
+    // 2 auto-generated state_transition entries exist
+    const autoEntries = contextBody.context.filter(
+      (e: { type: string }) => e.type === "state_transition"
+    );
+    expect(autoEntries).toHaveLength(2);
     // All entries belong to the correct task
-    contextBody.context.forEach((entry: { task_id: string; author: string }) => {
+    contextBody.context.forEach((entry: { task_id: string }) => {
       expect(entry.task_id).toBe(taskId);
-      expect(entry.author).toBe("claude-code");
     });
 
     // ─── 14. Search for task by title ───────────────────────────────────────
