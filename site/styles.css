@@ -592,7 +592,7 @@ footer .footer-links a:hover {
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
   nav { padding: 16px 24px; position: relative; }
-  nav .nav-toggle { display: block !important; }
+  nav button.nav-toggle[style] { display: block !important; }
   nav .links {
     display: none;
     position: absolute;
