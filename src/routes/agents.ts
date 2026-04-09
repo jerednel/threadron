@@ -6,8 +6,10 @@ import { eq, and } from "drizzle-orm";
 type DrizzleDb = typeof DbType;
 
 function toApi(row: typeof agents.$inferSelect) {
+  // Strip userId prefix from the internal scoped ID
+  const externalId = row.id.includes(":") ? row.id.split(":").slice(1).join(":") : row.id;
   return {
-    id: row.id,
+    id: externalId,
     name: row.name,
     type: row.type,
     capabilities: row.capabilities,
@@ -30,10 +32,36 @@ export function agentRoutes(db: DrizzleDb) {
     }>();
     const userId: string = c.get("userId") as string;
 
+    // Use userId-scoped ID to avoid cross-tenant collisions
+    const agentId = `${userId}:${body.id}`;
+
+    // Check if this agent already exists for this user — upsert
+    const [existing] = await db
+      .select()
+      .from(agents)
+      .where(and(eq(agents.id, agentId), eq(agents.userId, userId)))
+      .limit(1);
+
+    if (existing) {
+      // Update existing agent
+      const [row] = await db
+        .update(agents)
+        .set({
+          name: body.name,
+          type: body.type ?? existing.type,
+          capabilities: body.capabilities ?? existing.capabilities,
+          lastSeen: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(agents.id, agentId))
+        .returning();
+      return c.json(toApi(row), 200);
+    }
+
     const [row] = await db
       .insert(agents)
       .values({
-        id: body.id,
+        id: agentId,
         name: body.name,
         type: body.type ?? "generic",
         userId,
@@ -54,10 +82,12 @@ export function agentRoutes(db: DrizzleDb) {
 
   // GET /:id — Get single agent
   router.get("/:id", async (c) => {
-    const id = c.req.param("id");
+    const rawId = c.req.param("id");
     const userId: string = c.get("userId") as string;
+    // Try scoped ID first, then raw ID for backwards compatibility
+    const scopedId = rawId.includes(":") ? rawId : `${userId}:${rawId}`;
     const rows = await db.select().from(agents)
-      .where(and(eq(agents.id, id), eq(agents.userId, userId))).limit(1);
+      .where(and(eq(agents.id, scopedId), eq(agents.userId, userId))).limit(1);
 
     if (rows.length === 0) {
       return c.json({ error: "Not found" }, 404);
@@ -68,8 +98,9 @@ export function agentRoutes(db: DrizzleDb) {
 
   // PATCH /:id — Update agent
   router.patch("/:id", async (c) => {
-    const id = c.req.param("id");
+    const rawId = c.req.param("id");
     const userId: string = c.get("userId") as string;
+    const id = rawId.includes(":") ? rawId : `${userId}:${rawId}`;
     const body = await c.req.json<{
       name?: string;
       type?: string;
