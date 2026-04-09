@@ -207,5 +207,8 @@ export const api = {
     request('/config', { method: 'POST', body: JSON.stringify({ key, value }) }),
 
   // Auth keys
+  createApiKey: (data: { name: string; agent_id?: string }) =>
+    request('/auth/keys', { method: 'POST', body: JSON.stringify(data) }),
   listApiKeys: () => request('/auth/keys'),
+  revokeApiKey: (id: string) => request(`/auth/keys/${id}`, { method: 'DELETE' }),
 };

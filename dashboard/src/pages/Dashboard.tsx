@@ -3,6 +3,7 @@ import { api, type Task, type Domain } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import NewTask from '../components/NewTask';
+import Onboarding from '../components/Onboarding';
 
 const COLUMNS = [
   { id: 'pending', label: 'Pending' },
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [selectedDomainId, setSelectedDomainId] = useState<string>('');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -29,7 +31,12 @@ export default function Dashboard() {
         api.listDomains(),
       ]);
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
-      setDomains(Array.isArray(domainsRes) ? domainsRes : []);
+      const domainList = Array.isArray(domainsRes) ? domainsRes : [];
+      setDomains(domainList);
+      // Show onboarding for first-time users with no domains
+      if (domainList.length === 0) {
+        setShowOnboarding(true);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
@@ -159,6 +166,17 @@ export default function Dashboard() {
           onClose={() => setShowNewTask(false)}
           onCreated={loadData}
           defaultDomainId={selectedDomainId}
+        />
+      )}
+
+      {/* Onboarding overlay for first-time users */}
+      {showOnboarding && (
+        <Onboarding
+          onDismiss={() => {
+            setShowOnboarding(false);
+            // Reload to pick up newly created domain
+            loadData();
+          }}
         />
       )}
     </div>

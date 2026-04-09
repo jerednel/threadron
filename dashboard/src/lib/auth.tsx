@@ -73,6 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(res.token);
     setApiKey(res.api_key || res.token);
     setUser(res.user || null);
+    // Store the initial API key so the onboarding flow can display it once
+    if (res.api_key) {
+      localStorage.setItem('tfa_initial_api_key', res.api_key);
+    }
     return { api_key: res.api_key };
   }, []);
 
