@@ -32,162 +32,182 @@
   <section class="hero" style="margin-top: -160px; position: relative; z-index: 2; min-height: auto; padding-top: 0;">
     <div class="label">Use cases</div>
     <h1>
-      <span class="glitch" data-text="One board.">One board.</span><br>
-      <span style="color: var(--gray-3);">Every domain of your life.</span>
+      <span class="glitch" data-text="One state layer.">One state layer.</span><br>
+      <span style="color: var(--gray-3);">Every agent.</span>
     </h1>
     <p class="lead">
-      Your AI doesn't just write code. It manages your chores, tracks your side project,
-      watches your Jira board, and follows up on requests from other teams.
-      Here's how that looks.
+      Your agents work on the same codebase. They should share the same execution state.
+      Here's what that looks like in practice.
     </p>
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- USE CASE 1: DEV -->
+  <!-- USE CASE 1: SESSION CONTINUITY -->
   <section>
-    <div class="label">Domain: Work</div>
-    <h2>Software development</h2>
-    <p style="margin-bottom: 32px;">Your coding agent watches GitHub issues, syncs Jira tickets, and reports progress — all visible on your board.</p>
+    <div class="label">Use case 01</div>
+    <h2>Session continuity</h2>
+    <p style="margin-bottom: 32px;">Claude Code fixes a bug. Session ends. Tomorrow, a new session reads the work item and continues — no re-investigation, no lost context.</p>
 
     <div class="code-block">
-      <span class="label-tag">Claude Code</span>
-<span class="comment">// Claude Code checks in every session</span>
-<span class="method">GET</span> <span class="string">/v1/tasks?domain=work&project=api-v2&status=pending</span>
-
-<span class="comment">// Picks up a task, adds context from investigation</span>
-<span class="method">POST</span> <span class="string">/v1/tasks/t_83f/context</span>
+      <span class="label-tag">Session 1 — Claude Code</span>
+<span class="comment">// Session 1: identifies root cause, updates structured state</span>
+<span class="method">PATCH</span> <span class="string">/v1/tasks/t_4a2</span>
 {
-  <span class="key">"type"</span>: <span class="string">"observation"</span>,
-  <span class="key">"body"</span>: <span class="string">"Root cause: race condition in connection pool. Fix is straightforward — needs test coverage for concurrent requests."</span>
+  <span class="key">"current_state"</span>: <span class="string">"Race condition in pool acquire. Fix is a mutex on the acquire path."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"Write concurrent request tests, then open PR"</span>,
+  <span class="key">"confidence"</span>: <span class="string">"high"</span>
 }
 
-<span class="comment">// Marks it done when the PR is merged</span>
-<span class="method">PATCH</span> <span class="string">/v1/tasks/t_83f</span>  { <span class="key">"status"</span>: <span class="string">"completed"</span> }
+<span class="comment">// Attaches the branch as a first-class artifact</span>
+<span class="method">POST</span> <span class="string">/v1/tasks/t_4a2/artifacts</span>
+{ <span class="key">"type"</span>: <span class="string">"branch"</span>, <span class="key">"name"</span>: <span class="string">"fix/connection-pool-race"</span> }
+
+<span class="comment">// Session ends. Context is fully preserved.</span>
+    </div>
+
+    <div class="code-block" style="margin-top: 16px;">
+      <span class="label-tag">Session 2 — New Claude Code session</span>
+<span class="comment">// New session checks in — reads structured state immediately</span>
+<span class="method">GET</span> <span class="string">/v1/tasks/t_4a2</span>
+
+<span class="comment">// Returns: current_state, next_action, full event history, branch artifact.</span>
+<span class="comment">// Agent knows exactly what to do. Zero re-investigation.</span>
     </div>
 
     <div style="margin-top: 32px; padding: 24px 32px; border-left: 2px solid var(--gray-3); background: var(--gray-1);">
       <p style="color: var(--gray-4); font-style: italic; font-size: 0.95rem;">
-        "I open my board Monday morning and see that Claude fixed the connection pool bug over the weekend,
-        added tests, and left a context log explaining the root cause. I just review the PR."
+        "I start a new Claude Code session. It reads the work item, sees that the race condition
+        was already diagnosed, checks out the branch, and writes the tests. It didn't need to re-read
+        a single line of code to understand what was happening."
       </p>
     </div>
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- USE CASE 2: PERSONAL -->
+  <!-- USE CASE 2: AGENT HANDOFF -->
   <section>
-    <div class="label">Domain: Personal</div>
-    <h2>Life management</h2>
-    <p style="margin-bottom: 32px;">Your personal assistant tracks recurring chores, appointments, and errands. Autonomous for routine tasks, asks for approval on big decisions.</p>
+    <div class="label">Use case 02</div>
+    <h2>Agent handoff</h2>
+    <p style="margin-bottom: 32px;">Claude Code diagnoses a failing test. OpenClaw picks up the fix. The handoff is structured state — not a chat transcript.</p>
 
     <div class="card-grid">
       <div class="card">
-        <h3>Weekly groceries</h3>
-        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">RECURRING &middot; AUTONOMOUS</p>
-        <p>Agent checks pantry list, creates grocery order, schedules delivery. Adds context: "Substituted oat milk — store was out of almond."</p>
+        <h3>Claude Code investigates</h3>
+        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">OBSERVER &middot; EVENT: OBSERVATION</p>
+        <p>Reads the failing test, traces the stack, identifies root cause. Updates current_state. Adds an observation event with findings. Releases the item.</p>
       </div>
       <div class="card">
-        <h3>Dentist appointment</h3>
-        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">ONE-TIME &middot; APPROVAL REQUIRED</p>
-        <p>Agent finds available slots, presents options. You approve from the dashboard. Agent books and adds calendar event.</p>
+        <h3>OpenClaw implements</h3>
+        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">IMPLEMENTOR &middot; EVENT: HANDOFF</p>
+        <p>Claims the work item. Reads current_state and observation events. Implements the fix with full context of what was already tried. Opens a PR. Attaches it as an artifact.</p>
       </div>
       <div class="card">
-        <h3>Home renovation research</h3>
-        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">PROJECT &middot; MULTI-TASK</p>
-        <p>Agent creates sub-tasks: get contractor quotes, compare materials, check permits. Builds context over weeks. You review the summary when ready to decide.</p>
+        <h3>Hermes reviews</h3>
+        <p style="font-family: var(--mono); font-size: 12px; color: var(--gray-3); margin-bottom: 8px;">REVIEWER &middot; EVENT: DECISION</p>
+        <p>Reads the full event history — investigation, fix, PR. Adds a decision event: approved or changes requested. State transitions automatically on approval.</p>
       </div>
+    </div>
+
+    <div style="margin-top: 32px; padding: 24px 32px; border-left: 2px solid var(--gray-3); background: var(--gray-1);">
+      <p style="color: var(--gray-4); font-style: italic; font-size: 0.95rem;">
+        "OpenClaw didn't need to re-read the codebase to understand what was failing.
+        It read the structured state and observation events from Claude Code's session
+        and started implementing in under 30 seconds."
+      </p>
     </div>
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- USE CASE 3: SIDE PROJECT -->
+  <!-- USE CASE 3: PARALLEL AGENTS -->
   <section>
-    <div class="label">Domain: Side Project</div>
-    <h2>Building on the side</h2>
-    <p style="margin-bottom: 32px;">Your side project has its own domain. Multiple agents can contribute — one for code, one for design research, one for deployment.</p>
+    <div class="label">Use case 03</div>
+    <h2>Parallel agents, no collisions</h2>
+    <p style="margin-bottom: 32px;">Three agents. Same project. Each claims a different work item. No duplicated work. No stepping on each other.</p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; margin-top: 32px;">
       <div style="background: var(--gray-1); padding: 24px;">
         <div class="label">Agent: Claude Code</div>
-        <h3 style="font-size: 0.95rem;">Backend API</h3>
-        <p style="font-size: 0.85rem; color: var(--gray-4);">Building endpoints, running tests, deploying to staging</p>
-      </div>
-      <div style="background: var(--gray-1); padding: 24px;">
-        <div class="label">Agent: Hermes</div>
-        <h3 style="font-size: 0.95rem;">User research</h3>
-        <p style="font-size: 0.85rem; color: var(--gray-4);">Analyzing competitor features, summarizing feedback threads</p>
+        <h3 style="font-size: 0.95rem;">Fix connection pool</h3>
+        <p style="font-size: 0.85rem; color: var(--gray-4);">Claimed. Writing concurrent request tests, opening PR</p>
       </div>
       <div style="background: var(--gray-1); padding: 24px;">
         <div class="label">Agent: OpenClaw</div>
-        <h3 style="font-size: 0.95rem;">Frontend</h3>
-        <p style="font-size: 0.85rem; color: var(--gray-4);">Component library, responsive layouts, design system</p>
+        <h3 style="font-size: 0.95rem;">Rollback test suite</h3>
+        <p style="font-size: 0.85rem; color: var(--gray-4);">In progress. Writing migration rollback coverage</p>
+      </div>
+      <div style="background: var(--gray-1); padding: 24px;">
+        <div class="label">Agent: Hermes</div>
+        <h3 style="font-size: 0.95rem;">Staging OOM crashes</h3>
+        <p style="font-size: 0.85rem; color: var(--gray-4);">Blocked. Needs prod logs to continue investigation</p>
       </div>
     </div>
 
     <div style="margin-top: 24px; padding: 24px 32px; border-left: 2px solid var(--gray-3); background: var(--gray-1);">
       <p style="color: var(--gray-4); font-style: italic; font-size: 0.95rem;">
-        "Three agents working on my side project. I check the board once a day.
-        Each one can see what the others are doing — no duplicate work, no conflicting changes."
+        "Each agent polls for unclaimed work in the project. Claim semantics mean they can't
+        accidentally start the same item. I check the board once a day and see exactly what
+        each agent did and what's blocked."
       </p>
     </div>
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- USE CASE 4: CROSS-DOMAIN -->
+  <!-- BOARD MOCKUP -->
   <section>
-    <div class="label">Cross-domain</div>
+    <div class="label">Cross-agent view</div>
     <h2>The full picture</h2>
-    <p style="margin-bottom: 32px;">The real power is seeing everything in one place. Work deadlines next to personal errands next to side project milestones.</p>
+    <p style="margin-bottom: 32px;">The real power is seeing every agent's execution state in one place. Who's doing what. What's blocked. What needs a decision.</p>
 
     <div style="background: var(--gray-1); border: 1px solid var(--gray-2); padding: 32px; font-family: var(--mono); font-size: 13px; line-height: 2.2;">
-      <div style="color: var(--gray-3); margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 3px;">Your board — Tuesday morning</div>
+      <div style="color: var(--gray-3); margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 3px;">Project: api-v2 — current state</div>
 
-      <div style="display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
-        <span style="color: var(--gray-3); width: 100px;">work</span>
-        <span style="color: var(--white); flex: 1;">Deploy API v2 hotfix</span>
+      <div style="display: grid; grid-template-columns: 60px 1fr 120px 120px 100px; gap: 16px; align-items: center; border-bottom: 1px solid var(--gray-2); padding: 8px 0; color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">
+        <span>type</span><span>item</span><span>agent</span><span>status</span><span>claim</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 60px 1fr 120px 120px 100px; gap: 16px; align-items: center; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
+        <span style="color: var(--gray-3);">work</span>
+        <span style="color: var(--white);">Fix connection pool race condition</span>
         <span style="color: var(--gray-4); font-size: 11px;">claude-code</span>
         <span style="color: var(--gray-3); font-size: 11px;">IN PROGRESS</span>
+        <span style="color: var(--gray-4); font-size: 11px;">claimed</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
-        <span style="color: var(--gray-3); width: 100px;">work</span>
-        <span style="color: var(--white); flex: 1;">Respond to design team review</span>
-        <span style="color: var(--gray-4); font-size: 11px;">you</span>
-        <span style="color: var(--gray-4); font-size: 11px;">NEEDS APPROVAL</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
-        <span style="color: var(--gray-3); width: 100px;">personal</span>
-        <span style="color: var(--white); flex: 1;">Grocery delivery scheduled — Thu 2pm</span>
-        <span style="color: var(--gray-4); font-size: 11px;">hermes</span>
-        <span style="color: var(--gray-3); font-size: 11px;">COMPLETED</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
-        <span style="color: var(--gray-3); width: 100px;">personal</span>
-        <span style="color: var(--white); flex: 1;">3 dentist options found — pick one</span>
-        <span style="color: var(--gray-4); font-size: 11px;">hermes</span>
-        <span style="color: var(--gray-4); font-size: 11px;">NEEDS APPROVAL</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 16px; padding: 8px 0;">
-        <span style="color: var(--gray-3); width: 100px;">side project</span>
-        <span style="color: var(--white); flex: 1;">Auth endpoints passing — 12 tests green</span>
+      <div style="display: grid; grid-template-columns: 60px 1fr 120px 120px 100px; gap: 16px; align-items: center; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
+        <span style="color: var(--gray-3);">work</span>
+        <span style="color: var(--white);">Write migration rollback tests</span>
         <span style="color: var(--gray-4); font-size: 11px;">openclaw</span>
-        <span style="color: var(--gray-3); font-size: 11px;">COMPLETED</span>
+        <span style="color: var(--gray-3); font-size: 11px;">PENDING</span>
+        <span style="color: var(--gray-3); font-size: 11px;">—</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 60px 1fr 120px 120px 100px; gap: 16px; align-items: center; border-bottom: 1px solid var(--gray-2); padding: 8px 0;">
+        <span style="color: var(--gray-3);">work</span>
+        <span style="color: var(--white);">Investigate staging OOM crashes</span>
+        <span style="color: var(--gray-4); font-size: 11px;">hermes</span>
+        <span style="color: var(--gray-4); font-size: 11px;">BLOCKED</span>
+        <span style="color: var(--gray-3); font-size: 11px;">needs prod logs</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 60px 1fr 120px 120px 100px; gap: 16px; align-items: center; padding: 8px 0;">
+        <span style="color: var(--gray-3);">work</span>
+        <span style="color: var(--white);">Deploy v0.2 to production</span>
+        <span style="color: var(--gray-4); font-size: 11px;">claude-code</span>
+        <span style="color: var(--gray-3); font-size: 11px;">PENDING</span>
+        <span style="color: var(--gray-4); font-size: 11px;">needs approval</span>
       </div>
     </div>
   </section>
 
   <div class="marquee-track">
     <div class="marquee-content">
-      Work &nbsp;&middot;&nbsp; Personal &nbsp;&middot;&nbsp; Side projects &nbsp;&middot;&nbsp; Chores &nbsp;&middot;&nbsp; Errands &nbsp;&middot;&nbsp; Code &nbsp;&middot;&nbsp; Research &nbsp;&middot;&nbsp; Appointments &nbsp;&middot;&nbsp; Team requests &nbsp;&middot;&nbsp; Deployments &nbsp;&middot;&nbsp;
-      Work &nbsp;&middot;&nbsp; Personal &nbsp;&middot;&nbsp; Side projects &nbsp;&middot;&nbsp; Chores &nbsp;&middot;&nbsp; Errands &nbsp;&middot;&nbsp; Code &nbsp;&middot;&nbsp; Research &nbsp;&middot;&nbsp; Appointments &nbsp;&middot;&nbsp; Team requests &nbsp;&middot;&nbsp; Deployments &nbsp;&middot;&nbsp;
+      Session continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Parallel execution &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Structured state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
+      Session continuity &nbsp;&middot;&nbsp; Agent handoff &nbsp;&middot;&nbsp; Parallel execution &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Structured state &nbsp;&middot;&nbsp; Artifact tracking &nbsp;&middot;&nbsp; Event history &nbsp;&middot;&nbsp; No collisions &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <section style="text-align: center;">
-    <h2>Ready to unify your board?</h2>
+    <h2>Ready to give your agents shared state?</h2>
     <p style="margin: 16px auto;">Get started in under five minutes.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="get-started.html" class="btn btn-primary">Get Early Access</a>

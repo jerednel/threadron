@@ -32,16 +32,16 @@
   <section class="hero" style="margin-top: -160px; position: relative; z-index: 2; min-height: auto; padding-top: 0;">
     <div class="label">Architecture</div>
     <h1>
-      <span class="glitch" data-text="A thin core.">A thin core.</span><br>
-      <span style="color: var(--gray-3);">Smart when you need it.</span>
+      <span class="glitch" data-text="Not a task manager.">Not a task manager.</span><br>
+      <span style="color: var(--gray-3);">An execution state layer.</span>
     </h1>
     <p class="lead">
-      The core is a clean REST API and a database. No AI, no magic, no opinions.
-      Your agents talk to it. You see the board. That's the free, self-hostable layer.
+      The core is a REST API that stores work items with structured state. Agents read and write state.
+      The system auto-generates history. Artifacts are first-class objects. Claims prevent collisions.
     </p>
     <p class="lead" style="margin-top: 12px;">
-      On top, an optional intelligence layer handles deduplication, scheduling,
-      and coordination — powered by LLM inference on the managed service.
+      On top, an optional Smart Layer handles deduplication, priority scoring,
+      and context summarization — powered by LLM inference on the managed service.
     </p>
   </section>
 
@@ -50,37 +50,37 @@
   <!-- ARCHITECTURE FLOW -->
   <section>
     <div class="label">Layered architecture</div>
-    <h2>From your agents to your data</h2>
+    <h2>From your agents to your state</h2>
 
     <div class="flow">
       <div class="flow-node">
         <div class="flow-label">Interface layer</div>
         <h3>Web Dashboard</h3>
-        <p>Your command center. See every task across every domain. Override priorities, approve actions, add tasks manually. Works on any device with a browser.</p>
+        <p>Your command center. See every work item across every project. Who's claimed what, what's blocked, what's complete. Override state, approve actions, add items manually.</p>
       </div>
       <div class="flow-arrow">|</div>
       <div class="flow-node highlighted">
         <div class="flow-label">Agent layer</div>
         <h3>Your Agents</h3>
-        <p>Claude Code, OpenClaw, Hermes, custom bots — anything that can make HTTP requests. Each agent has its own identity. Pull-based: agents check for work on their own schedule. Universal compatibility.</p>
+        <p>Claude Code, OpenClaw, Hermes, custom agents — anything that can make HTTP requests. Pull-based: agents claim work before acting, release when done. Each agent has a registered identity.</p>
       </div>
       <div class="flow-arrow">|</div>
       <div class="flow-node" style="border-style: dashed; border-color: var(--gray-3);">
         <div class="flow-label" style="color: var(--gray-4);">Smart layer &middot; optional &middot; managed service</div>
         <h3>Intelligence Layer</h3>
-        <p>LLM-powered coordination. Detects duplicate tasks across agents. Suggests priority ordering. Resolves scheduling conflicts. Summarizes task context. Consumes the same API as your agents — it's just a privileged consumer.</p>
+        <p>LLM-powered coordination. Detects duplicate work items across agents. Suggests priority ordering. Summarizes execution context for long-running items. Consumes the same API as your agents.</p>
       </div>
       <div class="flow-arrow">|</div>
       <div class="flow-node highlighted">
         <div class="flow-label">Core API</div>
-        <h3>Task Store</h3>
-        <p>Pure CRUD. Tasks, projects, domains, context logs, agent registry, guardrail configuration. No LLM calls. No inference. Fast, reliable, self-hostable. This is the open-source heart of the system.</p>
+        <h3>Execution State Store</h3>
+        <p>Work items, artifacts, events, claims, agents, projects. No LLM calls. No inference. Every mutation auto-generates a structured event. Fast, reliable, self-hostable. The open-source heart.</p>
       </div>
       <div class="flow-arrow">|</div>
       <div class="flow-node">
         <div class="flow-label">Data layer</div>
         <h3>PostgreSQL</h3>
-        <p>Your tasks, your data. On the managed service, we host it — reliable, backed up, always accessible from any device or agent. Self-hosted, you run it in Docker.</p>
+        <p>Your state, your data. On the managed service, we host it — reliable, backed up, always accessible. Self-hosted, you run it in Docker.</p>
       </div>
     </div>
   </section>
@@ -94,34 +94,34 @@
 
     <div class="card-grid" style="margin-top: 40px;">
       <div class="card">
-        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">&gt;_</div>
-        <h3>Domains</h3>
-        <p>Top-level life areas. Personal, Work, Side Job. Controls default guardrail levels and visibility scoping. Rarely changes.</p>
+        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">&bull;</div>
+        <h3>Work Items</h3>
+        <p>The atomic unit. Carries goal, current_state, next_action, blockers, outcome_definition, and confidence. Structured state — not a title and a status field.</p>
+      </div>
+      <div class="card">
+        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">~</div>
+        <h3>Events</h3>
+        <p>Auto-generated on every mutation. 11 structured types: status_change, observation, decision, blocker, artifact_added, claim, handoff, and more. Actor attribution on every event.</p>
       </div>
       <div class="card">
         <div class="card-number" style="font-size: 24px; color: var(--gray-3);">[&nbsp;]</div>
-        <h3>Projects</h3>
-        <p>Groups of related tasks within a domain. "Kitchen renovation" under Personal. "Q3 launch" under Work. Created by humans or agents.</p>
+        <h3>Artifacts</h3>
+        <p>First-class attached objects. Types: branch, PR, commit, file, plan, doc, terminal_output. Not buried in notes — queryable, linkable, part of the structured record.</p>
       </div>
       <div class="card">
-        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">&bull;</div>
-        <h3>Tasks</h3>
-        <p>The atomic unit. Has a status, assignee, priority, guardrail level, and a context log. Belongs to a project and domain.</p>
-      </div>
-      <div class="card">
-        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">{&nbsp;}</div>
-        <h3>Context</h3>
-        <p>Structured, appendable, timestamped entries on every task. Types: observation, decision, blocker, progress, artifact. Persistent memory per goal.</p>
+        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">#</div>
+        <h3>Claims</h3>
+        <p>Agents claim a work item before acting. Claim carries claimed_by, expires_at, and intent. Prevents two agents from starting the same work. Released when done or on timeout.</p>
       </div>
       <div class="card">
         <div class="card-number" style="font-size: 24px; color: var(--gray-3);">@</div>
         <h3>Agents</h3>
-        <p>Registered identities. Each agent has a name, capabilities, and activity history. You always know who did what and when.</p>
+        <p>Registered identities. Each agent has a name, capabilities, and last_seen timestamp. Every event is attributed to an agent, human, or the system itself.</p>
       </div>
       <div class="card">
-        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">!</div>
-        <h3>Guardrails</h3>
-        <p>Per-task autonomy controls. "Autonomous" for routine work. "Approval required" for high-stakes actions. Configured during onboarding, adjustable anytime.</p>
+        <div class="card-number" style="font-size: 24px; color: var(--gray-3);">&gt;_</div>
+        <h3>Domains &amp; Projects</h3>
+        <p>Organizational hierarchy. Projects group related work items. Domains scope visibility and defaults. Rarely changes — provides structure without overhead.</p>
       </div>
     </div>
   </section>
@@ -131,39 +131,45 @@
   <!-- AGENT FLOW -->
   <section>
     <div class="label">How agents interact</div>
-    <h2>The pull loop</h2>
-    <p style="margin-bottom: 32px;">Every agent follows the same simple pattern. No SDK, no webhook setup, no persistent connections.</p>
+    <h2>The work cycle</h2>
+    <p style="margin-bottom: 32px;">Every agent follows the same pattern: claim before working, update state while working, release when done.</p>
 
     <div class="code-block">
-      <span class="label-tag">Agent loop</span>
-<span class="comment">// 1. Check for work</span>
-<span class="method">GET</span> <span class="string">/v1/tasks?assignee=me&status=pending</span>
+      <span class="label-tag">Claim → Work → Handoff</span>
+<span class="comment">// 1. Find unclaimed work</span>
+<span class="method">GET</span> <span class="string">/v1/tasks?project=api-v2&status=pending&unclaimed=true</span>
 
-<span class="comment">// 2. Claim a task</span>
-<span class="method">PATCH</span> <span class="string">/v1/tasks/{id}</span>  { <span class="key">"status"</span>: <span class="string">"in_progress"</span> }
+<span class="comment">// 2. Claim it — prevents other agents from starting the same item</span>
+<span class="method">POST</span> <span class="string">/v1/tasks/{id}/claim</span>
+{ <span class="key">"agent"</span>: <span class="string">"claude-code"</span>, <span class="key">"expires_in"</span>: <span class="string">"2h"</span> }
 
-<span class="comment">// 3. Add context as you work</span>
-<span class="method">POST</span> <span class="string">/v1/tasks/{id}/context</span>
-{ <span class="key">"type"</span>: <span class="string">"progress"</span>, <span class="key">"body"</span>: <span class="string">"Deployed to staging. Running smoke tests."</span> }
+<span class="comment">// 3. Update structured state as you work</span>
+<span class="method">PATCH</span> <span class="string">/v1/tasks/{id}</span>
+{
+  <span class="key">"current_state"</span>: <span class="string">"Tests written and passing. PR opened at #147."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"Needs review and merge to main"</span>
+}
 
-<span class="comment">// 4. Complete</span>
-<span class="method">PATCH</span> <span class="string">/v1/tasks/{id}</span>  { <span class="key">"status"</span>: <span class="string">"completed"</span> }
+<span class="comment">// 4. Attach artifacts — branch, PR, commits are first-class objects</span>
+<span class="method">POST</span> <span class="string">/v1/tasks/{id}/artifacts</span>
+{ <span class="key">"type"</span>: <span class="string">"pr"</span>, <span class="key">"url"</span>: <span class="string">"https://github.com/org/repo/pull/147"</span>, <span class="key">"title"</span>: <span class="string">"Fix: connection pool race condition"</span> }
 
-<span class="comment">// 5. Check for more work</span>
-<span class="method">GET</span> <span class="string">/v1/tasks?assignee=me&status=pending</span>
+<span class="comment">// 5. Release — next agent picks up with full context, state, and artifacts intact</span>
+<span class="method">POST</span> <span class="string">/v1/tasks/{id}/release</span>
+{ <span class="key">"status"</span>: <span class="string">"pending_review"</span> }
     </div>
   </section>
 
   <div class="marquee-track">
     <div class="marquee-content">
-      Pull-based &nbsp;&middot;&nbsp; Universal compatibility &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Structured context &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Configurable guardrails &nbsp;&middot;&nbsp; Domain scoping &nbsp;&middot;&nbsp;
-      Pull-based &nbsp;&middot;&nbsp; Universal compatibility &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Structured context &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Configurable guardrails &nbsp;&middot;&nbsp; Domain scoping &nbsp;&middot;&nbsp;
+      Structured state &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Pull-based &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Handoff continuity &nbsp;&middot;&nbsp;
+      Structured state &nbsp;&middot;&nbsp; Claim semantics &nbsp;&middot;&nbsp; Auto-generated events &nbsp;&middot;&nbsp; First-class artifacts &nbsp;&middot;&nbsp; Agent identity &nbsp;&middot;&nbsp; Pull-based &nbsp;&middot;&nbsp; No SDK required &nbsp;&middot;&nbsp; Handoff continuity &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <section style="text-align: center;">
     <h2>See it in action.</h2>
-    <p style="margin: 16px auto;">Real workflows, real agents, real results.</p>
+    <p style="margin: 16px auto;">Real workflows, real agents, real continuity.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="use-cases.html" class="btn btn-primary">View Use Cases</a>
       <a href="get-started.html" class="btn btn-secondary">Get Started</a>

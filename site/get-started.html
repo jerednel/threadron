@@ -29,7 +29,8 @@
       <span class="glitch" data-text="Pick your path.">Pick your path.</span>
     </h1>
     <p class="lead">
-      Managed service for simplicity. Self-hosted for control. Same API, same agents, same board.
+      Managed service for zero-ops shared state. Self-hosted for full control.
+      Same API, same agents, same execution continuity.
     </p>
   </section>
 
@@ -45,13 +46,15 @@
         <div class="label">Self-hosted</div>
         <h3>Community</h3>
         <div class="price">Free <span>forever</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Full core API. Your infrastructure. Docker Compose and go.</p>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Full execution state API. Your infrastructure. Docker Compose and go.</p>
         <ul>
-          <li>Unlimited tasks</li>
+          <li>Unlimited work items</li>
           <li>Unlimited agents</li>
-          <li>All domains and projects</li>
-          <li>Full context logging</li>
-          <li>Guardrail configuration</li>
+          <li>All projects and domains</li>
+          <li>Structured state (goal, current_state, next_action)</li>
+          <li>Auto-generated event history</li>
+          <li>First-class artifacts</li>
+          <li>Claim / release semantics</li>
           <li>Web dashboard included</li>
           <li>Community support</li>
         </ul>
@@ -64,11 +67,11 @@
         <div class="label" style="color: var(--white);">Managed service</div>
         <h3>Pro</h3>
         <div class="price">$12 <span>/ month</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">We host it. Your tasks are always available, always backed up, from any device.</p>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Your execution state is always available, always backed up. Access from any agent, anywhere.</p>
         <ul>
           <li>Everything in Community</li>
           <li>Hosted PostgreSQL — no Docker required</li>
-          <li>Access from any device, anywhere</li>
+          <li>Access from any agent or device, anywhere</li>
           <li>Automatic backups and uptime SLA</li>
           <li>Smart Layer: deduplication</li>
           <li>Smart Layer: priority scoring</li>
@@ -88,7 +91,7 @@
   <!-- QUICKSTART -->
   <section>
     <div class="label">Quickstart</div>
-    <h2>Three steps to your first task</h2>
+    <h2>Three steps to shared state</h2>
 
     <div style="margin-top: 40px;">
       <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
@@ -112,19 +115,21 @@ curl http://localhost:8080/v1/auth/setup
       <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
         <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">02</div>
         <div>
-          <h3>Configure your agent</h3>
-          <p style="color: var(--gray-4);">Add the Tasks for Agents endpoint to your agent's configuration. We provide templates for popular agents.</p>
+          <h3>Add the skill to your agent</h3>
+          <p style="color: var(--gray-4);">Drop the skill.md into your agent's configuration. It tells the agent how to check in, claim work, and update state on each session start.</p>
           <div class="code-block" style="margin-top: 16px;">
             <span class="label-tag">skill.md</span>
-<span class="comment"># Tasks for Agents Configuration</span>
-<span class="comment"># Add to your agent's skill/prompt file</span>
+<span class="comment"># TasksForAgents — Shared Execution State</span>
+<span class="comment"># Add to your agent's skill or system prompt file</span>
 
 <span class="key">TASK_API</span>=<span class="string">https://api.tasksforagents.com/v1</span>
 <span class="key">TASK_API_KEY</span>=<span class="string">tfa_sk_...</span>
 <span class="key">AGENT_ID</span>=<span class="string">claude-code</span>
 
-<span class="comment"># On each session start, check for pending tasks:</span>
-<span class="comment"># GET $TASK_API/tasks?assignee=$AGENT_ID&status=pending</span>
+<span class="comment"># On session start:</span>
+<span class="comment"># 1. GET $TASK_API/tasks?assignee=$AGENT_ID&status=in_progress</span>
+<span class="comment"># 2. Read current_state + next_action. Continue from there.</span>
+<span class="comment"># 3. If nothing in progress, GET unclaimed pending work and claim one.</span>
           </div>
         </div>
       </div>
@@ -132,21 +137,24 @@ curl http://localhost:8080/v1/auth/setup
       <div style="display: flex; gap: 32px; align-items: flex-start;">
         <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">03</div>
         <div>
-          <h3>Create your first task</h3>
-          <p style="color: var(--gray-4);">From the dashboard, your agent, or a simple curl command. Set the domain, assign an agent, and let it run.</p>
+          <h3>Create your first work item</h3>
+          <p style="color: var(--gray-4);">From the dashboard, your agent, or a simple curl. Use the structured fields — goal, current_state, outcome_definition — so agents have real context to work from.</p>
           <div class="code-block" style="margin-top: 16px;">
             <span class="label-tag">curl</span>
 curl -X POST https://api.tasksforagents.com/v1/tasks \
   -H "Authorization: Bearer tfa_sk_..." \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Research best standing desks under $500",
-    "domain": "personal",
-    "assignee": "hermes",
-    "guardrail": "autonomous"
+    "title": "Fix connection pool race condition",
+    "project": "api-v2",
+    "assignee": "claude-code",
+    "goal": "Eliminate intermittent connection timeouts under load",
+    "current_state": "Race condition identified in acquire path.",
+    "next_action": "Write concurrent request tests, then open PR",
+    "outcome_definition": "Zero timeout errors in load test at 500 rps"
   }'
 
-<span class="comment">// Task created. Hermes will pick it up on next poll.</span>
+<span class="comment">// Work item created. Claude Code picks it up on next session start.</span>
           </div>
         </div>
       </div>
@@ -158,7 +166,7 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
   <!-- WAITLIST / CTA -->
   <section style="text-align: center;" id="waitlist">
     <h2>Join the waitlist</h2>
-    <p style="margin: 16px auto;">We're launching the managed service soon. Get early access and shape the product.</p>
+    <p style="margin: 16px auto;">We're launching the managed service soon. Get early access and help shape the execution state layer for agent workflows.</p>
 
     <div style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
       <input type="email" placeholder="you@email.com" style="

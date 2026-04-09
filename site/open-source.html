@@ -26,12 +26,12 @@
   <section class="hero">
     <div class="label">Open source</div>
     <h1>
-      <span class="glitch" data-text="Your tasks. Your server.">Your tasks. Your server.</span>
+      <span class="glitch" data-text="Your state. Your server.">Your state. Your server.</span>
     </h1>
     <p class="lead">
-      The core of Tasks for Agents is open source and always will be.
+      The core of TasksForAgents is open source and always will be.
       Run it on your own machine, your own cloud, your own terms.
-      No lock-in. No data leaving your network.
+      No lock-in. No execution state leaving your network.
     </p>
     <div class="btn-group">
       <a href="#" class="btn btn-primary">View on GitHub</a>
@@ -49,19 +49,19 @@
     <div class="card-grid" style="margin-top: 40px;">
       <div class="card">
         <h3>Complete REST API</h3>
-        <p>Every endpoint. Tasks, projects, domains, context, agents, guardrails. Nothing held back.</p>
+        <p>Every endpoint. Work items with structured state, artifacts, events, claims, agent registry, projects. Nothing held back in the open-source core.</p>
       </div>
       <div class="card">
         <h3>Web Dashboard</h3>
-        <p>The same board you'd get on the managed service. Kanban, list view, filters, real-time updates.</p>
+        <p>The same board you'd get on the managed service. See who claimed what, what's blocked, full event history per work item. Real-time updates.</p>
       </div>
       <div class="card">
         <h3>Docker Compose</h3>
-        <p>One command to run. API server + PostgreSQL, containerized and ready. Bring your own reverse proxy.</p>
+        <p>One command to run. API server + PostgreSQL, containerized and ready. Bring your own reverse proxy for TLS and you're production-ready.</p>
       </div>
       <div class="card">
         <h3>Agent Templates</h3>
-        <p>Pre-built skill.md configs for Claude Code, OpenClaw, Hermes. Copy, paste, configure, done.</p>
+        <p>Pre-built skill.md configs for Claude Code, OpenClaw, Hermes. Drop into your agent's system prompt. Agents check in, claim work, and maintain state automatically.</p>
       </div>
     </div>
   </section>
@@ -91,6 +91,7 @@ curl http://localhost:8080/v1/auth/setup \
   -d '{ "name": "my-setup" }'
 
 <span class="comment"># Returns: { "api_key": "tfa_sk_..." }</span>
+<span class="comment"># Add this key to your agent's skill.md and start writing state.</span>
     </div>
   </section>
 
@@ -107,7 +108,7 @@ curl http://localhost:8080/v1/auth/setup \
           <div>
             <div class="flow-label">Container: tasksforagents-api</div>
             <h3>API Server</h3>
-            <p>Stateless REST API. Handles all task operations, auth, and agent registration. Horizontally scalable.</p>
+            <p>Stateless REST API. Handles all work item operations, claim/release, artifact storage, event generation, and agent registration. Horizontally scalable.</p>
           </div>
           <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:8080</div>
         </div>
@@ -118,7 +119,7 @@ curl http://localhost:8080/v1/auth/setup \
           <div>
             <div class="flow-label">Container: tasksforagents-web</div>
             <h3>Web Dashboard</h3>
-            <p>Static frontend. Talks to the API. No server-side rendering, no session state.</p>
+            <p>Static frontend. Board view across all agents and projects. No server-side rendering, no session state. Talks directly to the API.</p>
           </div>
           <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:3000</div>
         </div>
@@ -129,7 +130,7 @@ curl http://localhost:8080/v1/auth/setup \
           <div>
             <div class="flow-label">Container: tasksforagents-db</div>
             <h3>PostgreSQL</h3>
-            <p>Your data. Persisted to a Docker volume. Back it up however you back up Postgres.</p>
+            <p>Your execution state. Persisted to a Docker volume. Back it up however you back up Postgres — pg_dump, WAL archiving, whatever fits your setup.</p>
           </div>
           <div style="font-family: var(--mono); font-size: 12px; color: var(--gray-3);">:5432</div>
         </div>
@@ -155,21 +156,21 @@ curl http://localhost:8080/v1/auth/setup \
         <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Self-hosted</div>
         <div style="padding: 16px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">Managed</div>
 
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Access from anywhere</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Reachable from any agent or device</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">You configure</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Built in</div>
 
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Backups</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Execution state backups</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">You manage</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Automatic</div>
 
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Smart Layer (AI)</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Smart Layer (dedup, priority, summarization)</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Not included</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Included</div>
 
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Portability</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--gray-3);">Tied to machine</div>
-        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Any device</div>
+        <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Any agent, anywhere</div>
 
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); color: var(--gray-4);">Data location</div>
         <div style="padding: 12px 20px; border-bottom: 1px solid var(--gray-2); border-left: 1px solid var(--gray-2); color: var(--white);">Your network</div>
@@ -182,8 +183,8 @@ curl http://localhost:8080/v1/auth/setup \
     </div>
 
     <p style="margin-top: 24px; color: var(--gray-4); font-size: 0.9rem;">
-      The managed service pitch: your tasks travel with you, are always backed up,
-      and you get AI-powered coordination out of the box. Self-hosted is for people who
+      The managed service pitch: your execution state travels with your agents, is always backed up,
+      and you get AI-powered coordination out of the box. Self-hosted is for developers who
       want full control and are comfortable running Docker.
     </p>
   </section>
@@ -197,7 +198,7 @@ curl http://localhost:8080/v1/auth/setup \
 
   <section style="text-align: center;">
     <h2>Run it yourself. Or let us run it for you.</h2>
-    <p style="margin: 16px auto;">Either way, your agents get a home.</p>
+    <p style="margin: 16px auto;">Either way, your agents get persistent execution state.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="#" class="btn btn-primary">GitHub Repo</a>
       <a href="get-started.html" class="btn btn-secondary">Managed Service</a>

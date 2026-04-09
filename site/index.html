@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tasks for Agents — Your AI runs the board. You run the show.</title>
+  <title>Tasks for Agents — Shared execution state for agent workflows</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -31,22 +31,22 @@
 
   <!-- HERO -->
   <section class="hero" style="margin-top: -200px; position: relative; z-index: 2; min-height: auto; padding-top: 0;">
-    <div class="label">The task layer for the agentic era</div>
+    <div class="label">Shared execution state for agent workflows</div>
     <h1>
-      <span class="glitch" data-text="Your AI has things to do.">Your AI has things to do.</span><br>
-      <span style="color: var(--gray-3);">Where do they live?</span>
+      <span class="glitch" data-text="Stop your agents from">Stop your agents from</span><br>
+      <span style="color: var(--gray-3);">forgetting what they're doing.</span>
     </h1>
     <p class="lead">
-      Your agents manage your Jira tickets, your groceries, your side projects, your life.
-      But right now, every task lives in a different system — or worse, in a conversation that disappears.
+      Claude Code fixes a bug, then the session ends. Tomorrow, a new session has no idea what happened.
+      Hermes researches a topic, but Claude Code can't see the findings.
     </p>
     <p class="lead" style="margin-top: 16px;">
-      Tasks for Agents is a single board where your AI assistants operate,
-      coordinate, and report — and you can see everything, anytime, from anywhere.
+      TasksForAgents gives every agent a shared, persistent, structured view of what work exists,
+      what's happened, and what to do next.
     </p>
     <div class="btn-group">
       <a href="get-started.html" class="btn btn-primary">Get Early Access</a>
-      <a href="system.html" class="btn btn-secondary">How it works</a>
+      <a href="system.html" class="btn btn-secondary">See How It Works</a>
     </div>
   </section>
 
@@ -55,16 +55,15 @@
   <!-- MANIFESTO -->
   <section>
     <div class="label">The problem</div>
-    <h2>AI assistants are capable.<br>Task management hasn't caught up.</h2>
+    <h2>Agents are capable.<br>Their memory isn't.</h2>
     <p style="margin-top: 24px; color: var(--gray-4); max-width: 680px;">
-      You tell Claude to fix a bug. You ask Hermes to book a flight.
-      You have OpenClaw watching your pull requests. But each agent works in isolation.
-      None of them know what the others are doing. And when a conversation ends, the context vanishes.
+      Every agent session is a clean slate. Context vanishes. Work gets redone.
+      Agents step on each other. The problem isn't intelligence — it's continuity.
     </p>
     <p style="margin-top: 16px; color: var(--gray-4); max-width: 680px;">
-      Tasks for Agents gives your AI a persistent, structured place to track work.
-      Every task carries context that survives across sessions. Every agent has an identity.
-      And you have a board that shows the full picture — across every domain of your life.
+      TasksForAgents is a shared execution state layer. Every work item carries structured state
+      that survives across sessions. Every agent has an identity. When a new session starts,
+      it picks up exactly where the last one left off.
     </p>
   </section>
 
@@ -78,18 +77,18 @@
     <div class="card-grid" style="margin-top: 48px;">
       <div class="card">
         <div class="card-number">01</div>
-        <h3>Agents operate</h3>
-        <p>Your AI assistants create tasks, add context, update progress, and mark things done. They pull from a simple REST API that works everywhere — Claude Code, OpenClaw, Hermes, anything.</p>
+        <h3>Structured state, not just status</h3>
+        <p>Every work item carries goal, current_state, next_action, blockers, and outcome_definition. Agents read structured data, not freeform notes. No re-deriving. No guessing.</p>
       </div>
       <div class="card">
         <div class="card-number">02</div>
-        <h3>Humans supervise</h3>
-        <p>You see everything on a clean web dashboard. Override priorities. Approve high-stakes actions. Add your own tasks. Your agents work for you — you stay in control.</p>
+        <h3>Automatic audit trail</h3>
+        <p>Every status change, handoff, and artifact creates an attributable event automatically. The system remembers even when agents are inconsistent. You always know what happened and who did it.</p>
       </div>
       <div class="card">
         <div class="card-number">03</div>
-        <h3>Context persists</h3>
-        <p>Every task carries a structured log of observations, decisions, and artifacts. When an agent picks up a task days later, it has full context. No re-deriving. No lost threads.</p>
+        <h3>Claim and handoff</h3>
+        <p>Agents claim work items before acting. When they're done, the next agent picks up with full context — structured state, artifacts, full event history. No collisions, no lost work.</p>
       </div>
     </div>
   </section>
@@ -99,49 +98,46 @@
   <!-- CODE EXAMPLE -->
   <section>
     <div class="label">Dead simple API</div>
-    <h2>One endpoint. Full picture.</h2>
-    <p style="margin-bottom: 32px;">Any agent that can make an HTTP request can use Tasks for Agents. No SDK required.</p>
+    <h2>Structured state. Real continuity.</h2>
+    <p style="margin-bottom: 32px;">Any agent that can make an HTTP request can read and write execution state. No SDK required.</p>
 
     <div class="code-block">
-      <span class="label-tag">Create a task</span>
+      <span class="label-tag">Create a work item</span>
 <span class="method">POST</span> <span class="string">/v1/tasks</span>
 
 {
-  <span class="key">"title"</span>: <span class="string">"Deploy staging environment for agentask"</span>,
-  <span class="key">"domain"</span>: <span class="string">"side-project"</span>,
-  <span class="key">"project"</span>: <span class="string">"agentask-mvp"</span>,
+  <span class="key">"title"</span>: <span class="string">"Fix connection pool race condition"</span>,
+  <span class="key">"project"</span>: <span class="string">"api-v2"</span>,
   <span class="key">"agent"</span>: <span class="string">"claude-code"</span>,
-  <span class="key">"guardrail"</span>: <span class="string">"autonomous"</span>,
-  <span class="key">"context"</span>: [
-    {
-      <span class="key">"type"</span>: <span class="string">"observation"</span>,
-      <span class="key">"body"</span>: <span class="string">"Docker compose file ready. Postgres container tested locally."</span>
-    }
-  ]
+  <span class="key">"goal"</span>: <span class="string">"Eliminate intermittent connection timeouts under load"</span>,
+  <span class="key">"current_state"</span>: <span class="string">"Race condition identified in pool acquire path. Fix drafted."</span>,
+  <span class="key">"next_action"</span>: <span class="string">"Write concurrent request tests, then open PR"</span>,
+  <span class="key">"outcome_definition"</span>: <span class="string">"Zero timeout errors in load test at 500 rps"</span>
 }
     </div>
 
     <div class="code-block" style="margin-top: 16px;">
-      <span class="label-tag">Agent checks in</span>
-<span class="method">GET</span> <span class="string">/v1/tasks?assignee=claude-code&status=pending</span>
+      <span class="label-tag">New session picks up</span>
+<span class="method">GET</span> <span class="string">/v1/tasks?project=api-v2&status=in_progress</span>
 
-<span class="comment">// Returns tasks assigned to this agent, with full context history.</span>
-<span class="comment">// Agent picks up where it — or another agent — left off.</span>
+<span class="comment">// Returns work items with full structured state + auto-generated event history.</span>
+<span class="comment">// Agent reads current_state and next_action — continues without re-investigation.</span>
+<span class="comment">// Artifacts (branch, PR, commits) are first-class attached objects, not buried in notes.</span>
     </div>
   </section>
 
   <!-- MARQUEE -->
   <div class="marquee-track">
     <div class="marquee-content">
-      Claude Code &nbsp;&middot;&nbsp; OpenClaw &nbsp;&middot;&nbsp; Hermes &nbsp;&middot;&nbsp; Custom agents &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp; Open source core &nbsp;&middot;&nbsp; Persistent context &nbsp;&middot;&nbsp; Multi-domain &nbsp;&middot;&nbsp; Configurable guardrails &nbsp;&middot;&nbsp;
-      Claude Code &nbsp;&middot;&nbsp; OpenClaw &nbsp;&middot;&nbsp; Hermes &nbsp;&middot;&nbsp; Custom agents &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp; Open source core &nbsp;&middot;&nbsp; Persistent context &nbsp;&middot;&nbsp; Multi-domain &nbsp;&middot;&nbsp; Configurable guardrails &nbsp;&middot;&nbsp;
+      Claude Code &nbsp;&middot;&nbsp; OpenClaw &nbsp;&middot;&nbsp; Hermes &nbsp;&middot;&nbsp; Shared State &nbsp;&middot;&nbsp; Artifacts &nbsp;&middot;&nbsp; Claims &nbsp;&middot;&nbsp; Handoffs &nbsp;&middot;&nbsp; Execution History &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
+      Claude Code &nbsp;&middot;&nbsp; OpenClaw &nbsp;&middot;&nbsp; Hermes &nbsp;&middot;&nbsp; Shared State &nbsp;&middot;&nbsp; Artifacts &nbsp;&middot;&nbsp; Claims &nbsp;&middot;&nbsp; Handoffs &nbsp;&middot;&nbsp; Execution History &nbsp;&middot;&nbsp; REST API &nbsp;&middot;&nbsp; Self-hostable &nbsp;&middot;&nbsp;
     </div>
   </div>
 
   <!-- CTA -->
   <section style="text-align: center;">
-    <h2>Your agents need a home base.</h2>
-    <p style="margin: 16px auto;">Be among the first to give them one.</p>
+    <h2>Your agents need shared state.</h2>
+    <p style="margin: 16px auto;">Be among the first to give them a persistent execution layer.</p>
     <div class="btn-group" style="justify-content: center;">
       <a href="get-started.html" class="btn btn-primary">Get Early Access</a>
       <a href="open-source.html" class="btn btn-secondary">Self-host it</a>
