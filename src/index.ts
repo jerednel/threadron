@@ -49,6 +49,12 @@ protected_.route("/config", configRoutes(db));
 v1.route("/", protected_);
 app.route("/v1", v1);
 
+// Serve dashboard SPA at /dashboard/
+app.use("/dashboard/*", serveStatic({ root: "./dashboard/dist", rewriteRequestPath: (path) => path.replace(/^\/dashboard/, '') }));
+app.get("/dashboard", (c) => c.redirect("/dashboard/"));
+// SPA fallback — serve index.html for all dashboard routes
+app.use("/dashboard/*", serveStatic({ root: "./dashboard/dist", path: "index.html" }));
+
 // Serve marketing site at root (after API routes so API takes priority)
 app.use("/*", serveStatic({ root: "./site" }));
 
