@@ -1,0 +1,300 @@
+#!/usr/bin/env node
+
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+
+const API_URL = process.env.TFA_API_URL || "https://api-production-ca21c.up.railway.app/v1";
+const API_KEY = process.env.TFA_API_KEY || "";
+const AGENT_ID = process.env.TFA_AGENT_ID || "claude-code";
+
+async function api(path: string, options: RequestInit = {}) {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(`API ${res.status}: ${body.error || res.statusText}`);
+  }
+  return res.json();
+}
+
+const server = new McpServer({
+  name: "threadron",
+  version: "0.1.0",
+});
+
+// ─── List work items ───────────────────────────────────────────────
+
+server.tool(
+  "threadron_list_tasks",
+  "List work items. Use on session start to see what's in progress, pending, or blocked. Filter by status, assignee, or domain.",
+  {
+    status: z.string().optional().describe("Filter: pending, in_progress, blocked, completed"),
+    assignee: z.string().optional().describe("Filter by agent ID"),
+    domain_id: z.string().optional().describe("Filter by domain ID"),
+    search: z.string().optional().describe("Search title text"),
+  },
+  async ({ status, assignee, domain_id, search }) => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (assignee) params.set("assignee", assignee);
+    if (domain_id) params.set("domain_id", domain_id);
+    if (search) params.set("search", search);
+    const qs = params.toString() ? `?${params}` : "";
+    const data = await api(`/tasks${qs}`);
+    const tasks = data.tasks || data;
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(tasks, null, 2) }],
+    };
+  }
+);
+
+// ─── Get work item detail ──────────────────────────────────────────
+
+server.tool(
+  "threadron_get_task",
+  "Get full work item detail including goal, current_state, next_action, blockers, timeline, and artifacts. Use before starting work on an item.",
+  {
+    task_id: z.string().describe("Work item ID"),
+  },
+  async ({ task_id }) => {
+    const data = await api(`/tasks/${task_id}`);
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Create work item ──────────────────────────────────────────────
+
+server.tool(
+  "threadron_create_task",
+  "Create a new work item. Always set goal and outcome_definition. Set current_state and next_action if known.",
+  {
+    title: z.string().describe("Short title of the work item"),
+    domain_id: z.string().describe("Domain ID this belongs to"),
+    goal: z.string().optional().describe("What this work aims to achieve"),
+    current_state: z.string().optional().describe("Current state of the work"),
+    next_action: z.string().optional().describe("What should happen next"),
+    outcome_definition: z.string().optional().describe("What done looks like"),
+    assignee: z.string().optional().describe("Agent to assign to"),
+    priority: z.string().optional().describe("low, medium, high, urgent"),
+    project_id: z.string().optional().describe("Project ID"),
+  },
+  async (params) => {
+    const data = await api("/tasks", {
+      method: "POST",
+      body: JSON.stringify({
+        ...params,
+        created_by: AGENT_ID,
+        assignee: params.assignee || AGENT_ID,
+      }),
+    });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Update work item state ────────────────────────────────────────
+
+server.tool(
+  "threadron_update_state",
+  "Update work item execution state. Call this frequently as you make progress — update current_state, next_action, and clear blockers. This is how the next session knows where you left off.",
+  {
+    task_id: z.string().describe("Work item ID"),
+    status: z.string().optional().describe("pending, in_progress, blocked, completed"),
+    current_state: z.string().optional().describe("What's the current state right now"),
+    next_action: z.string().optional().describe("What should happen next"),
+    blockers: z.array(z.string()).optional().describe("Active blockers (set to [] to clear)"),
+    confidence: z.string().optional().describe("low, medium, high"),
+  },
+  async ({ task_id, ...updates }) => {
+    const body: Record<string, unknown> = {
+      _actor: AGENT_ID,
+      _actor_type: "agent",
+    };
+    if (updates.status !== undefined) body.status = updates.status;
+    if (updates.current_state !== undefined) body.current_state = updates.current_state;
+    if (updates.next_action !== undefined) body.next_action = updates.next_action;
+    if (updates.blockers !== undefined) body.blockers = updates.blockers;
+    if (updates.confidence !== undefined) body.confidence = updates.confidence;
+
+    const data = await api(`/tasks/${task_id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Add context / timeline entry ──────────────────────────────────
+
+server.tool(
+  "threadron_add_context",
+  "Add an entry to the work item timeline. Use for observations, decisions, actions taken, blockers, handoff notes. This is the audit trail — be specific.",
+  {
+    task_id: z.string().describe("Work item ID"),
+    type: z
+      .enum([
+        "observation",
+        "action_taken",
+        "decision",
+        "blocker",
+        "handoff",
+        "proposal",
+        "state_transition",
+      ])
+      .describe("Entry type"),
+    body: z.string().describe("What happened, what was decided, what was observed"),
+  },
+  async ({ task_id, type, body }) => {
+    const data = await api(`/tasks/${task_id}/context`, {
+      method: "POST",
+      body: JSON.stringify({ type, body, author: AGENT_ID, actor_type: "agent" }),
+    });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Create artifact ───────────────────────────────────────────────
+
+server.tool(
+  "threadron_create_artifact",
+  "Attach an artifact to a work item — a branch, PR, commit, file, plan, doc, or terminal output. Always record meaningful outputs.",
+  {
+    task_id: z.string().describe("Work item ID"),
+    type: z
+      .enum(["file", "branch", "commit", "pull_request", "patch", "plan", "doc", "terminal_output"])
+      .describe("Artifact type"),
+    title: z.string().describe("Short label"),
+    uri: z.string().optional().describe("URL or file path"),
+    body: z.string().optional().describe("Inline content (for terminal output, patches)"),
+  },
+  async ({ task_id, type, title, uri, body }) => {
+    const data = await api(`/tasks/${task_id}/artifacts`, {
+      method: "POST",
+      body: JSON.stringify({ type, title, uri, body, created_by: AGENT_ID }),
+    });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Claim work item ───────────────────────────────────────────────
+
+server.tool(
+  "threadron_claim",
+  "Claim a work item before starting. Prevents other agents from working on it. Claims auto-expire.",
+  {
+    task_id: z.string().describe("Work item ID to claim"),
+    duration_minutes: z.number().optional().describe("How long to hold the claim (default 60)"),
+  },
+  async ({ task_id, duration_minutes }) => {
+    const data = await api(`/tasks/${task_id}/claim`, {
+      method: "POST",
+      body: JSON.stringify({
+        agent_id: AGENT_ID,
+        duration_minutes: duration_minutes || 60,
+      }),
+    });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── Release claim ─────────────────────────────────────────────────
+
+server.tool(
+  "threadron_release",
+  "Release your claim on a work item. Do this when you're done or pausing.",
+  {
+    task_id: z.string().describe("Work item ID to release"),
+  },
+  async ({ task_id }) => {
+    const data = await api(`/tasks/${task_id}/release`, { method: "POST" });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
+// ─── List domains ──────────────────────────────────────────────────
+
+server.tool(
+  "threadron_list_domains",
+  "List available domains (organizational groups for work items).",
+  {},
+  async () => {
+    const data = await api("/domains");
+    const domains = data.domains || data;
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(domains, null, 2) }],
+    };
+  }
+);
+
+// ─── List agents ───────────────────────────────────────────────────
+
+server.tool(
+  "threadron_list_agents",
+  "List registered agents and their last activity.",
+  {},
+  async () => {
+    const data = await api("/agents");
+    const agents = data.agents || data;
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(agents, null, 2) }],
+    };
+  }
+);
+
+// ─── Session check-in (composite) ─────────────────────────────────
+
+server.tool(
+  "threadron_checkin",
+  "Session start check-in. Returns your in-progress work, pending items, and any blocked items. Use this at the start of every session to understand what needs attention.",
+  {},
+  async () => {
+    const [inProgress, pending, blocked] = await Promise.all([
+      api(`/tasks?assignee=${AGENT_ID}&status=in_progress`).then((d) => d.tasks || d),
+      api(`/tasks?assignee=${AGENT_ID}&status=pending`).then((d) => d.tasks || d),
+      api(`/tasks?status=blocked`).then((d) => d.tasks || d),
+    ]);
+
+    const summary = {
+      in_progress: inProgress,
+      pending,
+      blocked,
+      summary: `${inProgress.length} in progress, ${pending.length} pending, ${blocked.length} blocked`,
+    };
+
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(summary, null, 2) }],
+    };
+  }
+);
+
+// ─── Start server ──────────────────────────────────────────────────
+
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main().catch((err) => {
+  console.error("Threadron MCP server error:", err);
+  process.exit(1);
+});
