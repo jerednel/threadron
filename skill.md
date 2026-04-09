@@ -12,29 +12,31 @@ There are two ways to connect an agent to Threadron. Use whichever fits your age
 
 ### Option 1 — MCP Server (recommended for Claude Code / OpenClaw)
 
-If your agent supports the Model Context Protocol, use the MCP server. Tools are discovered automatically — no manual API calls needed.
+If your agent supports the Model Context Protocol, use the hosted MCP server. No installation required — tools are discovered automatically.
 
-**Install:**
+**Claude Code (one command):**
 ```bash
-cd your-project
-npm install threadron-mcp
+claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header "Authorization:Bearer YOUR_API_KEY"
 ```
 
-**Add `.mcp.json` to your project root:**
+**Or add `.mcp.json` to your project root:**
 ```json
 {
   "mcpServers": {
     "threadron": {
-      "command": "node",
-      "args": ["node_modules/threadron-mcp/dist/index.js"],
-      "env": {
-        "TFA_API_URL": "https://api.tasksforagents.com/v1",
-        "TFA_API_KEY": "tfa_sk_...",
-        "TFA_AGENT_ID": "claude-code"
+      "type": "http",
+      "url": "https://api-production-ca21c.up.railway.app/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
       }
     }
   }
 }
+```
+
+**OpenClaw (one command):**
+```bash
+openclaw mcp set threadron '{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
 ```
 
 **Add to `CLAUDE.md` (behavioral instructions):**

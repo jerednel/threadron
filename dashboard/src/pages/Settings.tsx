@@ -261,12 +261,10 @@ When you identify new work to be done:
   const MCP_CONFIG = `{
   "mcpServers": {
     "threadron": {
-      "command": "node",
-      "args": ["/path/to/threadron/mcp/dist/index.js"],
-      "env": {
-        "TFA_API_URL": "${API_URL}/v1",
-        "TFA_API_KEY": "YOUR_API_KEY",
-        "TFA_AGENT_ID": "claude-code"
+      "type": "http",
+      "url": "https://api-production-ca21c.up.railway.app/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
       }
     }
   }
@@ -362,47 +360,44 @@ Use Threadron tools to track work across sessions:
           {/* Claude Code setup */}
           {setupTab === 'claude' && (
             <div className="space-y-6">
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Clone & build the MCP server</h3>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This gives Claude Code native Threadron tools.</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
-cd threadron/mcp
-npm install && npm run build`}</pre>
-              </div>
-
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 2 — Register the MCP server</h3>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This makes the tools available in ALL your Claude Code projects.</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`claude mcp add --scope user threadron \\
-  -e TFA_API_URL="${API_URL}/v1" \\
-  -e TFA_API_KEY="YOUR_API_KEY" \\
-  -e TFA_AGENT_ID="claude-code" \\
-  -- node /path/to/threadron/mcp/dist/index.js`}</pre>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab. Replace <code className="text-[#f0f0f0]">/path/to/</code> with where you cloned the repo.</p>
+              <div className="bg-[#111] border border-[#2a2a2a] rounded p-3 text-[10px] font-mono text-[#9a9a9a]">
+                No installation required — the MCP server is hosted. No git clone, no npm install, no build step.
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 3 — Install the skill file</h3>
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 1 — Add the MCP server</h3>
                   <button
-                    onClick={() => handleCopyText(`mkdir -p ~/.claude/skills/threadron && cp threadron/mcp/skill/SKILL.md ~/.claude/skills/threadron/SKILL.md`, setSkillCopied)}
+                    onClick={() => handleCopyText(`claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header "Authorization:Bearer YOUR_API_KEY"`, setMcpCopied)}
+                    className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
+                  >
+                    {mcpCopied ? 'copied!' : 'copy command'}
+                  </button>
+                </div>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">One command — connects Claude Code to the hosted Threadron MCP server globally (all projects).</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header "Authorization:Bearer YOUR_API_KEY"`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab.</p>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Or add to your project's <code className="text-[#f0f0f0]">.mcp.json</code>:</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto mt-2 whitespace-pre-wrap">{MCP_CONFIG}</pre>
+              </div>
+
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 2 — Install the skill file</h3>
+                  <button
+                    onClick={() => handleCopyText(`curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs`, setSkillCopied)}
                     className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
                   >
                     {skillCopied ? 'copied!' : 'copy command'}
                   </button>
                 </div>
                 <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">This tells Claude WHEN and HOW to use the tools (check in on session start, update state while working, etc).</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`mkdir -p ~/.claude/skills/threadron
-cp threadron/mcp/skill/SKILL.md ~/.claude/skills/threadron/SKILL.md`}</pre>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Run this from the directory where you cloned threadron.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs`}</pre>
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 4 — Restart Claude Code</h3>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Claude Code discovers MCP servers and skills on startup. Exit and relaunch.</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`# Exit current session, then:
-claude`}</pre>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Claude will prompt you to approve the Threadron MCP server on first use. After that, <code className="text-[#f0f0f0]">threadron_*</code> tools are available in every session.</p>
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 3 — Restart Claude Code</h3>
+                <p className="text-[10px] font-mono text-[#9a9a9a]">Exit and relaunch. Claude will prompt you to approve the Threadron MCP server on first use. After that, <code className="text-[#f0f0f0]">threadron_*</code> tools are available in every session.</p>
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
@@ -449,32 +444,28 @@ claude`}</pre>
           {/* OpenClaw setup */}
           {setupTab === 'openclaw' && (
             <div className="space-y-6">
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Clone & build the MCP server</h3>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Same MCP server as Claude Code.</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
-cd threadron/mcp
-npm install && npm run build`}</pre>
+              <div className="bg-[#111] border border-[#2a2a2a] rounded p-3 text-[10px] font-mono text-[#9a9a9a]">
+                No installation required — the MCP server is hosted. No git clone, no npm install, no build step.
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 2 — Add MCP config</h3>
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 1 — Add the MCP server</h3>
                   <button
-                    onClick={() => handleCopyText(MCP_CONFIG.replace('"claude-code"', '"openclaw"'), setMcpCopied)}
+                    onClick={() => handleCopyText(`openclaw mcp set threadron '{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'`, setMcpCopied)}
                     className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
                   >
-                    {mcpCopied ? 'copied!' : 'copy config'}
+                    {mcpCopied ? 'copied!' : 'copy command'}
                   </button>
                 </div>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Add this to your OpenClaw MCP configuration file (check OpenClaw docs for the exact location — typically <code className="text-[#f0f0f0]">.mcp.json</code> in the project root or OpenClaw's config directory).</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto whitespace-pre-wrap">{MCP_CONFIG.replace('"claude-code"', '"openclaw"')}</pre>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab. Replace <code className="text-[#f0f0f0]">/path/to/</code> with where you cloned the repo.</p>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">One command — connects OpenClaw to the hosted Threadron MCP server.</p>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto whitespace-pre-wrap">{`openclaw mcp set threadron '{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'`}</pre>
+                <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab.</p>
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 3 — Add behavioral instructions</h3>
+                  <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 2 — Add skill instructions to system prompt</h3>
                   <button
                     onClick={() => handleCopyText(SKILL_CONTENT, setSkillCopied)}
                     className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
@@ -482,13 +473,7 @@ npm install && npm run build`}</pre>
                     {skillCopied ? 'copied!' : 'copy skill'}
                   </button>
                 </div>
-                <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">Copy the skill file contents into OpenClaw's system prompt or instruction file. This tells the agent when and how to use the Threadron tools.</p>
-                <p className="text-[10px] font-mono text-[#9a9a9a]">File location: <code className="text-[#f0f0f0]">threadron/mcp/skill/SKILL.md</code> in the cloned repo. Copy its contents into your OpenClaw config.</p>
-              </div>
-
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 4 — Restart OpenClaw</h3>
-                <p className="text-[10px] font-mono text-[#9a9a9a]">Restart OpenClaw to pick up the new MCP server and instructions. The <code className="text-[#f0f0f0]">threadron_*</code> tools will be available as native tools.</p>
+                <p className="text-[10px] font-mono text-[#9a9a9a]">Copy the skill file contents into OpenClaw's system prompt or instruction file. This tells the agent when and how to use the Threadron tools.</p>
               </div>
             </div>
           )}
@@ -499,8 +484,7 @@ npm install && npm run build`}</pre>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
                 <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-1">Step 1 — Get the skill.md file</h3>
                 <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">For agents that don't support MCP (Hermes, custom agents), use the REST API directly. The skill.md contains the complete API documentation and behavioral instructions.</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`git clone https://github.com/jerednel/threadron.git
-# The file is at: threadron/skill.md`}</pre>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/skill.md -o your-agent/instructions/threadron.md`}</pre>
               </div>
 
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">

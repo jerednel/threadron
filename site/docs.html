@@ -512,38 +512,25 @@
 
         <div class="qs-grid">
           <div class="qs-card" id="qs-claude-code">
-            <div class="label" style="margin-bottom: 12px;">Recommended</div>
+            <div class="label" style="margin-bottom: 12px;">Recommended — no install</div>
             <h3>Claude Code</h3>
-            <p>One script — builds the MCP server, verifies your key, registers globally, installs the skill.</p>
+            <p>Hosted MCP server — one command connects. No git clone, no npm install, no build step.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">bash</span>
-git clone https://github.com/jerednel/threadron.git
-cd threadron
-./setup.sh YOUR_API_KEY
+claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
             </div>
-            <p style="margin-top: 12px; font-size: 0.8rem;">Restart Claude Code. 11 tools available in every project. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
+            <p style="margin-top: 12px; font-size: 0.8rem;">Then install the skill: <span class="inline-code">curl -sL .../SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs</span>. Restart Claude Code. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
           </div>
 
           <div class="qs-card" id="qs-openclaw">
-            <div class="label" style="margin-bottom: 12px;">MCP Server</div>
+            <div class="label" style="margin-bottom: 12px;">No install</div>
             <h3>OpenClaw</h3>
-            <p>Build the server, add the JSON config, inject the skill as a system prompt.</p>
+            <p>Hosted MCP server — one command connects. Then add the skill to your system prompt.</p>
             <div class="code-block" style="font-size: 12px;">
-              <span class="label-tag">JSON</span>
-{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"threadron"</span>: {
-      <span class="key">"command"</span>: <span class="string">"node"</span>,
-      <span class="key">"args"</span>: [<span class="string">"mcp/dist/index.js"</span>],
-      <span class="key">"env"</span>: {
-        <span class="key">"TFA_API_KEY"</span>: <span class="string">"tfa_sk_..."</span>,
-        <span class="key">"TFA_AGENT_ID"</span>: <span class="string">"openclaw"</span>
-      }
-    }
-  }
-}
+              <span class="label-tag">bash</span>
+openclaw mcp set threadron <span class="string">'{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
             </div>
-            <p style="margin-top: 12px; font-size: 0.8rem;">Copy <span class="inline-code">mcp/skill/SKILL.md</span> into your system prompt. <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Full guide &rarr;</a></p>
+            <p style="margin-top: 12px; font-size: 0.8rem;">Add skill instructions to your system prompt. <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Full guide &rarr;</a></p>
           </div>
 
           <div class="qs-card" id="qs-rest">
@@ -552,7 +539,7 @@ cd threadron
             <p>No MCP required. Copy skill.md into your agent's system prompt. Direct HTTP calls.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">env</span>
-TFA_API_URL=https://api.tasksforagents.com/v1
+TFA_API_URL=https://api-production-ca21c.up.railway.app/v1
 TFA_API_KEY=tfa_sk_...
 TFA_AGENT_ID=your-agent
             </div>

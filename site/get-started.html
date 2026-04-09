@@ -178,27 +178,46 @@ curl -X POST https://api.tasksforagents.com/v1/tasks \
         <div class="label">MCP + Skill</div>
       </div>
       <h3 style="margin-bottom: 8px;">Claude Code</h3>
-      <p style="color: var(--gray-4); margin-bottom: 32px;">The easiest path. One script does everything — builds the server, verifies your key, registers the MCP server globally, and installs the skill.</p>
+      <p style="color: var(--gray-4); margin-bottom: 32px;">No installation required. The MCP server is hosted — one command connects Claude Code to Threadron. No git clone, no npm install, no build step.</p>
 
-      <!-- One-command setup -->
+      <!-- Step 1: Add MCP server -->
       <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">One command setup</div>
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 1 — Add the MCP server (one command)</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-git clone https://github.com/jerednel/threadron.git
-cd threadron
-./setup.sh YOUR_API_KEY
+claude mcp add --transport http threadron https://api-production-ca21c.up.railway.app/mcp -- --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span>
         </div>
-        <div style="margin-top: 16px; padding: 20px; background: var(--gray-1); border-left: 2px solid var(--gray-2);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">This script:</div>
-          <ol style="margin: 0; padding-left: 20px; color: var(--gray-4); font-size: 0.9rem; line-height: 1.8;">
-            <li>Builds the MCP server</li>
-            <li>Verifies your API connection and key</li>
-            <li>Registers the MCP server with Claude Code (user scope — works in ALL projects)</li>
-            <li>Installs the Threadron skill (tells Claude when/how to use the tools)</li>
-          </ol>
+        <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or add to your project's <span style="font-family: var(--mono); color: var(--gray-5);">.mcp.json</span>:</p>
+        <div class="code-block" style="margin-top: 8px;">
+          <span class="label-tag">.mcp.json</span>
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"threadron"</span>: {
+      <span class="key">"type"</span>: <span class="string">"http"</span>,
+      <span class="key">"url"</span>: <span class="string">"https://api-production-ca21c.up.railway.app/mcp"</span>,
+      <span class="key">"headers"</span>: {
+        <span class="key">"Authorization"</span>: <span class="string">"Bearer YOUR_API_KEY"</span>
+      }
+    }
+  }
+}
         </div>
-        <p style="margin-top: 16px; color: var(--gray-4); font-size: 0.9rem;">After running, restart Claude Code. Every session in every project will have Threadron tools.</p>
+      </div>
+
+      <!-- Step 2: Install skill -->
+      <div style="margin-bottom: 32px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 2 — Install the skill (tells Claude when/how to use the tools)</div>
+        <div class="code-block">
+          <span class="label-tag">bash</span>
+curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs
+        </div>
+        <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or copy the CLAUDE.md snippet from the <a href="/dashboard/settings" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">dashboard settings</a> into your project.</p>
+      </div>
+
+      <!-- Step 3: Restart -->
+      <div style="margin-bottom: 32px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 3 — Restart Claude Code</div>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Exit and relaunch. Claude will prompt you to approve the Threadron MCP server on first use. After that, <span style="font-family: var(--mono); color: var(--gray-5);">threadron_*</span> tools are available in every session.</p>
       </div>
 
       <!-- Tools table -->
@@ -279,84 +298,30 @@ cd threadron
         </div>
       </div>
 
-      <!-- Manual setup -->
-      <div>
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Manual setup (if you prefer)</div>
-        <p style="color: var(--gray-4); font-size: 0.9rem; margin-bottom: 16px;">If you don't want to run the script:</p>
-
-        <div style="margin-bottom: 12px;">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Build the MCP server</div>
-          <div class="code-block">
-            <span class="label-tag">bash</span>
-cd threadron/mcp &amp;&amp; npm install &amp;&amp; npm run build
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Register with Claude Code</div>
-          <div class="code-block">
-            <span class="label-tag">bash</span>
-claude mcp add --scope user threadron \
-  -e TFA_API_URL=<span class="string">"https://api-production-ca21c.up.railway.app/v1"</span> \
-  -e TFA_API_KEY=<span class="string">"YOUR_KEY"</span> \
-  -e TFA_AGENT_ID=<span class="string">"claude-code"</span> \
-  -- node /path/to/threadron/mcp/dist/index.js
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 3 — Install the skill</div>
-          <div class="code-block">
-            <span class="label-tag">bash</span>
-mkdir -p ~/.claude/skills/threadron
-cp threadron/mcp/skill/SKILL.md ~/.claude/skills/threadron/SKILL.md
-          </div>
-        </div>
-
-        <div>
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 4 — Restart Claude Code</div>
-        </div>
-      </div>
     </div>
 
     <!-- ── OPENCLAW ──────────────────────────────────────────── -->
     <div class="card" style="padding: 40px; margin-bottom: 32px;">
       <div class="label" style="margin-bottom: 8px;">MCP Server</div>
       <h3 style="margin-bottom: 8px;">OpenClaw</h3>
-      <p style="color: var(--gray-4); margin-bottom: 32px;">OpenClaw supports MCP servers. Setup is similar to Claude Code — build the server, add the config, inject the skill as a system prompt.</p>
+      <p style="color: var(--gray-4); margin-bottom: 32px;">No installation required. The MCP server is hosted — one command connects OpenClaw to Threadron. No git clone, no npm install, no build step.</p>
 
-      <div style="margin-bottom: 12px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Build the MCP server</div>
+      <div style="margin-bottom: 24px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Add the MCP server (one command)</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-cd threadron/mcp &amp;&amp; npm install &amp;&amp; npm run build
-        </div>
-      </div>
-
-      <div style="margin-bottom: 12px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Add to your OpenClaw MCP config</div>
-        <p style="color: var(--gray-4); font-size: 0.85rem; margin-bottom: 8px;">Location depends on your OpenClaw setup:</p>
-        <div class="code-block">
-          <span class="label-tag">JSON config</span>
-{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"threadron"</span>: {
-      <span class="key">"command"</span>: <span class="string">"node"</span>,
-      <span class="key">"args"</span>: [<span class="string">"/path/to/threadron/mcp/dist/index.js"</span>],
-      <span class="key">"env"</span>: {
-        <span class="key">"TFA_API_URL"</span>: <span class="string">"https://api-production-ca21c.up.railway.app/v1"</span>,
-        <span class="key">"TFA_API_KEY"</span>: <span class="string">"YOUR_KEY"</span>,
-        <span class="key">"TFA_AGENT_ID"</span>: <span class="string">"openclaw"</span>
-      }
-    }
-  }
-}
+openclaw mcp set threadron <span class="string">'{"url":"https://api-production-ca21c.up.railway.app/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
         </div>
       </div>
 
       <div>
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 3 — Add behavioral instructions</div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Copy the contents of <span style="font-family: var(--mono); color: var(--gray-5);">threadron/mcp/skill/SKILL.md</span> into your OpenClaw system prompt, or point OpenClaw at the file directly. This tells the agent when and how to use each tool.</p>
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Add skill instructions to system prompt</div>
+        <p style="color: var(--gray-4); font-size: 0.9rem;">Copy the Threadron skill into your OpenClaw system prompt or instruction file. This tells the agent when and how to use each tool.</p>
+        <div class="code-block" style="margin-top: 12px;">
+          <span class="label-tag">bash</span>
+<span class="comment"># Get the skill content:</span>
+curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md
+        </div>
       </div>
     </div>
 
@@ -370,9 +335,9 @@ cd threadron/mcp &amp;&amp; npm install &amp;&amp; npm run build
         <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Copy skill.md into your agent's instruction file</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-<span class="comment"># Copy threadron/skill.md into your agent's system prompt,</span>
+<span class="comment"># Download skill.md and copy into your agent's system prompt,</span>
 <span class="comment"># instruction file, or config. It contains complete API docs.</span>
-cp threadron/skill.md your-agent/instructions/threadron.md
+curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/skill.md -o your-agent/instructions/threadron.md
         </div>
       </div>
 
