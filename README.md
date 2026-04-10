@@ -2,6 +2,8 @@
 
 **Shared execution state for agent workflows.**
 
+[threadron.com](https://threadron.com) | [Dashboard](https://threadron.com/dashboard) | [Docs](https://threadron.com/docs.html)
+
 Your agents don't share a brain. Threadron fixes that.
 
 Run Claude Code on your laptop, OpenClaw on your desktop, Hermes in the cloud — and keep everything on the same thread. Persistent state, shared history, zero context loss.
@@ -229,23 +231,9 @@ docker-compose.yml    Self-hosted stack
 
 ## License
 
-**Business Source License 1.1 (BSL 1.1)**
+Apache License 2.0. See [LICENSE](LICENSE).
 
-You are free to:
-- Use Threadron for any purpose (personal, commercial, internal)
-- Self-host for your own projects and teams
-- Modify the source code
-- Contribute improvements
-
-You may not:
-- Offer Threadron as a hosted service to third parties (i.e., compete with Threadron Cloud)
-- Sell hosted access to a Threadron instance
-
-After 3 years from each release date, that version converts to the Apache 2.0 license (fully open source, no restrictions).
-
-**In plain English:** Use it however you want. Run it yourself. Modify it. Just don't resell it as a hosted service. That's our business.
-
-See [LICENSE](LICENSE) for the full text.
+Use it, modify it, distribute it, build on it. No restrictions.
 
 ## Contributing
 
