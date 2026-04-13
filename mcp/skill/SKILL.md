@@ -99,6 +99,11 @@ Always log context FIRST, then update state. This ensures the timeline explains 
 - `threadron_create_artifact` for branches, PRs, files, plans, terminal output
 - Always pair with `threadron_add_context(type: "action_taken", body: "Created branch X")`
 
+**Important — file artifacts:** For files you create (markdown, SQL, configs, templates, plans), include the file contents in the `body` field. Do NOT use `uri` with a local file path or a made-up URL — those will 404 in the dashboard. Only use `uri` for things that are actually hosted URLs (GitHub PRs, branches, deployed docs).
+
+Good: `create_artifact(type: "file", title: "DBT QA Template", body: "# QA Template\n\n...")`
+Bad: `create_artifact(type: "file", title: "DBT QA Template", uri: "https://threadron.com/docs/template.md")`
+
 ## Session End / Pausing
 
 Before the session ends or when switching to other work:

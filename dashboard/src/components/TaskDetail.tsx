@@ -746,7 +746,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                           {art.title && (
                             <span className="text-sm text-[#f0f0f0] font-medium block">{art.title}</span>
                           )}
-                          {art.uri && (
+                          {art.uri && !art.body && (
                             <a
                               href={art.uri}
                               target="_blank"
@@ -756,8 +756,16 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                               {art.uri}
                             </a>
                           )}
+                          {art.uri && art.body && (
+                            <span className="text-[10px] font-mono text-[#4a4a4a] block">{art.uri}</span>
+                          )}
                           {art.body && (
-                            <p className="text-xs text-[#6a6a6a] mt-1 whitespace-pre-wrap leading-relaxed">{art.body}</p>
+                            <details className="mt-1.5" open={art.body.length < 500}>
+                              <summary className="text-[10px] font-mono text-[#6a6a6a] cursor-pointer hover:text-[#9a9a9a] select-none">
+                                {art.body.length < 500 ? 'Content' : `Content (${art.body.length} chars — click to expand)`}
+                              </summary>
+                              <pre className="mt-1.5 text-xs font-mono text-[#c0c0c0] bg-[#0a0a0a] border border-[#1e1e1e] rounded p-3 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto">{art.body}</pre>
+                            </details>
                           )}
                         </div>
                         <span className="text-[9px] font-mono text-[#3a3a3a] shrink-0">by {art.created_by}</span>

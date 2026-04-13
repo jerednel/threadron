@@ -6,8 +6,8 @@
         "/Users/69348/git/agentask/mcp/dist/index.js"
       ],
       "env": {
-        "TFA_API_URL": "https://api-production-ca21c.up.railway.app",
-        "TFA_API_KEY": "YOUR_API_KEY",
+        "TFA_API_URL": "https://threadron.com/v1",
+        "TFA_API_KEY": "tfa_sk_k_FgQZNL6A83ER",
         "TFA_AGENT_ID": "claude-code"
       }
     }
