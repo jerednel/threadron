@@ -14,7 +14,7 @@ actor APIClient {
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let isoNoFrac = ISO8601DateFormatter()
         isoNoFrac.formatOptions = [.withInternetDateTime]
-        d.dateDecodingStrategy = .custom { decoder in
+        d.dateDecodingStrategy = .custom { [iso, isoNoFrac] decoder in
             let container = try decoder.singleValueContainer()
             let string = try container.decode(String.self)
             if let date = iso.date(from: string) { return date }
