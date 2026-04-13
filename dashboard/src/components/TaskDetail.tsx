@@ -425,6 +425,15 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
               ← Back
             </button>
             <span className="hidden md:block text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">Work Item</span>
+            {task && (
+              <button
+                onClick={() => navigator.clipboard.writeText(task.id)}
+                className="hidden md:block text-[9px] font-mono text-[#3a3a3a] hover:text-[#8a8a8a] transition-colors cursor-pointer ml-2"
+                title="Copy task ID"
+              >
+                {task.id}
+              </button>
+            )}
           </div>
           <button
             onClick={onClose}

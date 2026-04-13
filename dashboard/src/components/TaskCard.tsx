@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Task } from '../lib/api';
 
 interface TaskCardProps {
@@ -31,6 +32,7 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
   const priorityDot = priorityColors[task.priority] || '#8a8a8a';
   const blockerCount = task.blockers?.length ?? 0;
   const hasBlockers = blockerCount > 0;
+  const [idCopied, setIdCopied] = useState(false);
 
   return (
     <div
@@ -98,11 +100,26 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
           {timeAgo(task.updated_at)}
         </span>
 
-        {hasBlockers && blockerCount > 1 && (
-          <span className="text-[10px] font-mono text-red-400/60">
-            +{blockerCount - 1} more
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {hasBlockers && blockerCount > 1 && (
+            <span className="text-[10px] font-mono text-red-400/60">
+              +{blockerCount - 1} more
+            </span>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(task.id).then(() => {
+                setIdCopied(true);
+                setTimeout(() => setIdCopied(false), 1500);
+              });
+            }}
+            className="text-[9px] font-mono text-[#3a3a3a] hover:text-[#8a8a8a] transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+            title={task.id}
+          >
+            {idCopied ? 'copied!' : 'ID'}
+          </button>
+        </div>
       </div>
     </div>
   );

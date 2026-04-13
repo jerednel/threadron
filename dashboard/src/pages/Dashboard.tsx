@@ -368,7 +368,7 @@ export default function Dashboard() {
                           <button
                             key={task.id}
                             onClick={() => setSelectedTaskId(task.id)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer border-t border-[#1e1e1e]`}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer border-t border-[#1e1e1e] group/qitem`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <span
@@ -385,6 +385,16 @@ export default function Dashboard() {
                             <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0 ml-3">
                               {task.assignee || task.claimed_by || '—'}
                             </span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(task.id);
+                              }}
+                              className="text-[9px] font-mono text-[#3a3a3a] hover:text-[#8a8a8a] transition-colors cursor-pointer shrink-0 ml-2 opacity-0 group-hover/qitem:opacity-100"
+                              title={task.id}
+                            >
+                              ID
+                            </button>
                           </button>
                         ))}
                       </div>
