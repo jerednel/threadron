@@ -159,7 +159,8 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { keyToDelete = nil }
                 Button("Revoke", role: .destructive) {
                     if let key = keyToDelete {
-                        Task { await settingsStore.deleteKey(id: key.id) }
+                        let store = settingsStore
+                        Task { await store.deleteKey(id: key.id) }
                         HapticManager.warning()
                     }
                     keyToDelete = nil
@@ -171,7 +172,7 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) {}
                 Button("Sign Out", role: .destructive) { auth.logout() }
             }
-            .task {
+            .task { [settingsStore] in
                 await settingsStore.fetchKeys()
             }
         }
