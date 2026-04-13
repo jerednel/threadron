@@ -89,4 +89,20 @@ struct Endpoint: @unchecked Sendable {
     static func upsertConfig(key: String, value: Any) -> Endpoint {
         Endpoint("/config", .POST, body: ["key": key, "value": value])
     }
+
+    // MARK: - Inbox
+    static var listInbox: Endpoint { Endpoint("/inbox", .GET) }
+    static func getInboxItem(id: String) -> Endpoint { Endpoint("/inbox/\(id)", .GET) }
+    static func captureInbox(rawText: String, source: String = "user", domainId: String? = nil) -> Endpoint {
+        var body: [String: Any] = ["raw_text": rawText, "source": source]
+        if let d = domainId { body["domain_id"] = d }
+        return Endpoint("/inbox", .POST, body: body)
+    }
+    static func updateInboxItem(id: String, fields: [String: Any]) -> Endpoint {
+        Endpoint("/inbox/\(id)", .PATCH, body: fields)
+    }
+    static func promoteInboxItem(id: String, fields: [String: Any]) -> Endpoint {
+        Endpoint("/inbox/\(id)/promote", .POST, body: fields)
+    }
+    static func deleteInboxItem(id: String) -> Endpoint { Endpoint("/inbox/\(id)", .DELETE) }
 }

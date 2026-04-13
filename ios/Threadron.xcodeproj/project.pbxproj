@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,19 +21,23 @@
 		4B5FCA4529F52F77A1D633F1 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9245C29BFD4EC2F5F0444156 /* AuthManager.swift */; };
 		511F15F562CE268E6D68B777 /* Project.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB7193F2A90D154E6DF7182 /* Project.swift */; };
 		54617DC2AD077455EF15531E /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3711F1991EF646F1A71212E /* TaskRowView.swift */; };
+		5AA8F71BC79008FF792005B1 /* InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C332B7DAE4720E5B69A1712 /* InboxView.swift */; };
 		5C420DB8E32C050607C7C566 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076AEAD7DD935732B66B3257 /* LoginView.swift */; };
 		5ECA849B20876C0DA283CC46 /* NewAPIKeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFC93D86436E05C62838FAD /* NewAPIKeyView.swift */; };
 		61B7B03F92152DFEFBB33A67 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22DF35929A8912D9CF16B117 /* KeychainManager.swift */; };
+		61EE027004F4198BB545B62D /* InboxItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE643085835E780AB2221654 /* InboxItemView.swift */; };
 		6770ACD450F74DBDDB934B7F /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E91AB966FDF36AB4B263A2C /* NewTaskView.swift */; };
 		71C373D39C1910D0C2D340F3 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC8C0A203D52D88F8BA43E /* TaskDetailView.swift */; };
 		72717451C3A1E4A3CD61624A /* ContextEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959A8A88E27D12A9CBD83A7C /* ContextEntry.swift */; };
 		779ED531D02D2960954FE0FD /* DomainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E62EE196DCBC6CBF3FABEB /* DomainStore.swift */; };
+		80BB0A6C45C793A53DF2F883 /* InboxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF40583B0A2A87AC8E547E9 /* InboxStore.swift */; };
 		8601FE71C477AC97B15129B2 /* AddArtifactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21C599019FC32EFF98AB6DB /* AddArtifactView.swift */; };
 		8820DEDDEC4ED51632964932 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4FB63DFBBD9E5243A9746A1 /* Assets.xcassets */; };
 		93402FECF828004D40E82616 /* AddContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56FCA4537887922F5097040 /* AddContextView.swift */; };
 		9E75A53802B284F8A29D367C /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF14E487CE5F165AD590143 /* BadgeView.swift */; };
 		9F8E5C1179E98D15E3AE118D /* TaskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1BF02EB533F8C58CFEB199 /* TaskModel.swift */; };
 		A58731B1A9ADCB19C4F895DE /* APIKeyModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0D156E8058AA1DB1852AE90 /* APIKeyModel.swift */; };
+		A6E15AA83DA5298E7AEA4919 /* InboxItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C750F761AA2973281C5CBC /* InboxItem.swift */; };
 		A81378188A1BEE9C315F9CD0 /* NewDomainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 856AFA4AE931A329E7734926 /* NewDomainView.swift */; };
 		BD1D0D977AD7F4810F62743E /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3299A5260B494DCB96C310A /* OnboardingView.swift */; };
 		BEA3B24A96661E75B806AA35 /* ThreadronApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */; };
@@ -46,6 +50,7 @@
 		E46D0659DACEA55E3ADD9B9C /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F393ADA1DCD2CE45DDE6F435 /* Agent.swift */; };
 		EC8935AB3B67DBA06110C501 /* AgentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039A3ED31885AACA7DCBDE41 /* AgentStore.swift */; };
 		F06EBBC0C05C1703D95E3F98 /* TaskStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE0DEBD452BA32B1B351C95 /* TaskStore.swift */; };
+		F99DCE0BB24628B77D8E515A /* InboxCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3A227AD768C40A2048C50E /* InboxCaptureView.swift */; };
 		FEC69224C109804956088EFA /* Domain.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA1F1D6AA42E4FD1DD3CE253 /* Domain.swift */; };
 /* End PBXBuildFile section */
 
@@ -57,12 +62,16 @@
 		0D71CB9ACD5AE68849CBB401 /* Date+Relative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Relative.swift"; sourceTree = "<group>"; };
 		0DE5056BD7651D4F49A99315 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		16F9345F2B23C30500B3F6CB /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		1C332B7DAE4720E5B69A1712 /* InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxView.swift; sourceTree = "<group>"; };
 		22DF35929A8912D9CF16B117 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		2BDE37D51956B394222B1D00 /* AgentListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentListView.swift; sourceTree = "<group>"; };
+		2CF40583B0A2A87AC8E547E9 /* InboxStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxStore.swift; sourceTree = "<group>"; };
 		349DA33656A526DCF9C80964 /* FilterPillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterPillsView.swift; sourceTree = "<group>"; };
+		36C750F761AA2973281C5CBC /* InboxItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxItem.swift; sourceTree = "<group>"; };
 		5CF14E487CE5F165AD590143 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		5E91AB966FDF36AB4B263A2C /* NewTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTaskView.swift; sourceTree = "<group>"; };
 		603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadronApp.swift; sourceTree = "<group>"; };
+		7B3A227AD768C40A2048C50E /* InboxCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCaptureView.swift; sourceTree = "<group>"; };
 		856AFA4AE931A329E7734926 /* NewDomainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDomainView.swift; sourceTree = "<group>"; };
 		8BCAADA4A087499F6384BE00 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		8C1BF02EB533F8C58CFEB199 /* TaskModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModel.swift; sourceTree = "<group>"; };
@@ -86,12 +95,13 @@
 		D625BAC35BF9DC367FBDD2AA /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		D69ABDCAD284D0F6A87BDAC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D966B39A6A0598D781A4CC87 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		E25C0DA5C427C38CE76CAD21 /* Threadron.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Threadron.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E25C0DA5C427C38CE76CAD21 /* Threadron.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Threadron.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E7E62EE196DCBC6CBF3FABEB /* DomainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainStore.swift; sourceTree = "<group>"; };
 		F0D156E8058AA1DB1852AE90 /* APIKeyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeyModel.swift; sourceTree = "<group>"; };
 		F393ADA1DCD2CE45DDE6F435 /* Agent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
 		F488823DAB0C3ADC02E9043A /* TaskBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskBoardView.swift; sourceTree = "<group>"; };
 		FB2260495835C5BD70BABF80 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		FE643085835E780AB2221654 /* InboxItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxItemView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -100,6 +110,7 @@
 			children = (
 				68BDBB44A89378EA731416F4 /* Agents */,
 				C973F0A68F6D00F676795111 /* Auth */,
+				360E78F3DB6F7C7274B44923 /* Inbox */,
 				C436FC0EBA23988E43D410B3 /* Onboarding */,
 				32BB2F4BDC969511E94237D6 /* Settings */,
 				1224CAA2FF866554CA0B0676 /* Shared */,
@@ -117,6 +128,7 @@
 				959A8A88E27D12A9CBD83A7C /* ContextEntry.swift */,
 				CA1F1D6AA42E4FD1DD3CE253 /* Domain.swift */,
 				98991446A14DE7907548421A /* Enums.swift */,
+				36C750F761AA2973281C5CBC /* InboxItem.swift */,
 				CEB7193F2A90D154E6DF7182 /* Project.swift */,
 				8C1BF02EB533F8C58CFEB199 /* TaskModel.swift */,
 				D625BAC35BF9DC367FBDD2AA /* User.swift */,
@@ -151,6 +163,16 @@
 				A430FA9685404BF71CCE8BC7 /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		360E78F3DB6F7C7274B44923 /* Inbox */ = {
+			isa = PBXGroup;
+			children = (
+				7B3A227AD768C40A2048C50E /* InboxCaptureView.swift */,
+				FE643085835E780AB2221654 /* InboxItemView.swift */,
+				1C332B7DAE4720E5B69A1712 /* InboxView.swift */,
+			);
+			path = Inbox;
 			sourceTree = "<group>";
 		};
 		4961705D76355223F86D74D0 /* Products */ = {
@@ -210,6 +232,7 @@
 				039A3ED31885AACA7DCBDE41 /* AgentStore.swift */,
 				9245C29BFD4EC2F5F0444156 /* AuthManager.swift */,
 				E7E62EE196DCBC6CBF3FABEB /* DomainStore.swift */,
+				2CF40583B0A2A87AC8E547E9 /* InboxStore.swift */,
 				FB2260495835C5BD70BABF80 /* SettingsStore.swift */,
 				AEE0DEBD452BA32B1B351C95 /* TaskStore.swift */,
 			);
@@ -276,6 +299,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 76E611A4AB786C633A874316 /* Build configuration list for PBXProject "Threadron" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -287,6 +312,7 @@
 			);
 			mainGroup = 22652CB15B87A9A5D9C2960B;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 54;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -331,6 +357,11 @@
 				C906A531347550A63175CFB7 /* Enums.swift in Sources */,
 				0297B29B641423829BD56E81 /* FilterPillsView.swift in Sources */,
 				0B4A3F6BB0C1644510CD7191 /* HapticManager.swift in Sources */,
+				F99DCE0BB24628B77D8E515A /* InboxCaptureView.swift in Sources */,
+				A6E15AA83DA5298E7AEA4919 /* InboxItem.swift in Sources */,
+				61EE027004F4198BB545B62D /* InboxItemView.swift in Sources */,
+				80BB0A6C45C793A53DF2F883 /* InboxStore.swift in Sources */,
+				5AA8F71BC79008FF792005B1 /* InboxView.swift in Sources */,
 				61B7B03F92152DFEFBB33A67 /* KeychainManager.swift in Sources */,
 				5C420DB8E32C050607C7C566 /* LoginView.swift in Sources */,
 				5ECA849B20876C0DA283CC46 /* NewAPIKeyView.swift in Sources */,
@@ -360,7 +391,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AJMH7Y6WZA;
 				INFOPLIST_FILE = Threadron/Info.plist;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jerednel.threadron;
@@ -373,7 +403,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AJMH7Y6WZA;
 				INFOPLIST_FILE = Threadron/Info.plist;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jerednel.threadron;

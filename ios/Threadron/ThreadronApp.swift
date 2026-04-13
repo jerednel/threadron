@@ -7,6 +7,7 @@ struct ThreadronApp: App {
     @State private var domainStore = DomainStore()
     @State private var agentStore = AgentStore()
     @State private var settingsStore = SettingsStore()
+    @State private var inboxStore = InboxStore()
 
     var body: some Scene {
         WindowGroup {
@@ -27,6 +28,7 @@ struct ThreadronApp: App {
             .environment(domainStore)
             .environment(agentStore)
             .environment(settingsStore)
+            .environment(inboxStore)
             .task {
                 await authManager.checkExistingSession()
             }
@@ -40,6 +42,11 @@ struct MainTabView: View {
             TaskBoardView()
                 .tabItem {
                     Label("Tasks", systemImage: "checklist")
+                }
+
+            InboxView()
+                .tabItem {
+                    Label("Inbox", systemImage: "tray.and.arrow.down")
                 }
 
             AgentListView()
