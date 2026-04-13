@@ -135,8 +135,8 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Project filter row — always shown when projects exist */}
-        {projects.length > 0 && (
+        {/* Project filter row — always shown when projects exist OR a domain is selected (so + button is accessible) */}
+        {(projects.length > 0 || selectedDomainId) && (
           <div className="flex items-center gap-1 overflow-x-auto">
             {projects.length > 0 && (
               <button
