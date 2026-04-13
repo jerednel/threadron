@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { api, type Task, type Domain, type Project } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
@@ -95,6 +95,54 @@ export default function Dashboard() {
   const pendingTasks = filteredTasks.filter(t => t.status === 'pending');
   const completedTasks = filteredTasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
 
+  // Group active tasks by project for display
+  const activeByProject = useMemo(() => {
+    const allActive = [...inProgressTasks, ...blockedTasks];
+    const groups = new Map<string, { label: string | null; tasks: typeof allActive }>();
+    for (const task of allActive) {
+      const key = task.project_id || '__none__';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          label: task.project?.name ?? (task.project_id ? task.project_id : null),
+          tasks: [],
+        });
+      }
+      groups.get(key)!.tasks.push(task);
+    }
+    // Sort: named projects first (alphabetically), then no-project
+    const named = [...groups.entries()].filter(([k]) => k !== '__none__').sort(([, a], [, b]) => (a.label ?? '').localeCompare(b.label ?? ''));
+    const none = [...groups.entries()].filter(([k]) => k === '__none__');
+    return [...named, ...none].map(([, v]) => v);
+  }, [inProgressTasks, blockedTasks]);
+
+  // Group pending tasks by project
+  const pendingByProject = useMemo(() => {
+    const groups = new Map<string, { label: string | null; tasks: typeof pendingTasks }>();
+    for (const task of pendingTasks) {
+      const key = task.project_id || '__none__';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          label: task.project?.name ?? (task.project_id ? task.project_id : null),
+          tasks: [],
+        });
+      }
+      groups.get(key)!.tasks.push(task);
+    }
+    const named = [...groups.entries()].filter(([k]) => k !== '__none__').sort(([, a], [, b]) => (a.label ?? '').localeCompare(b.label ?? ''));
+    const none = [...groups.entries()].filter(([k]) => k === '__none__');
+    return [...named, ...none].map(([, v]) => v);
+  }, [pendingTasks]);
+
+  // Track collapsed project groups in queue
+  const [collapsedQueueGroups, setCollapsedQueueGroups] = useState<Set<string>>(new Set());
+  const toggleQueueGroup = (label: string) => {
+    setCollapsedQueueGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) { next.delete(label); } else { next.add(label); }
+      return next;
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Top bar */}
@@ -106,25 +154,28 @@ export default function Dashboard() {
               onClick={() => setSelectedDomainId('')}
               className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
                 selectedDomainId === ''
-                  ? 'bg-[#f0f0f0] text-[#0a0a0a]'
+                  ? 'bg-[#f0f0f0] text-[#0a0a0a] font-bold'
                   : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
               }`}
             >
-              All
+              All {filteredTasks.length > 0 && `(${filteredTasks.length})`}
             </button>
-            {domains.map(d => (
-              <button
-                key={d.id}
-                onClick={() => setSelectedDomainId(d.id)}
-                className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
-                  selectedDomainId === d.id
-                    ? 'bg-[#f0f0f0] text-[#0a0a0a]'
-                    : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
-                }`}
-              >
-                {d.name}
-              </button>
-            ))}
+            {domains.map(d => {
+              const domainCount = filteredTasks.filter(t => t.domain_id === d.id).length;
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => setSelectedDomainId(d.id)}
+                  className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
+                    selectedDomainId === d.id
+                      ? 'bg-[#f0f0f0] text-[#0a0a0a] font-bold'
+                      : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
+                  }`}
+                >
+                  {d.name}{domainCount > 0 ? ` (${domainCount})` : ''}
+                </button>
+              );
+            })}
           </div>
 
           <button
@@ -249,22 +300,33 @@ export default function Dashboard() {
                   <span className="text-[#4a4a4a] text-xs font-mono">No active work right now</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {/* In progress first, then blocked */}
-                  {inProgressTasks.map(task => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onClick={() => setSelectedTaskId(task.id)}
-                    />
-                  ))}
-                  {blockedTasks.map(task => (
-                    <div key={task.id} className="relative">
-                      <div className="absolute inset-0 rounded-lg border border-red-900/50 pointer-events-none z-10" />
-                      <TaskCard
-                        task={task}
-                        onClick={() => setSelectedTaskId(task.id)}
-                      />
+                <div className="space-y-4">
+                  {activeByProject.map((group, gi) => (
+                    <div key={gi}>
+                      {group.label && (
+                        <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-2">
+                          {group.label}
+                        </div>
+                      )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {group.tasks.map(task => (
+                          task.status === 'blocked' ? (
+                            <div key={task.id} className="relative">
+                              <div className="absolute inset-0 rounded-lg border border-red-900/50 pointer-events-none z-10" />
+                              <TaskCard
+                                task={task}
+                                onClick={() => setSelectedTaskId(task.id)}
+                              />
+                            </div>
+                          ) : (
+                            <TaskCard
+                              key={task.id}
+                              task={task}
+                              onClick={() => setSelectedTaskId(task.id)}
+                            />
+                          )
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -284,32 +346,50 @@ export default function Dashboard() {
                   <span className="text-[#3a3a3a] text-xs font-mono">Queue is empty</span>
                 </div>
               ) : (
-                <div className="border border-[#1e1e1e] rounded-lg overflow-hidden">
-                  {pendingTasks.map((task, idx) => (
-                    <button
-                      key={task.id}
-                      onClick={() => setSelectedTaskId(task.id)}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer ${
-                        idx < pendingTasks.length - 1 ? 'border-b border-[#1e1e1e]' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: { low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444' }[task.priority] || '#4a4a4a' }}
-                        />
-                        <span className="text-sm text-[#c0c0c0] truncate">{task.title}</span>
-                        {task.current_state && (
-                          <span className="text-xs text-[#4a4a4a] truncate hidden md:block">
-                            — {task.current_state}
+                <div className="space-y-3">
+                  {pendingByProject.map((group, gi) => {
+                    const groupKey = group.label ?? '__none__';
+                    const isCollapsed = collapsedQueueGroups.has(groupKey);
+                    const headerLabel = group.label ?? 'No Project';
+                    return (
+                      <div key={gi} className="border border-[#1e1e1e] rounded-lg overflow-hidden">
+                        {/* Group header — always shown */}
+                        <button
+                          onClick={() => toggleQueueGroup(groupKey)}
+                          className="w-full flex items-center justify-between px-4 py-2 bg-[#111] hover:bg-[#161616] transition-colors cursor-pointer"
+                        >
+                          <span className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">
+                            {isCollapsed ? '▶' : '▼'} {headerLabel}
                           </span>
-                        )}
+                          <span className="text-[10px] font-mono text-[#4a4a4a]">{group.tasks.length}</span>
+                        </button>
+                        {/* Group items */}
+                        {!isCollapsed && group.tasks.map((task) => (
+                          <button
+                            key={task.id}
+                            onClick={() => setSelectedTaskId(task.id)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer border-t border-[#1e1e1e]`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ backgroundColor: ({ low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444' } as Record<string,string>)[task.priority] || '#4a4a4a' }}
+                              />
+                              <span className="text-sm text-[#d8d8d8] truncate">{task.title}</span>
+                              {task.current_state && (
+                                <span className="text-xs text-[#6a6a6a] truncate hidden md:block">
+                                  — {task.current_state}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0 ml-3">
+                              {task.assignee || task.claimed_by || '—'}
+                            </span>
+                          </button>
+                        ))}
                       </div>
-                      <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0 ml-3">
-                        {task.assignee || task.claimed_by || '—'}
-                      </span>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

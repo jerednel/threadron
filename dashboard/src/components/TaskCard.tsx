@@ -80,6 +80,16 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
       )}
       {!task.next_action && <div className="mb-3" />}
 
+      {/* Inline blocker — first blocker text */}
+      {hasBlockers && task.blockers?.[0] && (
+        <div className="mb-2">
+          <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">BLOCKED</span>
+          <p className="text-[11px] text-red-400/80 leading-snug mt-0.5 truncate">
+            {task.blockers[0]}
+          </p>
+        </div>
+      )}
+
       {/* Footer row */}
       <div className="flex items-center justify-between mt-1">
         <span className="text-[10px] font-mono text-gray-500">
@@ -88,14 +98,9 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
           {timeAgo(task.updated_at)}
         </span>
 
-        {hasBlockers && (
-          <span className="flex items-center gap-1 text-[10px] font-mono text-red-400">
-            <span className="inline-flex gap-0.5">
-              {Array.from({ length: Math.min(blockerCount, 4) }).map((_, i) => (
-                <span key={i} className="w-1.5 h-2 bg-red-500 rounded-sm inline-block" />
-              ))}
-            </span>
-            {blockerCount} {blockerCount === 1 ? 'blocker' : 'blockers'}
+        {hasBlockers && blockerCount > 1 && (
+          <span className="text-[10px] font-mono text-red-400/60">
+            +{blockerCount - 1} more
           </span>
         )}
       </div>

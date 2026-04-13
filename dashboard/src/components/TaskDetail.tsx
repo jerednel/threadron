@@ -254,6 +254,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [completedFlash, setCompletedFlash] = useState(false);
   const [releasingClaim, setReleasingClaim] = useState(false);
 
   // Add context form
@@ -308,6 +309,10 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
     try {
       await api.updateTask(task.id, { status: newStatus });
       setTask(prev => prev ? { ...prev, status: newStatus } : null);
+      if (newStatus === 'completed') {
+        setCompletedFlash(true);
+        setTimeout(() => setCompletedFlash(false), 2000);
+      }
       onUpdate();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to update status');
@@ -463,6 +468,11 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
+                {completedFlash && (
+                  <span className="text-green-400 text-xs font-mono transition-opacity">
+                    ✓ Completed
+                  </span>
+                )}
 
                 <span className={`text-xs font-mono font-bold ${priorityColors[task.priority] || 'text-[#8a8a8a]'}`}>
                   {task.priority}
