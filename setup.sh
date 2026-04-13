@@ -61,12 +61,14 @@ claude mcp add --scope user threadron \
 
 echo "  ✓ MCP server registered (user scope — available in all projects)"
 
-# Step 5: Install the Threadron skill
-echo "→ Installing Threadron skill..."
+# Step 5: Install Threadron skills
+echo "→ Installing Threadron skills..."
 SKILL_DIR="$HOME/.claude/skills/threadron"
-mkdir -p "$SKILL_DIR"
+UPDATE_DIR="$HOME/.claude/skills/threadron-update"
+mkdir -p "$SKILL_DIR" "$UPDATE_DIR"
 cp "$SCRIPT_DIR/mcp/skill/SKILL.md" "$SKILL_DIR/SKILL.md"
-echo "  ✓ Skill installed to $SKILL_DIR"
+cp "$SCRIPT_DIR/mcp/skill/update/SKILL.md" "$UPDATE_DIR/SKILL.md"
+echo "  ✓ Skills installed (threadron + /threadron-update)"
 
 echo ""
 echo "═══════════════════════════════════════"
