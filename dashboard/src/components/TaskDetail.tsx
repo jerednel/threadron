@@ -108,7 +108,7 @@ function InlineEdit({ label, value, multiline, prominent, onSave }: InlineEditPr
   if (editing) {
     return (
       <div className="mb-5">
-        <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">{label}</label>
+        <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1.5">{label}</label>
         {multiline ? (
           <textarea
             autoFocus
@@ -137,7 +137,7 @@ function InlineEdit({ label, value, multiline, prominent, onSave }: InlineEditPr
 
   return (
     <div className="mb-5 group/inline">
-      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">{label}</label>
+      <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1.5">{label}</label>
       <div
         onClick={() => { setDraft(value); setEditing(true); }}
         className={`leading-relaxed cursor-text min-h-[1.5rem] rounded px-2 py-1 -mx-2 group-hover/inline:bg-[#141414] transition-colors whitespace-pre-wrap ${
@@ -528,7 +528,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
 
               {/* Blockers */}
               <div className="mb-5">
-                <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1.5">
+                <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1.5">
                   Blockers
                 </label>
                 {task.blockers && task.blockers.length > 0 ? (
@@ -622,7 +622,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
 
             {/* ── TIMELINE ── */}
             <div className="px-4 md:px-6 py-5 border-b border-[#1e1e1e]">
-              <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-4">Timeline</h3>
+              <h3 className="text-[9px] font-mono text-[#8a8a8a] uppercase tracking-widest mb-4">Timeline</h3>
 
               {(!task.context || task.context.length === 0) ? (
                 <p className="text-[#3a3a3a] text-xs font-mono">No entries yet.</p>
@@ -654,12 +654,12 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                             </span>
                           </div>
                           {entry.body && (
-                            <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-1 ${isDim ? 'text-[#5a5a5a]' : 'text-[#d0d0d0]'}`}>
+                            <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-1 ${isDim ? 'text-[#7a7a7a]' : 'text-[#e0e0e0]'}`}>
                               {entry.body}
                             </p>
                           )}
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-mono text-[#3a3a3a]">
+                            <span className="text-[10px] font-mono text-[#6a6a6a]">
                               {timeAgo(entry.created_at)}
                             </span>
                             {badge && (
@@ -677,7 +677,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
 
               {/* Add context form */}
               <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
-                <h4 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-3">Add Entry</h4>
+                <h4 className="text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-3">Add Entry</h4>
                 <form onSubmit={handleAddContext} className="space-y-2">
                   <div className="flex gap-2">
                     <select
@@ -720,7 +720,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
             {/* ── ARTIFACTS ── */}
             <div className="px-4 md:px-6 py-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">Artifacts</h3>
+                <h3 className="text-[9px] font-mono text-[#8a8a8a] uppercase tracking-widest">Artifacts</h3>
                 <button
                   onClick={() => setShowArtifactForm(v => !v)}
                   className="text-[10px] font-mono px-2 py-0.5 rounded border border-[#2a2a2a] text-[#6a6a6a] hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer"
@@ -779,7 +779,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                 <form onSubmit={handleAddArtifact} className="space-y-3 border border-[#1e1e1e] rounded-lg p-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Type</label>
+                      <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">Type</label>
                       <select
                         value={artType}
                         onChange={e => setArtType(e.target.value)}
@@ -791,7 +791,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Created By</label>
+                      <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">Created By</label>
                       <input
                         type="text"
                         value={artCreatedBy}
@@ -802,7 +802,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Title</label>
+                    <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">Title</label>
                     <input
                       type="text"
                       value={artTitle}
@@ -812,7 +812,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">URI</label>
+                    <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">URI</label>
                     <input
                       type="text"
                       value={artUri}
@@ -822,7 +822,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-mono text-[#5a5a5a] uppercase tracking-widest mb-1">Body</label>
+                    <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">Body</label>
                     <textarea
                       value={artBody}
                       onChange={e => setArtBody(e.target.value)}

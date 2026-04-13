@@ -3,6 +3,7 @@ import { api, type Task, type Domain, type Project } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import NewTask from '../components/NewTask';
+import NewProject from '../components/NewProject';
 import Onboarding from '../components/Onboarding';
 
 export default function Dashboard() {
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [showNewTask, setShowNewTask] = useState(false);
+  const [showNewProject, setShowNewProject] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [completedCollapsed, setCompletedCollapsed] = useState(true);
   const [onboardingDismissed, setOnboardingDismissed] = useState(
@@ -132,19 +134,21 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Project filter row — only when a domain is selected and has projects */}
-        {selectedDomainId && projects.length > 0 && (
+        {/* Project filter row — when a domain is selected */}
+        {selectedDomainId && (
           <div className="flex items-center gap-1 overflow-x-auto">
-            <button
-              onClick={() => setSelectedProjectId('')}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
-                selectedProjectId === ''
-                  ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
-                  : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
-              }`}
-            >
-              All Projects
-            </button>
+            {projects.length > 0 && (
+              <button
+                onClick={() => setSelectedProjectId('')}
+                className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                  selectedProjectId === ''
+                    ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
+                    : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
+                }`}
+              >
+                All Projects
+              </button>
+            )}
             {projects.map(p => (
               <button
                 key={p.id}
@@ -158,6 +162,13 @@ export default function Dashboard() {
                 {p.name}
               </button>
             ))}
+            <button
+              onClick={() => setShowNewProject(true)}
+              className="px-2 py-1 rounded text-[11px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] border border-dashed border-[#2a2a2a] hover:border-[#4a4a4a] transition-colors cursor-pointer"
+              title="Create project"
+            >
+              +
+            </button>
           </div>
         )}
 
@@ -260,7 +271,7 @@ export default function Dashboard() {
             {/* ── QUEUE ZONE ── */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">
+                <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
                   QUEUE · {pendingTasks.length} {pendingTasks.length === 1 ? 'item' : 'items'}
                 </span>
               </div>
@@ -367,6 +378,17 @@ export default function Dashboard() {
             localStorage.setItem('tfa_onboarding_done', 'true');
             loadData();
           }}
+        />
+      )}
+      {showNewProject && (
+        <NewProject
+          onClose={() => setShowNewProject(false)}
+          onCreated={() => {
+            if (selectedDomainId) {
+              api.listProjects(selectedDomainId).then(setProjects).catch(() => {});
+            }
+          }}
+          defaultDomainId={selectedDomainId || undefined}
         />
       )}
     </div>
