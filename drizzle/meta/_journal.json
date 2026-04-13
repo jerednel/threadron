@@ -36,6 +36,13 @@
       "when": 1775775739787,
       "tag": "0004_striped_hercules",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776121476591,
+      "tag": "0005_chief_ender_wiggin",
+      "breakpoints": true
     }
   ]
 }

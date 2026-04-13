@@ -151,6 +151,33 @@ export const config = pgTable("config", {
   unique("config_user_key_unique").on(t.userId, t.key),
 ]);
 
+// Inbox Items
+export const inboxItems = pgTable(
+  "inbox_items",
+  {
+    id: text("id").primaryKey(),
+    rawText: text("raw_text").notNull(),
+    source: text("source").notNull().default("user"), // user | agent | system
+    status: text("status").notNull().default("unprocessed"), // unprocessed | processing | parsed | promoted | rejected | error
+    domainId: text("domain_id").references(() => domains.id, { onDelete: "cascade" }),
+    parsedTitle: text("parsed_title"),
+    parsedNextAction: text("parsed_next_action"),
+    parsedProject: text("parsed_project"),
+    parsedOwner: text("parsed_owner"),
+    parsedBlockers: jsonb("parsed_blockers").$type<string[]>().default([]),
+    parsedConfidence: text("parsed_confidence"), // stored as decimal string e.g. "0.85"
+    promotedTaskId: text("promoted_task_id").references(() => tasks.id, { onDelete: "set null" }),
+    error: text("error"),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("inbox_items_status_idx").on(table.status),
+    index("inbox_items_created_by_idx").on(table.createdBy),
+  ]
+);
+
 // Waitlist
 export const waitlist = pgTable("waitlist", {
   id: text("id").primaryKey(),
