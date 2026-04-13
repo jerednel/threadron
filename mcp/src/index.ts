@@ -106,7 +106,7 @@ server.tool(
 
 server.tool(
   "threadron_update_state",
-  "Update work item execution state. Call this frequently as you make progress — update current_state, next_action, and clear blockers. This is how the next session knows where you left off.",
+  "Update work item. Use for execution state (current_state, next_action, blockers) and also for reassigning, changing project, tags, priority, or goal.",
   {
     task_id: z.string().describe("Work item ID"),
     status: z.string().optional().describe("pending, in_progress, blocked, completed"),
@@ -114,6 +114,12 @@ server.tool(
     next_action: z.string().optional().describe("What should happen next"),
     blockers: z.array(z.string()).optional().describe("Active blockers (set to [] to clear)"),
     confidence: z.string().optional().describe("low, medium, high"),
+    project_id: z.string().optional().describe("Move to a different project (pass project ID)"),
+    assignee: z.string().optional().describe("Reassign to a different agent"),
+    priority: z.string().optional().describe("low, medium, high, urgent"),
+    tags: z.array(z.string()).optional().describe("Replace tags"),
+    goal: z.string().optional().describe("Update the goal"),
+    outcome_definition: z.string().optional().describe("Update what done looks like"),
   },
   async ({ task_id, ...updates }) => {
     const body: Record<string, unknown> = {
@@ -125,6 +131,12 @@ server.tool(
     if (updates.next_action !== undefined) body.next_action = updates.next_action;
     if (updates.blockers !== undefined) body.blockers = updates.blockers;
     if (updates.confidence !== undefined) body.confidence = updates.confidence;
+    if (updates.project_id !== undefined) body.project_id = updates.project_id;
+    if (updates.assignee !== undefined) body.assignee = updates.assignee;
+    if (updates.priority !== undefined) body.priority = updates.priority;
+    if (updates.tags !== undefined) body.tags = updates.tags;
+    if (updates.goal !== undefined) body.goal = updates.goal;
+    if (updates.outcome_definition !== undefined) body.outcome_definition = updates.outcome_definition;
 
     const data = await api(`/tasks/${task_id}`, {
       method: "PATCH",
