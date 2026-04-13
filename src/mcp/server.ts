@@ -255,6 +255,45 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
     }
   );
 
+  // ─── Create project ──────────────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_create_project",
+    "Create a project within a domain. Projects group related work items. Use threadron_list_domains to find domain IDs first.",
+    {
+      name: z.string().describe("Project name"),
+      domain_id: z.string().describe("Domain ID this project belongs to"),
+      description: z.string().optional().describe("Project description"),
+    },
+    async ({ name, domain_id, description }) => {
+      const data = await api("/projects", {
+        method: "POST",
+        body: JSON.stringify({ name, domain_id, description }),
+      });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  // ─── List projects ──────────────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_list_projects",
+    "List projects. Optionally filter by domain.",
+    {
+      domain_id: z.string().optional().describe("Filter by domain ID"),
+    },
+    async ({ domain_id }) => {
+      const qs = domain_id ? `?domain_id=${domain_id}` : "";
+      const data = await api(`/projects${qs}`);
+      const projects = (data as { projects?: unknown }).projects || data;
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(projects, null, 2) }],
+      };
+    }
+  );
+
   // ─── List agents ──────────────────────────────────────────────────────────────
 
   server.tool(

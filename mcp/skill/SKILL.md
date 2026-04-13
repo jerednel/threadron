@@ -113,15 +113,31 @@ Before the session ends or when switching to other work:
 3. `threadron_release` — release the claim so other agents can pick it up
 4. If done: `threadron_update_state(status: "completed")`
 
+## Organizing Work — Projects
+
+Projects group related work items within a domain. Use them when multiple work items share a common initiative.
+
+- `threadron_list_projects(domain_id?)` — see existing projects
+- `threadron_create_project(name, domain_id, description?)` — create a new project
+- `threadron_update_state(task_id, project_id)` — assign a work item to a project
+
+**Projects are separate entities, not tasks.** Don't create a task as a "project container" — use `threadron_create_project` instead. Then link work items to it via `project_id`.
+
+Example flow:
+1. `threadron_create_project(name: "API v2 Migration", domain_id: "d_xyz")` → returns `p_abc`
+2. `threadron_create_task(title: "Migrate auth endpoints", domain_id: "d_xyz", project_id: "p_abc")`
+3. `threadron_update_state(task_id: "t_existing", project_id: "p_abc")` — move existing tasks into the project
+
 ## Creating New Work
 
 When you identify new work to be done:
 
 1. **Check scope** — Is this a single, discrete goal? Can you describe the outcome in one sentence? If not, break it up.
 2. `threadron_list_tasks` with `search` to check it doesn't already exist
-3. `threadron_create_task` with at minimum: title, domain_id, goal, and outcome_definition
-4. Set `current_state` and `next_action` if you know them
-5. **One work item per goal.** Never bundle unrelated tasks into one work item.
+3. If the work belongs to a group of related items, check if a project exists (`threadron_list_projects`) or create one (`threadron_create_project`)
+4. `threadron_create_task` with at minimum: title, domain_id, goal, and outcome_definition. Include `project_id` if applicable.
+5. Set `current_state` and `next_action` if you know them
+6. **One work item per goal.** Never bundle unrelated tasks into one work item.
 
 ## Key Principles
 
