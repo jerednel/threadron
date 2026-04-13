@@ -26,10 +26,11 @@ export default function Dashboard() {
 
   // Load projects when domain changes
   useEffect(() => {
+    // Load projects for selected domain, or ALL projects when in "All" view
     if (selectedDomainId) {
       api.listProjects(selectedDomainId).then(setProjects).catch(() => setProjects([]));
     } else {
-      setProjects([]);
+      api.listProjects().then(setProjects).catch(() => setProjects([]));
     }
     setSelectedProjectId('');
     setSelectedTags(new Set());
@@ -134,8 +135,8 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Project filter row — when a domain is selected */}
-        {selectedDomainId && (
+        {/* Project filter row — always shown when projects exist */}
+        {projects.length > 0 && (
           <div className="flex items-center gap-1 overflow-x-auto">
             {projects.length > 0 && (
               <button
@@ -162,13 +163,15 @@ export default function Dashboard() {
                 {p.name}
               </button>
             ))}
-            <button
-              onClick={() => setShowNewProject(true)}
-              className="px-2 py-1 rounded text-[11px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] border border-dashed border-[#2a2a2a] hover:border-[#4a4a4a] transition-colors cursor-pointer"
-              title="Create project"
-            >
-              +
-            </button>
+            {selectedDomainId && (
+              <button
+                onClick={() => setShowNewProject(true)}
+                className="px-2 py-1 rounded text-[11px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] border border-dashed border-[#2a2a2a] hover:border-[#4a4a4a] transition-colors cursor-pointer"
+                title="Create project"
+              >
+                +
+              </button>
+            )}
           </div>
         )}
 
@@ -384,9 +387,8 @@ export default function Dashboard() {
         <NewProject
           onClose={() => setShowNewProject(false)}
           onCreated={() => {
-            if (selectedDomainId) {
-              api.listProjects(selectedDomainId).then(setProjects).catch(() => {});
-            }
+            const domId = selectedDomainId || undefined;
+            api.listProjects(domId).then(setProjects).catch(() => {});
           }}
           defaultDomainId={selectedDomainId || undefined}
         />
