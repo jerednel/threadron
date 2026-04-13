@@ -4,7 +4,7 @@ enum HTTPMethod: String {
     case GET, POST, PATCH, DELETE
 }
 
-struct Endpoint {
+struct Endpoint: @unchecked Sendable {
     let path: String
     let method: HTTPMethod
     let body: [String: Any]?
