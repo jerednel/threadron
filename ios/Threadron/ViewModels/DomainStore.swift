@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 @Observable
 final class DomainStore {
     var domains: [Domain] = []
