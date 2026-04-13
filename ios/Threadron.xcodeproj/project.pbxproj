@@ -1,0 +1,199 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8820DEDDEC4ED51632964932 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4FB63DFBBD9E5243A9746A1 /* Assets.xcassets */; };
+		BEA3B24A96661E75B806AA35 /* ThreadronApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadronApp.swift; sourceTree = "<group>"; };
+		B4FB63DFBBD9E5243A9746A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D69ABDCAD284D0F6A87BDAC9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E25C0DA5C427C38CE76CAD21 /* Threadron.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Threadron.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		22652CB15B87A9A5D9C2960B = {
+			isa = PBXGroup;
+			children = (
+				B682FC6BE4518ACFB852077F /* Threadron */,
+				4961705D76355223F86D74D0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4961705D76355223F86D74D0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E25C0DA5C427C38CE76CAD21 /* Threadron.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B682FC6BE4518ACFB852077F /* Threadron */ = {
+			isa = PBXGroup;
+			children = (
+				B4FB63DFBBD9E5243A9746A1 /* Assets.xcassets */,
+				D69ABDCAD284D0F6A87BDAC9 /* Info.plist */,
+				603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */,
+			);
+			path = Threadron;
+			sourceTree = "<group>";
+		};
+		"TEMP_699FB87A-A68F-4DAF-B6A9-7298555982EC" /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0C267D4E0425CA4626D49DC5 /* Threadron */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 10CCAF191DCE537C0646B9BA /* Build configuration list for PBXNativeTarget "Threadron" */;
+			buildPhases = (
+				54F7302866E8197848BF0FF6 /* Sources */,
+				9CE86C59929A0C169FC26536 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Threadron;
+			packageProductDependencies = (
+			);
+			productName = Threadron;
+			productReference = E25C0DA5C427C38CE76CAD21 /* Threadron.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2286891863A3790454D8A93A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 76E611A4AB786C633A874316 /* Build configuration list for PBXProject "Threadron" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 22652CB15B87A9A5D9C2960B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 54;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0C267D4E0425CA4626D49DC5 /* Threadron */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9CE86C59929A0C169FC26536 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8820DEDDEC4ED51632964932 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		54F7302866E8197848BF0FF6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BEA3B24A96661E75B806AA35 /* ThreadronApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		402B36E88F2B2F97FD37DAAE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Threadron/Info.plist;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.threadron.app;
+				PRODUCT_NAME = Threadron;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Debug;
+		};
+		51C53C84359F27D5BD5DEC32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = Threadron/Info.plist;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.threadron.app;
+				PRODUCT_NAME = Threadron;
+				SWIFT_STRICT_CONCURRENCY = complete;
+			};
+			name = Release;
+		};
+		E0532F3CA222C6F498C7894B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		F5E7558098045BCF18E9F94B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		10CCAF191DCE537C0646B9BA /* Build configuration list for PBXNativeTarget "Threadron" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				402B36E88F2B2F97FD37DAAE /* Debug */,
+				51C53C84359F27D5BD5DEC32 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		76E611A4AB786C633A874316 /* Build configuration list for PBXProject "Threadron" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5E7558098045BCF18E9F94B /* Debug */,
+				E0532F3CA222C6F498C7894B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 2286891863A3790454D8A93A /* Project object */;
+}
