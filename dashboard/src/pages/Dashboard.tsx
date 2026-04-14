@@ -92,13 +92,15 @@ export default function Dashboard() {
     loadInbox();
   }, [loadInbox]);
 
-  // Auto-refresh inbox every 10 seconds to show processing updates
+  // Only poll inbox when items are actively being processed
+  const hasProcessingItems = inboxItems.some(i => i.status === 'processing');
   useEffect(() => {
+    if (!hasProcessingItems) return;
     const interval = setInterval(() => {
       loadInbox();
-    }, 10000);
+    }, 5000);
     return () => clearInterval(interval);
-  }, [loadInbox]);
+  }, [hasProcessingItems, loadInbox]);
 
   // Track recently promoted task IDs for highlight animation
   const [recentlyPromoted, setRecentlyPromoted] = useState<Set<string>>(new Set());
