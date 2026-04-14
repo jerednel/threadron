@@ -5,6 +5,7 @@ interface InboxItemCardProps {
   item: InboxItem;
   onPromote: (id: string) => void;
   onReject: (id: string) => void;
+  onEdit: (id: string) => void;
 }
 
 function timeAgo(dateStr: string): string {
@@ -29,7 +30,7 @@ const sourceBadgeColors: Record<string, string> = {
   slack: 'bg-orange-900/30 text-orange-400 border-orange-800/50',
 };
 
-export default function InboxItemCard({ item, onPromote, onReject }: InboxItemCardProps) {
+export default function InboxItemCard({ item, onPromote, onReject, onEdit }: InboxItemCardProps) {
   const [promoting, setPromoting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [flash, setFlash] = useState<'promoted' | 'rejected' | null>(null);
@@ -166,6 +167,12 @@ export default function InboxItemCard({ item, onPromote, onReject }: InboxItemCa
             className="px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-green-900/30 text-green-400 border border-green-800/50 hover:bg-green-900/50 hover:border-green-700/60 transition-colors cursor-pointer disabled:opacity-50"
           >
             {promoting ? '...' : 'Promote'}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(item.id); }}
+            className="px-2.5 py-1 rounded text-[10px] font-mono text-[#8a8a8a] bg-[#1a1a1a] border border-[#2a2a2a] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors cursor-pointer"
+          >
+            Edit
           </button>
           <button
             onClick={handleReject}

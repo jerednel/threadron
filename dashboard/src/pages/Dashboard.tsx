@@ -6,6 +6,7 @@ import NewTask from '../components/NewTask';
 import NewProject from '../components/NewProject';
 import Onboarding from '../components/Onboarding';
 import InboxPanel from '../components/InboxPanel';
+import InboxEditModal from '../components/InboxEditModal';
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -28,6 +29,7 @@ export default function Dashboard() {
   // Inbox state
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
   const [inboxLoading, setInboxLoading] = useState(true);
+  const [editingInboxItem, setEditingInboxItem] = useState<InboxItem | null>(null);
 
   // Mobile pane toggle: 'inbox' | 'tasks'
   const [mobilePane, setMobilePane] = useState<'inbox' | 'tasks'>('tasks');
@@ -139,6 +141,31 @@ export default function Dashboard() {
     }
   }, [loadInbox]);
 
+  const handleEdit = useCallback((id: string) => {
+    const item = inboxItems.find(i => i.id === id);
+    if (item) setEditingInboxItem(item);
+  }, [inboxItems]);
+
+  const handleEditPromote = useCallback(async (id: string, fields: { title: string; next_action?: string; owner?: string }) => {
+    try {
+      const domainId = selectedDomainId || (domains.length > 0 ? domains[0].id : undefined);
+      const result = await api.promoteInboxItem(id, {
+        title: fields.title,
+        ...(fields.next_action ? { next_action: fields.next_action } : {}),
+        ...(fields.owner ? { owner: fields.owner } : {}),
+        ...(domainId ? { domain_id: domainId } : {}),
+      });
+      if (result?.task?.id) {
+        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+        setTimeout(() => {
+          setRecentlyPromoted(prev => { const next = new Set(prev); next.delete(result.task.id); return next; });
+        }, 2000);
+      }
+      setEditingInboxItem(null);
+      await Promise.all([loadInbox(), loadData()]);
+    } catch {}
+  }, [selectedDomainId, domains, loadInbox, loadData]);
+
   // Collect unique tags from all fetched tasks
   const allTags = [...new Set(tasks.flatMap(t => t.tags || []))].sort();
 
@@ -229,6 +256,7 @@ export default function Dashboard() {
             loading={inboxLoading}
             onPromote={handlePromote}
             onReject={handleReject}
+            onEdit={handleEdit}
             onRefresh={loadInbox}
             defaultDomainId={selectedDomainId || undefined}
           />
@@ -568,6 +596,13 @@ export default function Dashboard() {
             api.listProjects(domId).then(setProjects).catch(() => {});
           }}
           defaultDomainId={selectedDomainId || undefined}
+        />
+      )}
+      {editingInboxItem && (
+        <InboxEditModal
+          item={editingInboxItem}
+          onPromote={handleEditPromote}
+          onClose={() => setEditingInboxItem(null)}
         />
       )}
     </div>

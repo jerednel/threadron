@@ -8,11 +8,12 @@ interface InboxPanelProps {
   loading: boolean;
   onPromote: (id: string) => void;
   onReject: (id: string) => void;
+  onEdit: (id: string) => void;
   onRefresh: () => void;
   defaultDomainId?: string;
 }
 
-export default function InboxPanel({ items, loading, onPromote, onReject, onRefresh, defaultDomainId }: InboxPanelProps) {
+export default function InboxPanel({ items, loading, onPromote, onReject, onEdit, onRefresh, defaultDomainId }: InboxPanelProps) {
   const [recentCollapsed, setRecentCollapsed] = useState(true);
   const captureRef = useRef<InboxCaptureHandle>(null);
 
@@ -71,7 +72,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
               </span>
             </div>
             {errored.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -85,7 +86,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
               </span>
             </div>
             {unprocessed.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -100,7 +101,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
               </span>
             </div>
             {processing.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -115,7 +116,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
               </span>
             </div>
             {parsed.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -159,7 +160,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
               </span>
             </button>
             {!recentCollapsed && recent.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
