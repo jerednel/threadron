@@ -328,22 +328,33 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Tag filter row */}
+            {/* Tag filter — compact dropdown */}
             {allTags.length > 0 && (
-              <div className="flex items-center gap-1 overflow-x-auto">
-                {allTags.map(tag => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
-                      selectedTags.has(tag)
-                        ? 'bg-purple-900/30 text-purple-400 border-purple-800/40'
-                        : 'text-[#6a6a6a] border-[#2a2a2a] hover:text-[#9a9a9a] hover:border-[#3a3a3a]'
-                    }`}
-                  >
-                    #{tag}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">Tags</span>
+                <div className="flex items-center gap-1 overflow-x-auto">
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                        selectedTags.has(tag)
+                          ? 'bg-purple-900/30 text-purple-400 border-purple-800/40'
+                          : 'text-[#4a4a4a] border-transparent hover:text-[#8a8a8a]'
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                  {selectedTags.size > 0 && (
+                    <button
+                      onClick={() => setSelectedTags(new Set())}
+                      className="text-[9px] font-mono text-[#4a4a4a] hover:text-[#8a8a8a] cursor-pointer ml-1"
+                    >
+                      clear
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -435,17 +446,17 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* QUEUE ZONE */}
+                {/* PENDING ZONE */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-                      QUEUE &middot; {pendingTasks.length} {pendingTasks.length === 1 ? 'item' : 'items'}
+                      PENDING &middot; {pendingTasks.length} {pendingTasks.length === 1 ? 'item' : 'items'}
                     </span>
                   </div>
 
                   {pendingTasks.length === 0 ? (
                     <div className="border border-dashed border-[#1a1a1a] rounded-lg p-4 text-center">
-                      <span className="text-[#3a3a3a] text-xs font-mono">Queue is empty</span>
+                      <span className="text-[#3a3a3a] text-xs font-mono">No pending tasks</span>
                     </div>
                   ) : (
                     <div className="space-y-3">

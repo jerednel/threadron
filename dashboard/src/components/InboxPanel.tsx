@@ -120,18 +120,28 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
 
         {/* Empty state */}
         {!loading && activeCount === 0 && recent.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <span className="text-[#3a3a3a] text-xs font-mono mb-1">Inbox is empty</span>
-            <span className="text-[#2a2a2a] text-[10px] font-mono">
-              Press <kbd className="px-1 py-0.5 rounded bg-[#1a1a1a] border border-[#2a2a2a] text-[#6a6a6a]">&#8984;K</kbd> to capture a thought
-            </span>
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="text-[#2a2a2a] text-xs font-mono mb-3 tracking-widest uppercase">
+              Capture → Parse → Promote
+            </div>
+            <p className="text-[#4a4a4a] text-[11px] font-mono leading-relaxed max-w-[200px]">
+              Drop thoughts here. Agents will structure them into tasks.
+            </p>
+            <div className="mt-4">
+              <kbd className="px-2 py-1 rounded bg-[#1a1a1a] border border-[#2a2a2a] text-[#6a6a6a] text-[10px] font-mono">⌘K</kbd>
+            </div>
           </div>
         )}
 
         {/* Empty active state with recent */}
         {!loading && activeCount === 0 && recent.length > 0 && (
-          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-            <span className="text-[#3a3a3a] text-xs font-mono">All caught up</span>
+          <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <div className="text-[#2a2a2a] text-xs font-mono tracking-widest uppercase mb-1">
+              All caught up
+            </div>
+            <p className="text-[#3a3a3a] text-[10px] font-mono">
+              New items will appear here as they arrive
+            </p>
           </div>
         )}
 

@@ -115,21 +115,22 @@ export default function InboxItemCard({ item, onPromote, onReject }: InboxItemCa
   // Parsed — ready to review
   if (item.status === 'parsed' && item.parsed) {
     return (
-      <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-colors ${
-        flash === 'promoted' ? 'bg-green-950/30' : flash === 'rejected' ? 'bg-red-950/20' : ''
+      <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'bg-red-950/20 opacity-60' : ''
       }`}>
         {/* Raw text */}
-        <p className="text-xs text-[#8a8a8a] mb-2 italic">"{item.raw_text}"</p>
+        <div className="border-l-2 border-[#2a2a2a] pl-2 mb-2">
+          <p className="text-xs text-[#8a8a8a] italic">"{item.raw_text}"</p>
+        </div>
 
         {/* Parsed suggestion divider */}
-        <div className="border-t border-dashed border-[#2a2a2a] my-2" />
+        <div className="h-px bg-gradient-to-r from-[#2a2a2a] via-[#1a1a1a] to-transparent my-2" />
 
         {/* Parsed fields */}
         <div className="space-y-1 mb-2.5">
           {item.parsed.title && (
             <div>
-              <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">TITLE</span>
-              <p className="text-[13px] text-[#f0f0f0] leading-snug">{item.parsed.title}</p>
+              <p className="text-sm text-[#f0f0f0] font-medium leading-snug">→ {item.parsed.title}</p>
             </div>
           )}
           {item.parsed.next_action && (
