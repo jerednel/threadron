@@ -1,0 +1,165 @@
+import SwiftUI
+
+struct InboxView: View {
+    @Environment(InboxStore.self) private var inboxStore
+    @Environment(DomainStore.self) private var domainStore
+    @State private var showCapture = false
+    @State private var recentExpanded = false
+    @State private var editingItem: InboxItem?
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.bgPrimary.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Unprocessed + Processing + Error
+                        let active = inboxStore.unprocessedItems + inboxStore.processingItems + inboxStore.errorItems
+                        if !active.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                SectionHeaderView(title: "UNPROCESSED", count: active.count)
+                                    .padding(.horizontal, 16)
+
+                                ForEach(active) { item in
+                                    InboxItemView(
+                                        item: item,
+                                        onPromote: { Task { await promote(item) } },
+                                        onEdit: { editingItem = item },
+                                        onReject: { Task { await inboxStore.reject(id: item.id); HapticManager.warning() } }
+                                    )
+                                    .padding(.horizontal, 16)
+                                }
+                            }
+                        }
+
+                        // Parsed / Ready to Review
+                        let parsed = inboxStore.parsedItems
+                        if !parsed.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                SectionHeaderView(title: "READY TO REVIEW", count: parsed.count)
+                                    .padding(.horizontal, 16)
+
+                                ForEach(parsed) { item in
+                                    InboxItemView(
+                                        item: item,
+                                        onPromote: { Task { await promote(item) } },
+                                        onEdit: { editingItem = item },
+                                        onReject: { Task { await inboxStore.reject(id: item.id); HapticManager.warning() } }
+                                    )
+                                    .padding(.horizontal, 16)
+                                }
+                            }
+                        }
+
+                        // Empty state
+                        if inboxStore.items.filter({ $0.status != .promoted && $0.status != .rejected }).isEmpty && !inboxStore.isLoading {
+                            VStack(spacing: 12) {
+                                Text("Capture → Parse → Promote")
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(Color.textDim)
+                                    .tracking(1)
+                                Text("Drop thoughts here.\nAgents will structure them into tasks.")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.textDim)
+                                    .multilineTextAlignment(.center)
+                                    .lineSpacing(4)
+                            }
+                            .padding(.top, 60)
+                        }
+
+                        // Recent (promoted / rejected) — collapsed
+                        let recent = inboxStore.recentItems
+                        if !recent.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Button { withAnimation { recentExpanded.toggle() } } label: {
+                                    HStack {
+                                        SectionHeaderView(title: "RECENT", count: recent.count)
+                                        Image(systemName: recentExpanded ? "chevron.down" : "chevron.right")
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(Color.textDim)
+                                    }
+                                    .padding(.horizontal, 16)
+                                }
+                                .buttonStyle(.plain)
+
+                                if recentExpanded {
+                                    ForEach(recent.prefix(10)) { item in
+                                        InboxItemView(
+                                            item: item,
+                                            onPromote: {},
+                                            onEdit: {},
+                                            onReject: {}
+                                        )
+                                        .padding(.horizontal, 16)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.bottom, 32)
+                }
+                .refreshable { await inboxStore.fetchItems() }
+            }
+            .navigationTitle("Inbox")
+            .toolbarBackground(Color.bgPrimary, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showCapture = true
+                    } label: {
+                        Text("+ Capture")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.bgPrimary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.textPrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+            }
+            .sheet(isPresented: $showCapture) {
+                InboxCaptureView()
+            }
+            .sheet(item: $editingItem) { item in
+                InboxEditView(item: item) { title, nextAction, owner in
+                    Task {
+                        let domainId = item.domainId ?? domainStore.domains.first?.id
+                        guard let domainId else { return }
+                        if let _ = await inboxStore.promote(
+                            id: item.id,
+                            title: title,
+                            nextAction: nextAction,
+                            domainId: domainId,
+                            owner: owner
+                        ) {
+                            HapticManager.success()
+                        }
+                    }
+                }
+            }
+            .task { await inboxStore.fetchItems() }
+        }
+    }
+
+    private func promote(_ item: InboxItem) async {
+        // Use parsed fields if available, otherwise just raw text as title
+        let domainId = item.domainId ?? domainStore.domains.first?.id
+        guard let domainId else {
+            inboxStore.error = "No domain available. Create a domain first."
+            return
+        }
+
+        if let _ = await inboxStore.promote(
+            id: item.id,
+            title: item.parsed?.title,
+            nextAction: item.parsed?.nextAction,
+            domainId: domainId,
+            owner: item.parsed?.owner
+        ) {
+            HapticManager.success()
+        }
+    }
+}

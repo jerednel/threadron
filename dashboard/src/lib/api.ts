@@ -123,6 +123,29 @@ export interface Agent {
   created_at: string;
 }
 
+export interface ParsedInbox {
+  title?: string;
+  next_action?: string;
+  project?: string;
+  owner?: string;
+  blockers?: string[];
+  confidence?: number;
+}
+
+export interface InboxItem {
+  id: string;
+  raw_text: string;
+  source: string;
+  status: 'unprocessed' | 'processing' | 'parsed' | 'promoted' | 'rejected' | 'error';
+  domain_id?: string;
+  parsed?: ParsedInbox | null;
+  promoted_task_id?: string;
+  error?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const api = {
   // Auth
   register: (data: { email: string; password: string; name: string }) =>
@@ -204,4 +227,18 @@ export const api = {
     request('/auth/keys', { method: 'POST', body: JSON.stringify(data) }),
   listApiKeys: () => request('/auth/keys').then(r => r.keys ?? r),
   revokeApiKey: (id: string) => request(`/auth/keys/${id}`, { method: 'DELETE' }),
+
+  // Inbox
+  listInbox: (status?: string): Promise<InboxItem[]> => {
+    const qs = status ? `?status=${status}` : '';
+    return request(`/inbox${qs}`).then(r => r.items ?? r);
+  },
+  getInboxItem: (id: string): Promise<InboxItem> => request(`/inbox/${id}`),
+  captureInbox: (data: { raw_text: string; source?: string; domain_id?: string }): Promise<InboxItem> =>
+    request('/inbox', { method: 'POST', body: JSON.stringify(data) }),
+  updateInboxItem: (id: string, data: Partial<InboxItem>): Promise<InboxItem> =>
+    request(`/inbox/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  promoteInboxItem: (id: string, data: { title?: string; next_action?: string; domain_id?: string; project_id?: string; owner?: string }): Promise<{ inbox_item: InboxItem; task: Task }> =>
+    request(`/inbox/${id}/promote`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteInboxItem: (id: string) => request(`/inbox/${id}`, { method: 'DELETE' }),
 };

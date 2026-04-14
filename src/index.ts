@@ -16,6 +16,7 @@ import { contextRoutes } from "./routes/context.js";
 import { artifactRoutes, artifactLookupRoutes } from "./routes/artifacts.js";
 import { agentRoutes } from "./routes/agents.js";
 import { configRoutes } from "./routes/config.js";
+import { inboxRoutes } from "./routes/inbox.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 import { mcpRoutes } from "./routes/mcp.js";
 
@@ -58,6 +59,7 @@ protected_.route("/tasks", artifactRoutes(db));
 protected_.route("/artifacts", artifactLookupRoutes(db));
 protected_.route("/agents", agentRoutes(db));
 protected_.route("/config", configRoutes(db));
+protected_.route("/inbox", inboxRoutes(db));
 
 v1.route("/", protected_);
 app.route("/v1", v1);

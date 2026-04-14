@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { api, type Task, type Domain, type Project } from '../lib/api';
+import { api, type Task, type Domain, type Project, type InboxItem } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import NewTask from '../components/NewTask';
 import NewProject from '../components/NewProject';
 import Onboarding from '../components/Onboarding';
+import InboxPanel from '../components/InboxPanel';
+import InboxEditModal from '../components/InboxEditModal';
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -24,9 +26,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Inbox state
+  const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
+  const [inboxLoading, setInboxLoading] = useState(true);
+  const [editingInboxItem, setEditingInboxItem] = useState<InboxItem | null>(null);
+
+  // Mobile pane toggle: 'inbox' | 'tasks'
+  const [mobilePane, setMobilePane] = useState<'inbox' | 'tasks'>('tasks');
+
   // Load projects when domain changes
   useEffect(() => {
-    // Load projects for selected domain, or ALL projects when in "All" view
     if (selectedDomainId) {
       api.listProjects(selectedDomainId).then(setProjects).catch(() => setProjects([]));
     } else {
@@ -65,9 +74,97 @@ export default function Dashboard() {
     }
   }, [selectedDomainId, selectedProjectId, onboardingDismissed]);
 
+  const loadInbox = useCallback(async () => {
+    setInboxLoading(true);
+    try {
+      const items = await api.listInbox();
+      setInboxItems(Array.isArray(items) ? items : []);
+    } catch {
+      // Silently fail — inbox is supplementary
+    } finally {
+      setInboxLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    loadInbox();
+  }, [loadInbox]);
+
+  // Only poll inbox when items are actively being processed
+  const hasProcessingItems = inboxItems.some(i => i.status === 'processing');
+  useEffect(() => {
+    if (!hasProcessingItems) return;
+    const interval = setInterval(() => {
+      loadInbox();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [hasProcessingItems, loadInbox]);
+
+  // Track recently promoted task IDs for highlight animation
+  const [recentlyPromoted, setRecentlyPromoted] = useState<Set<string>>(new Set());
+
+  // Inbox handlers
+  const handlePromote = useCallback(async (id: string) => {
+    try {
+      const domainId = selectedDomainId || (domains.length > 0 ? domains[0].id : undefined);
+      const result = await api.promoteInboxItem(id, {
+        ...(domainId ? { domain_id: domainId } : {}),
+      });
+      // Highlight the newly created task
+      if (result?.task?.id) {
+        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+        setTimeout(() => {
+          setRecentlyPromoted(prev => {
+            const next = new Set(prev);
+            next.delete(result.task.id);
+            return next;
+          });
+        }, 2000);
+      }
+      // Refresh both inbox and tasks
+      await Promise.all([loadInbox(), loadData()]);
+    } catch {
+      // Error handling could be improved
+    }
+  }, [selectedDomainId, domains, loadInbox, loadData]);
+
+  const handleReject = useCallback(async (id: string) => {
+    try {
+      await api.updateInboxItem(id, { status: 'rejected' } as Partial<InboxItem>);
+      await loadInbox();
+    } catch {
+      // Silently fail
+    }
+  }, [loadInbox]);
+
+  const handleEdit = useCallback((id: string) => {
+    const item = inboxItems.find(i => i.id === id);
+    if (item) setEditingInboxItem(item);
+  }, [inboxItems]);
+
+  const handleEditPromote = useCallback(async (id: string, fields: { title: string; next_action?: string; owner?: string }) => {
+    try {
+      const domainId = selectedDomainId || (domains.length > 0 ? domains[0].id : undefined);
+      const result = await api.promoteInboxItem(id, {
+        title: fields.title,
+        ...(fields.next_action ? { next_action: fields.next_action } : {}),
+        ...(fields.owner ? { owner: fields.owner } : {}),
+        ...(domainId ? { domain_id: domainId } : {}),
+      });
+      if (result?.task?.id) {
+        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+        setTimeout(() => {
+          setRecentlyPromoted(prev => { const next = new Set(prev); next.delete(result.task.id); return next; });
+        }, 2000);
+      }
+      setEditingInboxItem(null);
+      await Promise.all([loadInbox(), loadData()]);
+    } catch {}
+  }, [selectedDomainId, domains, loadInbox, loadData]);
 
   // Collect unique tags from all fetched tasks
   const allTags = [...new Set(tasks.flatMap(t => t.tags || []))].sort();
@@ -109,339 +206,357 @@ export default function Dashboard() {
       }
       groups.get(key)!.tasks.push(task);
     }
-    // Sort: named projects first (alphabetically), then no-project
     const named = [...groups.entries()].filter(([k]) => k !== '__none__').sort(([, a], [, b]) => (a.label ?? '').localeCompare(b.label ?? ''));
     const none = [...groups.entries()].filter(([k]) => k === '__none__');
     return [...named, ...none].map(([, v]) => v);
   }, [inProgressTasks, blockedTasks]);
 
-  // Group pending tasks by project
-  const pendingByProject = useMemo(() => {
-    const groups = new Map<string, { label: string | null; tasks: typeof pendingTasks }>();
-    for (const task of pendingTasks) {
-      const key = task.project_id || '__none__';
-      if (!groups.has(key)) {
-        groups.set(key, {
-          label: task.project?.name ?? (task.project_id ? task.project_id : null),
-          tasks: [],
-        });
-      }
-      groups.get(key)!.tasks.push(task);
-    }
-    const named = [...groups.entries()].filter(([k]) => k !== '__none__').sort(([, a], [, b]) => (a.label ?? '').localeCompare(b.label ?? ''));
-    const none = [...groups.entries()].filter(([k]) => k === '__none__');
-    return [...named, ...none].map(([, v]) => v);
-  }, [pendingTasks]);
+  // Track collapsed sections (Ready, Done)
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
-  // Track collapsed project groups in queue
-  const [collapsedQueueGroups, setCollapsedQueueGroups] = useState<Set<string>>(new Set());
-  const toggleQueueGroup = (label: string) => {
-    setCollapsedQueueGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(label)) { next.delete(label); } else { next.add(label); }
-      return next;
-    });
-  };
+  // Count active inbox items for mobile tab badge
+  const activeInboxCount = inboxItems.filter(i =>
+    i.status === 'unprocessed' || i.status === 'processing' || i.status === 'parsed' || i.status === 'error'
+  ).length;
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top bar */}
-      <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex flex-col gap-2 shrink-0">
-        {/* Domain tabs row */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 overflow-x-auto min-w-0">
-            <button
-              onClick={() => setSelectedDomainId('')}
-              className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
-                selectedDomainId === ''
-                  ? 'bg-[#f0f0f0] text-[#0a0a0a] font-bold'
-                  : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
-              }`}
-            >
-              All {filteredTasks.length > 0 && `(${filteredTasks.length})`}
-            </button>
-            {domains.map(d => {
-              const domainCount = filteredTasks.filter(t => t.domain_id === d.id).length;
-              return (
+      {/* Mobile pane toggle — shown only on small screens */}
+      <div className="md:hidden border-b border-[#2a2a2a] flex shrink-0">
+        <button
+          onClick={() => setMobilePane('inbox')}
+          className={`flex-1 py-2.5 text-center text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer ${
+            mobilePane === 'inbox'
+              ? 'text-[#f0f0f0] border-b-2 border-[#f0f0f0]'
+              : 'text-[#4a4a4a] hover:text-[#8a8a8a]'
+          }`}
+        >
+          Inbox{activeInboxCount > 0 ? ` (${activeInboxCount})` : ''}
+        </button>
+        <button
+          onClick={() => setMobilePane('tasks')}
+          className={`flex-1 py-2.5 text-center text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer ${
+            mobilePane === 'tasks'
+              ? 'text-[#f0f0f0] border-b-2 border-[#f0f0f0]'
+              : 'text-[#4a4a4a] hover:text-[#8a8a8a]'
+          }`}
+        >
+          Tasks{filteredTasks.length > 0 ? ` (${filteredTasks.length})` : ''}
+        </button>
+      </div>
+
+      {/* Dual-pane container */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* LEFT PANE — Inbox */}
+        <div className={`w-full md:w-[42%] lg:w-[40%] border-r border-[#2a2a2a] bg-[#0a0a0a] flex-shrink-0 overflow-hidden ${
+          mobilePane === 'inbox' ? 'flex flex-col' : 'hidden md:flex md:flex-col'
+        }`}>
+          <InboxPanel
+            items={inboxItems}
+            loading={inboxLoading}
+            onPromote={handlePromote}
+            onReject={handleReject}
+            onEdit={handleEdit}
+            onRefresh={loadInbox}
+            defaultDomainId={selectedDomainId || undefined}
+          />
+        </div>
+
+        {/* Flow indicator — directional divider */}
+        <div className="hidden md:flex flex-col items-center justify-center w-0 relative">
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-[#1e1e1e] text-lg z-10">›</div>
+        </div>
+
+        {/* RIGHT PANE — Tasks */}
+        <div className={`flex-1 flex flex-col overflow-hidden ${
+          mobilePane === 'tasks' ? 'flex' : 'hidden md:flex'
+        }`}>
+          {/* Top bar */}
+          <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex flex-col gap-2 shrink-0">
+            {/* Domain tabs row */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1 overflow-x-auto min-w-0">
                 <button
-                  key={d.id}
-                  onClick={() => setSelectedDomainId(d.id)}
+                  onClick={() => setSelectedDomainId('')}
                   className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
-                    selectedDomainId === d.id
+                    selectedDomainId === ''
                       ? 'bg-[#f0f0f0] text-[#0a0a0a] font-bold'
                       : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
                   }`}
                 >
-                  {d.name}{domainCount > 0 ? ` (${domainCount})` : ''}
+                  All {filteredTasks.length > 0 && `(${filteredTasks.length})`}
                 </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => setShowNewTask(true)}
-            className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer shrink-0"
-          >
-            + New Task
-          </button>
-        </div>
-
-        {/* Project filter row — always shown when projects exist OR a domain is selected (so + button is accessible) */}
-        {(projects.length > 0 || selectedDomainId) && (
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {projects.length > 0 && (
-              <button
-                onClick={() => setSelectedProjectId('')}
-                className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
-                  selectedProjectId === ''
-                    ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
-                    : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
-                }`}
-              >
-                All Projects
-              </button>
-            )}
-            {projects.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setSelectedProjectId(p.id)}
-                className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
-                  selectedProjectId === p.id
-                    ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
-                    : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
-                }`}
-              >
-                {p.name}
-              </button>
-            ))}
-            {selectedDomainId && (
-              <button
-                onClick={() => setShowNewProject(true)}
-                className="px-2 py-1 rounded text-[11px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] border border-dashed border-[#2a2a2a] hover:border-[#4a4a4a] transition-colors cursor-pointer"
-                title="Create project"
-              >
-                +
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Tag filter row — only when there are tags in the current task set */}
-        {allTags.length > 0 && (
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {allTags.map(tag => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
-                  selectedTags.has(tag)
-                    ? 'bg-purple-900/30 text-purple-400 border-purple-800/40'
-                    : 'text-[#6a6a6a] border-[#2a2a2a] hover:text-[#9a9a9a] hover:border-[#3a3a3a]'
-                }`}
-              >
-                #{tag}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        {loading && (
-          <div className="flex items-center justify-center h-32">
-            <span className="font-mono text-[#8a8a8a] text-sm">loading...</span>
-          </div>
-        )}
-
-        {error && !loading && (
-          <div className="text-center py-10">
-            <p className="text-red-400 font-mono text-sm">{error}</p>
-            <button
-              onClick={loadData}
-              className="mt-3 text-xs font-mono text-[#8a8a8a] hover:text-[#f0f0f0] underline cursor-pointer"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="space-y-8">
-
-            {/* ── ACTIVE ZONE ── */}
-            <div>
-              <div className="flex items-center gap-6 mb-4">
-                {inProgressTasks.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-                    <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-                      ACTIVE · {inProgressTasks.length} {inProgressTasks.length === 1 ? 'item' : 'items'}
-                    </span>
-                  </div>
-                )}
-                {blockedTasks.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-                    <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-                      BLOCKED · {blockedTasks.length} {blockedTasks.length === 1 ? 'item' : 'items'}
-                    </span>
-                  </div>
-                )}
-                {activeTasks.length === 0 && (
-                  <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">
-                    ACTIVE · no items
-                  </span>
-                )}
+                {domains.map(d => {
+                  const domainCount = filteredTasks.filter(t => t.domain_id === d.id).length;
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => setSelectedDomainId(d.id)}
+                      className={`px-3 py-1.5 rounded text-xs font-mono transition-colors cursor-pointer whitespace-nowrap ${
+                        selectedDomainId === d.id
+                          ? 'bg-[#f0f0f0] text-[#0a0a0a] font-bold'
+                          : 'text-[#8a8a8a] hover:text-[#f0f0f0] hover:bg-[#1a1a1a]'
+                      }`}
+                    >
+                      {d.name}{domainCount > 0 ? ` (${domainCount})` : ''}
+                    </button>
+                  );
+                })}
               </div>
 
-              {activeTasks.length === 0 ? (
-                <div className="border border-dashed border-[#222] rounded-lg p-8 text-center">
-                  <span className="text-[#4a4a4a] text-xs font-mono">No active work right now</span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {activeByProject.map((group, gi) => (
-                    <div key={gi}>
-                      {group.label && (
-                        <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-2">
-                          {group.label}
-                        </div>
-                      )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        {group.tasks.map(task => (
-                          task.status === 'blocked' ? (
-                            <div key={task.id} className="relative">
-                              <div className="absolute inset-0 rounded-lg border border-red-900/50 pointer-events-none z-10" />
-                              <TaskCard
-                                task={task}
-                                onClick={() => setSelectedTaskId(task.id)}
-                              />
-                            </div>
-                          ) : (
-                            <TaskCard
-                              key={task.id}
-                              task={task}
-                              onClick={() => setSelectedTaskId(task.id)}
-                            />
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <button
+                onClick={() => setShowNewTask(true)}
+                className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer shrink-0"
+              >
+                + New Task
+              </button>
             </div>
 
-            {/* ── QUEUE ZONE ── */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-                  QUEUE · {pendingTasks.length} {pendingTasks.length === 1 ? 'item' : 'items'}
-                </span>
+            {/* Project filter row */}
+            {(projects.length > 0 || selectedDomainId) && (
+              <div className="flex items-center gap-1 overflow-x-auto">
+                {projects.length > 0 && (
+                  <button
+                    onClick={() => setSelectedProjectId('')}
+                    className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                      selectedProjectId === ''
+                        ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
+                        : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
+                    }`}
+                  >
+                    All Projects
+                  </button>
+                )}
+                {projects.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedProjectId(p.id)}
+                    className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                      selectedProjectId === p.id
+                        ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
+                        : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                ))}
+                {selectedDomainId && (
+                  <button
+                    onClick={() => setShowNewProject(true)}
+                    className="px-2 py-1 rounded text-[11px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] border border-dashed border-[#2a2a2a] hover:border-[#4a4a4a] transition-colors cursor-pointer"
+                    title="Create project"
+                  >
+                    +
+                  </button>
+                )}
               </div>
+            )}
 
-              {pendingTasks.length === 0 ? (
-                <div className="border border-dashed border-[#1a1a1a] rounded-lg p-4 text-center">
-                  <span className="text-[#3a3a3a] text-xs font-mono">Queue is empty</span>
+            {/* Tag filter — compact dropdown */}
+            {allTags.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">Tags</span>
+                <div className="flex items-center gap-1 overflow-x-auto">
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                        selectedTags.has(tag)
+                          ? 'bg-purple-900/30 text-purple-400 border-purple-800/40'
+                          : 'text-[#4a4a4a] border-transparent hover:text-[#8a8a8a]'
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                  {selectedTags.size > 0 && (
+                    <button
+                      onClick={() => setSelectedTags(new Set())}
+                      className="text-[9px] font-mono text-[#4a4a4a] hover:text-[#8a8a8a] cursor-pointer ml-1"
+                    >
+                      clear
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {pendingByProject.map((group, gi) => {
-                    const groupKey = group.label ?? '__none__';
-                    const isCollapsed = collapsedQueueGroups.has(groupKey);
-                    const headerLabel = group.label ?? 'No Project';
-                    return (
-                      <div key={gi} className="border border-[#1e1e1e] rounded-lg overflow-hidden">
-                        {/* Group header — always shown */}
-                        <button
-                          onClick={() => toggleQueueGroup(groupKey)}
-                          className="w-full flex items-center justify-between px-4 py-2 bg-[#111] hover:bg-[#161616] transition-colors cursor-pointer"
-                        >
-                          <span className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">
-                            {isCollapsed ? '▶' : '▼'} {headerLabel}
-                          </span>
-                          <span className="text-[10px] font-mono text-[#4a4a4a]">{group.tasks.length}</span>
-                        </button>
-                        {/* Group items */}
-                        {!isCollapsed && group.tasks.map((task) => (
+              </div>
+            )}
+          </div>
+
+          {/* Task content */}
+          <div className="flex-1 overflow-auto p-4 md:p-6">
+            {loading && (
+              <div className="flex items-center justify-center h-32">
+                <span className="font-mono text-[#8a8a8a] text-sm">loading...</span>
+              </div>
+            )}
+
+            {error && !loading && (
+              <div className="text-center py-10">
+                <p className="text-red-400 font-mono text-sm">{error}</p>
+                <button
+                  onClick={loadData}
+                  className="mt-3 text-xs font-mono text-[#8a8a8a] hover:text-[#f0f0f0] underline cursor-pointer"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div className="space-y-8">
+
+                {/* ACTIVE ZONE */}
+                <div>
+                  <div className="flex items-center gap-6 mb-4">
+                    {inProgressTasks.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                        <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
+                          ACTIVE &middot; {inProgressTasks.length} {inProgressTasks.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                    )}
+                    {blockedTasks.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                        <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
+                          BLOCKED &middot; {blockedTasks.length} {blockedTasks.length === 1 ? 'item' : 'items'}
+                        </span>
+                      </div>
+                    )}
+                    {activeTasks.length === 0 && (
+                      <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest">
+                        ACTIVE &middot; no items
+                      </span>
+                    )}
+                  </div>
+
+                  {activeTasks.length === 0 ? (
+                    <div className="border border-dashed border-[#222] rounded-lg p-8 text-center">
+                      <span className="text-[#4a4a4a] text-xs font-mono">No active work right now</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {activeByProject.map((group, gi) => (
+                        <div key={gi}>
+                          {group.label && (
+                            <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-2">
+                              {group.label}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                            {group.tasks.map(task => (
+                              task.status === 'blocked' ? (
+                                <div key={task.id} className="relative">
+                                  <div className="absolute inset-0 rounded-lg border border-red-900/50 pointer-events-none z-10" />
+                                  <TaskCard
+                                    task={task}
+                                    onClick={() => setSelectedTaskId(task.id)}
+                                    highlight={recentlyPromoted.has(task.id)}
+                                  />
+                                </div>
+                              ) : (
+                                <TaskCard
+                                  key={task.id}
+                                  task={task}
+                                  onClick={() => setSelectedTaskId(task.id)}
+                                  highlight={recentlyPromoted.has(task.id)}
+                                />
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* READY — pending tasks, collapsed by default, clearly separate from active */}
+                {pendingTasks.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setCollapsedSections(prev => {
+                        const next = new Set(prev);
+                        if (next.has('__pending__')) { next.delete('__pending__'); } else { next.add('__pending__'); }
+                        return next;
+                      })}
+                      className="flex items-center gap-2 mb-3 cursor-pointer group"
+                    >
+                      <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest group-hover:text-[#6a6a6a] transition-colors">
+                        {collapsedSections.has('__pending__') ? '\u25B6' : '\u25BC'} READY &middot; {pendingTasks.length} {pendingTasks.length === 1 ? 'task' : 'tasks'} awaiting execution
+                      </span>
+                    </button>
+
+                    {!collapsedSections.has('__pending__') && (
+                      <div className="border border-[#1a1a1a] rounded-lg overflow-hidden opacity-70">
+                        {pendingTasks.map((task, idx) => (
                           <button
                             key={task.id}
                             onClick={() => setSelectedTaskId(task.id)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer border-t border-[#1e1e1e] group/qitem`}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer ${
+                              idx < pendingTasks.length - 1 ? 'border-b border-[#1a1a1a]' : ''
+                            } group/qitem`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <span
                                 className="w-1.5 h-1.5 rounded-full shrink-0"
                                 style={{ backgroundColor: ({ low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444' } as Record<string,string>)[task.priority] || '#4a4a4a' }}
                               />
-                              <span className="text-sm text-[#d8d8d8] truncate">{task.title}</span>
-                              {task.current_state && (
-                                <span className="text-xs text-[#6a6a6a] truncate hidden md:block">
-                                  — {task.current_state}
-                                </span>
-                              )}
+                              <span className="text-sm text-[#c0c0c0] truncate">{task.title}</span>
                             </div>
-                            <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0 ml-3">
-                              {task.assignee || task.claimed_by || '—'}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(task.id);
-                              }}
-                              className="text-[9px] font-mono text-[#3a3a3a] hover:text-[#8a8a8a] transition-colors cursor-pointer shrink-0 ml-2 opacity-0 group-hover/qitem:opacity-100"
-                              title={task.id}
-                            >
-                              ID
-                            </button>
+                            {(task.assignee || task.claimed_by) && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-900/15 text-purple-400/60 border border-purple-800/20 shrink-0 ml-3">
+                                {task.claimed_by || task.assignee}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* ── COMPLETED ZONE ── */}
-            {completedTasks.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setCompletedCollapsed(v => !v)}
-                  className="flex items-center gap-2 mb-3 cursor-pointer group"
-                >
-                  <span className="text-[10px] font-mono text-[#3a3a3a] uppercase tracking-widest group-hover:text-[#5a5a5a] transition-colors">
-                    {completedCollapsed ? '▶' : '▼'} DONE · {completedTasks.length} {completedTasks.length === 1 ? 'item' : 'items'}
-                  </span>
-                </button>
-
-                {!completedCollapsed && (
-                  <div className="border border-[#181818] rounded-lg overflow-hidden opacity-50">
-                    {completedTasks.map((task, idx) => (
-                      <button
-                        key={task.id}
-                        onClick={() => setSelectedTaskId(task.id)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#111] transition-colors cursor-pointer ${
-                          idx < completedTasks.length - 1 ? 'border-b border-[#181818]' : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#2a2a2a] shrink-0" />
-                          <span className="text-sm text-[#6a6a6a] truncate line-through">{task.title}</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-[#3a3a3a] shrink-0 ml-3 uppercase">
-                          {task.status}
-                        </span>
-                      </button>
-                    ))}
+                    )}
                   </div>
                 )}
+
+                {/* COMPLETED ZONE */}
+                {completedTasks.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setCompletedCollapsed(v => !v)}
+                      className="flex items-center gap-2 mb-3 cursor-pointer group"
+                    >
+                      <span className="text-[10px] font-mono text-[#3a3a3a] uppercase tracking-widest group-hover:text-[#5a5a5a] transition-colors">
+                        {completedCollapsed ? '\u25B6' : '\u25BC'} DONE &middot; {completedTasks.length} {completedTasks.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </button>
+
+                    {!completedCollapsed && (
+                      <div className="border border-[#181818] rounded-lg overflow-hidden opacity-50">
+                        {completedTasks.map((task, idx) => (
+                          <button
+                            key={task.id}
+                            onClick={() => setSelectedTaskId(task.id)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#111] transition-colors cursor-pointer ${
+                              idx < completedTasks.length - 1 ? 'border-b border-[#181818]' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#2a2a2a] shrink-0" />
+                              <span className="text-sm text-[#6a6a6a] truncate line-through">{task.title}</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-[#3a3a3a] shrink-0 ml-3 uppercase">
+                              {task.status}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </div>
             )}
-
           </div>
-        )}
+        </div>
       </div>
 
       {/* Task Detail Panel */}
@@ -462,7 +577,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Onboarding overlay for first-time users */}
+      {/* Onboarding overlay */}
       {showOnboarding && (
         <Onboarding
           onDismiss={() => {
@@ -481,6 +596,13 @@ export default function Dashboard() {
             api.listProjects(domId).then(setProjects).catch(() => {});
           }}
           defaultDomainId={selectedDomainId || undefined}
+        />
+      )}
+      {editingInboxItem && (
+        <InboxEditModal
+          item={editingInboxItem}
+          onPromote={handleEditPromote}
+          onClose={() => setEditingInboxItem(null)}
         />
       )}
     </div>
