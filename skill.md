@@ -486,73 +486,192 @@ Captured → Interpreted → Proposed → Confirmed → Task
 - Ask clarifying questions only when ambiguity is high
 - Every proposed task must include a clear, actionable next step
 
-### Agent Inbox Processing
+### Agent Inbox Processing — Full Workflow
 
-To process inbox items, agents should:
+Agents that process inbox items should follow this complete workflow. Add inbox processing to your session start checklist alongside the existing task checklist.
 
-1. **List unprocessed items:**
-   ```
-   GET /v1/inbox?status=unprocessed
-   Authorization: Bearer $TFA_API_KEY
-   ```
+#### Step 1 — Check for unprocessed items
 
-2. **Parse and propose structure:**
-   ```
-   PATCH /v1/inbox/{item_id}
-   Authorization: Bearer $TFA_API_KEY
-   Content-Type: application/json
+At session start (alongside finding pending tasks), check the inbox:
 
-   {
-     "status": "parsed",
-     "parsed_title": "Fill out Rowan Park West forms",
-     "parsed_next_action": "Gather all required forms + Rowan DOB",
-     "parsed_project": "Personal / Rowan",
-     "parsed_owner": "user",
-     "parsed_confidence": "0.75"
-   }
-   ```
+```
+GET /v1/inbox?status=unprocessed
+Authorization: Bearer $TFA_API_KEY
+```
 
-3. **Handle errors gracefully:**
-   ```
-   PATCH /v1/inbox/{item_id}
-   {"status": "error", "error": "Could not determine intent from input"}
-   ```
+Response: `{"items": [...]}`
+
+Each item has `id`, `raw_text`, `source`, `status`, and optional `domain_id`.
+
+#### Step 2 — Mark as processing
+
+Before parsing, set status to `processing` so the UI shows a spinner:
+
+```
+PATCH /v1/inbox/{item_id}
+Authorization: Bearer $TFA_API_KEY
+Content-Type: application/json
+
+{"status": "processing"}
+```
+
+#### Step 3 — Interpret the input
+
+Analyze the `raw_text` and infer structure. You must always produce:
+- `parsed_title` (required) — clear, actionable task title
+- `parsed_next_action` (required) — concrete next step
+
+Optionally produce:
+- `parsed_project` — which project this belongs to
+- `parsed_owner` — who should own this
+- `parsed_blockers` — array of blocking items
+- `parsed_confidence` — decimal 0.0 to 1.0
+
+**Interpretation guidelines:**
+- Transform vague input into specific, actionable language
+- "fix dbt bug" → Title: "Fix mature_stores_weekly_count pipeline", Next: "Identify root cause of left-censoring logic"
+- "rowan forms" → Title: "Fill out Rowan Park West forms", Next: "Gather all required forms + Rowan DOB"
+- "buy milk" → Title: "Buy groceries", Next: "Buy organic whole milk, oat milk, dozen eggs"
+
+#### Step 4 — Submit parsed proposal
+
+```
+PATCH /v1/inbox/{item_id}
+Authorization: Bearer $TFA_API_KEY
+Content-Type: application/json
+
+{
+  "status": "parsed",
+  "parsed_title": "Fill out Rowan Park West forms",
+  "parsed_next_action": "Gather all required forms + Rowan DOB",
+  "parsed_project": "Personal / Rowan",
+  "parsed_owner": "user",
+  "parsed_confidence": "0.75"
+}
+```
+
+The UI will now show this as "Ready to Review" with Promote / Edit / Reject buttons.
+
+#### Step 5 — Handle errors
+
+If you cannot interpret the input, set error status:
+
+```
+PATCH /v1/inbox/{item_id}
+Authorization: Bearer $TFA_API_KEY
+Content-Type: application/json
+
+{"status": "error", "error": "Could not determine intent — input too ambiguous"}
+```
+
+The UI shows error items with the error message and still allows users to Edit or Promote manually.
+
+#### Step 6 — Auto-promote high confidence items (optional)
+
+If confidence >= 0.8 and the domain_id is set, you may auto-promote:
+
+```
+POST /v1/inbox/{item_id}/promote
+Authorization: Bearer $TFA_API_KEY
+Content-Type: application/json
+
+{
+  "title": "Fill out Rowan Park West forms",
+  "next_action": "Gather all required forms + Rowan DOB",
+  "domain_id": "d_abc123",
+  "owner": "user"
+}
+```
+
+Response: `{"inbox_item": {..., "status": "promoted"}, "task": {...}}`
+
+The promote endpoint accepts field overrides — any field you provide overrides the parsed value. Fields you omit fall back to the item's parsed values.
+
+**Promote endpoint fields:**
+
+| Field | Description |
+|-------|-------------|
+| `title` | Override parsed title (falls back to `parsed_title`, then `raw_text`) |
+| `next_action` | Override next action |
+| `domain_id` | Required — which domain to create the task in |
+| `project_id` | Optional — assign to a project |
+| `owner` | Override owner / assignee |
+| `blockers` | Override blockers array |
+
+#### What happens after user actions
+
+Users can take three actions on any inbox item (not just parsed ones):
+
+- **Promote** — calls `POST /v1/inbox/{id}/promote`, creates a task, marks item as `promoted`
+- **Edit** — opens a form pre-populated with parsed fields (or raw_text if unparsed), user modifies, then promotes with custom values
+- **Reject** — calls `PATCH /v1/inbox/{id}` with `{"status": "rejected"}`
+
+Agents do not need to handle these — the UI manages them. But agents should be aware that items may be promoted or rejected at any time.
 
 ### Confidence Model
 
 | Level | Threshold | Behavior |
 |-------|-----------|----------|
-| High | >= 0.8 | Safe to auto-promote; show lightweight "Added from Inbox" feedback |
+| High | >= 0.8 | Safe to auto-promote; UI shows "Added from Inbox" feedback |
 | Medium | 0.4 - 0.8 | Requires user confirmation (default behavior) |
-| Low | < 0.4 | Requires clarification or multiple options |
+| Low | < 0.4 | Requires clarification or present multiple options |
 
-### Example
+### Inbox State Machine
 
-Input: `"fix dbt bug"`
-
-Output:
 ```
-→ Fix issue in mature_stores_weekly_count pipeline
-→ Next: Identify root cause of left-censoring logic
-   Confidence: 75%
+unprocessed → processing → parsed → promoted
+                        ↘ error      ↘ rejected
 ```
+
+- `unprocessed` — raw capture, no agent has touched it
+- `processing` — agent is actively parsing (UI shows spinner)
+- `parsed` — structured proposal exists, awaiting user review
+- `promoted` — became a task (terminal state)
+- `rejected` — user discarded it (terminal state)
+- `error` — parsing failed (user can still Edit/Promote manually)
 
 ### Inbox API Reference
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/v1/inbox` | List inbox items (optional `?status=` filter) |
-| `GET` | `/v1/inbox/:id` | Get single inbox item |
-| `POST` | `/v1/inbox` | Capture new item (`raw_text` required) |
-| `PATCH` | `/v1/inbox/:id` | Update item (status, parsed fields, error) |
-| `POST` | `/v1/inbox/:id/promote` | Promote to task (accepts field overrides) |
+| `GET` | `/v1/inbox` | List items (optional `?status=` filter) |
+| `GET` | `/v1/inbox/:id` | Get single item |
+| `POST` | `/v1/inbox` | Capture new item (`raw_text` required, optional `source`, `domain_id`) |
+| `PATCH` | `/v1/inbox/:id` | Update item — status, parsed fields, error |
+| `POST` | `/v1/inbox/:id/promote` | Promote to task — accepts field overrides, creates task atomically |
 | `DELETE` | `/v1/inbox/:id` | Delete item |
+
+### Example Session
+
+```
+# 1. Check inbox at session start
+GET /v1/inbox?status=unprocessed
+→ [{"id": "inbox_abc", "raw_text": "fix dbt bug", "status": "unprocessed"}]
+
+# 2. Mark as processing
+PATCH /v1/inbox/inbox_abc
+{"status": "processing"}
+
+# 3. Interpret and propose
+PATCH /v1/inbox/inbox_abc
+{
+  "status": "parsed",
+  "parsed_title": "Fix mature_stores_weekly_count pipeline bug",
+  "parsed_next_action": "Identify root cause of left-censoring logic in dbt model",
+  "parsed_project": "Data Platform",
+  "parsed_confidence": "0.75"
+}
+
+# 4. User sees proposal in UI, clicks Promote (or Edit → Promote)
+# Task is created automatically. Agent can now find it via GET /v1/tasks.
+```
 
 ### Success Criteria
 
-- User recognizes intent in proposed task
+- User recognizes their intent in the proposed task
 - Minimal editing required before promotion
 - System feels helpful, not intrusive
+- All agent behavior is visible — no silent task creation
 
 ---
 
