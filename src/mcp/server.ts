@@ -101,7 +101,7 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
   server.tool(
     "threadron_update_state",
-    "Update work item. Use for execution state (current_state, next_action, blockers) and also for reassigning, changing project, tags, priority, or goal.",
+    "Update work item. Use for execution state (current_state, next_action, blockers) and also for reassigning, changing domain, project, tags, priority, or goal.",
     {
       task_id: z.string().describe("Work item ID"),
       status: z.string().optional().describe("pending, in_progress, blocked, completed"),
@@ -109,6 +109,7 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       next_action: z.string().optional().describe("What should happen next"),
       blockers: z.array(z.string()).optional().describe("Active blockers (set to [] to clear)"),
       confidence: z.string().optional().describe("low, medium, high"),
+      domain_id: z.string().optional().describe("Move to a different domain (pass domain ID)"),
       project_id: z.string().optional().describe("Move to a different project (pass project ID)"),
       assignee: z.string().optional().describe("Reassign to a different agent"),
       priority: z.string().optional().describe("low, medium, high, urgent"),
@@ -126,6 +127,7 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       if (updates.next_action !== undefined) body.next_action = updates.next_action;
       if (updates.blockers !== undefined) body.blockers = updates.blockers;
       if (updates.confidence !== undefined) body.confidence = updates.confidence;
+      if (updates.domain_id !== undefined) body.domain_id = updates.domain_id;
       if (updates.project_id !== undefined) body.project_id = updates.project_id;
       if (updates.assignee !== undefined) body.assignee = updates.assignee;
       if (updates.priority !== undefined) body.priority = updates.priority;
