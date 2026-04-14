@@ -59,7 +59,8 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
     }
   };
 
-  const sourceBadge = sourceBadgeColors[item.source] || 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]';
+  const _sourceBadge = sourceBadgeColors[item.source] || 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]';
+  void _sourceBadge; // retained for future use
 
   // Promoted / rejected — dimmed
   if (item.status === 'promoted') {
@@ -86,16 +87,42 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
     );
   }
 
+  // Action buttons — reusable across unprocessed, processing, error, parsed states
+  const actionButtons = (
+    <div className="flex items-center gap-2 mt-2">
+      <button
+        onClick={handlePromote}
+        disabled={promoting}
+        className="px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-green-900/30 text-green-400 border border-green-800/50 hover:bg-green-900/50 hover:border-green-700/60 transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {promoting ? '...' : 'Promote'}
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); onEdit(item.id); }}
+        className="px-2.5 py-1 rounded text-[10px] font-mono text-[#8a8a8a] bg-[#1a1a1a] border border-[#2a2a2a] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors cursor-pointer"
+      >
+        Edit
+      </button>
+      <button
+        onClick={handleReject}
+        disabled={rejecting}
+        className="px-2.5 py-1 rounded text-[10px] font-mono text-[#6a6a6a] border border-[#2a2a2a] hover:text-[#8a8a8a] hover:border-[#3a3a3a] transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {rejecting ? '...' : 'Reject'}
+      </button>
+      <span className="text-[10px] font-mono text-[#4a4a4a] ml-auto shrink-0">{timeAgo(item.created_at)}</span>
+    </div>
+  );
+
   // Error state
   if (item.status === 'error') {
     return (
-      <div className="px-3 py-3 border-b border-red-900/40 bg-red-950/20">
+      <div className={`px-3 py-3 border-b border-red-900/40 bg-red-950/20 transition-all duration-300 ${
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+      }`}>
         <p className="text-xs text-[#d8d8d8] font-mono mb-1">{item.raw_text}</p>
         <p className="text-[10px] text-red-400 font-mono">{item.error || 'Processing error'}</p>
-        <div className="flex items-center justify-between mt-1.5">
-          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${sourceBadge}`}>{item.source}</span>
-          <span className="text-[10px] font-mono text-[#4a4a4a]">{timeAgo(item.created_at)}</span>
-        </div>
+        {actionButtons}
       </div>
     );
   }
@@ -103,12 +130,15 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
   // Processing state
   if (item.status === 'processing') {
     return (
-      <div className="px-3 py-3 border-b border-[#1e1e1e]">
+      <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+      }`}>
         <p className="text-xs text-[#d8d8d8] mb-2">{item.raw_text}</p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-1">
           <span className="inline-block w-3 h-3 border-2 border-[#4a4a4a] border-t-[#f0f0f0] rounded-full animate-spin" />
           <span className="text-[10px] font-mono text-[#6a6a6a]">Processing...</span>
         </div>
+        {actionButtons}
       </div>
     );
   }
@@ -160,44 +190,18 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePromote}
-            disabled={promoting}
-            className="px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-green-900/30 text-green-400 border border-green-800/50 hover:bg-green-900/50 hover:border-green-700/60 transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {promoting ? '...' : 'Promote'}
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(item.id); }}
-            className="px-2.5 py-1 rounded text-[10px] font-mono text-[#8a8a8a] bg-[#1a1a1a] border border-[#2a2a2a] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors cursor-pointer"
-          >
-            Edit
-          </button>
-          <button
-            onClick={handleReject}
-            disabled={rejecting}
-            className="px-2.5 py-1 rounded text-[10px] font-mono text-[#6a6a6a] border border-[#2a2a2a] hover:text-[#8a8a8a] hover:border-[#3a3a3a] transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {rejecting ? '...' : 'Reject'}
-          </button>
-          <div className="flex items-center gap-2 ml-auto">
-            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${sourceBadge}`}>{item.source}</span>
-            <span className="text-[10px] font-mono text-[#4a4a4a]">{timeAgo(item.created_at)}</span>
-          </div>
-        </div>
+        {actionButtons}
       </div>
     );
   }
 
-  // Unprocessed — raw text, minimal
+  // Unprocessed — raw text + actions
   return (
-    <div className="px-3 py-3 border-b border-[#1e1e1e]">
-      <p className="text-xs text-[#d8d8d8] mb-1.5">{item.raw_text}</p>
-      <div className="flex items-center justify-between">
-        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${sourceBadge}`}>{item.source}</span>
-        <span className="text-[10px] font-mono text-[#4a4a4a]">{timeAgo(item.created_at)}</span>
-      </div>
+    <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
+      flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+    }`}>
+      <p className="text-xs text-[#d8d8d8] mb-1">{item.raw_text}</p>
+      {actionButtons}
     </div>
   );
 }
