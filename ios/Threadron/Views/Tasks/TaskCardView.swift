@@ -4,8 +4,20 @@ struct TaskCardView: View {
     let task: TaskItem
     @State private var showCopied = false
 
+    /// Strip agent prefixes like "agentname to do X:" from next action text
+    private var cleanNextAction: String? {
+        guard let raw = task.nextAction, !raw.isEmpty else { return nil }
+        // Pattern: "agent_name to verb: actual action" → keep "actual action"
+        if let colonRange = raw.range(of: " to ", options: .caseInsensitive),
+           let actionStart = raw[colonRange.upperBound...].firstIndex(of: ":") {
+            let after = raw[raw.index(after: actionStart)...].trimmingCharacters(in: .whitespaces)
+            if !after.isEmpty { return after }
+        }
+        return raw
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             // Title
             Text(task.title)
                 .font(.system(size: 15, weight: .semibold))
@@ -19,25 +31,19 @@ struct TaskCardView: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Color.priorityUrgent)
                     .lineLimit(2)
+                    .padding(.top, 1)
             }
 
-            // Next action
-            if let next = task.nextAction, !next.isEmpty {
+            // Next action — clean, no agent name mixed in
+            if let next = cleanNextAction {
                 Text("→ \(next)")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(task.status == .blocked ? Color.textMuted : Color.priorityLow)
+                    .foregroundStyle(task.status == .blocked ? Color.textDim : Color.priorityLow)
                     .lineLimit(2)
+                    .padding(.top, task.status == .blocked ? 0 : 1)
             }
 
-            // Current state — secondary
-            if task.status != .blocked, let state = task.currentState, !state.isEmpty {
-                Text(state)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.textMuted)
-                    .lineLimit(1)
-            }
-
-            // Footer — agent badge + time
+            // Footer — agent badge + time (compact)
             HStack(spacing: 6) {
                 if let agent = task.claimedBy ?? task.assignee, !agent.isEmpty {
                     Text(agent)
@@ -62,11 +68,12 @@ struct TaskCardView: View {
                 Spacer()
 
                 TimeAgoText(date: task.updatedAt ?? task.createdAt)
-                    .opacity(0.6)
+                    .opacity(0.5)
             }
-            .padding(.top, 2)
+            .padding(.top, 3)
         }
-        .padding(14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background(Color.bgSurface)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
