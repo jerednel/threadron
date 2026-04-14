@@ -21,7 +21,13 @@ final class InboxStore {
 
     var parsingMode: ParsingMode {
         get { ParsingMode.stored }
-        set { ParsingMode.stored = newValue }
+        set {
+            ParsingMode.stored = newValue
+            // When switching to a local mode, immediately process any unprocessed items
+            if newValue == .onDevice || newValue == .hybrid {
+                Task { await autoParseUnprocessed() }
+            }
+        }
     }
 
     func fetchItems() async {
