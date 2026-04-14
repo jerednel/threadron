@@ -51,18 +51,18 @@ struct InboxView: View {
 
                         // Empty state
                         if inboxStore.items.filter({ $0.status != .promoted && $0.status != .rejected }).isEmpty && !inboxStore.isLoading {
-                            VStack(spacing: 8) {
-                                Image(systemName: "tray")
-                                    .font(.system(size: 32))
+                            VStack(spacing: 12) {
+                                Text("Capture → Parse → Promote")
+                                    .font(.system(size: 11, design: .monospaced))
                                     .foregroundStyle(Color.textDim)
-                                Text("Inbox is empty")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(Color.textDim)
-                                Text("Capture raw thoughts — structure comes later")
+                                    .tracking(1)
+                                Text("Drop thoughts here.\nAgents will structure them into tasks.")
                                     .font(.system(size: 12))
                                     .foregroundStyle(Color.textDim)
+                                    .multilineTextAlignment(.center)
+                                    .lineSpacing(4)
                             }
-                            .padding(.top, 40)
+                            .padding(.top, 60)
                         }
 
                         // Recent (promoted / rejected) — collapsed

@@ -37,12 +37,15 @@ struct ThreadronApp: App {
 }
 
 struct MainTabView: View {
+    @Environment(InboxStore.self) private var inboxStore
+
     var body: some View {
         TabView {
             InboxView()
                 .tabItem {
                     Label("Inbox", systemImage: "tray.and.arrow.down")
                 }
+                .badge(inboxStore.activeCount > 0 ? inboxStore.activeCount : 0)
 
             TaskBoardView()
                 .tabItem {

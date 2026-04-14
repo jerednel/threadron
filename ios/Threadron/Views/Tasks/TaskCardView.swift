@@ -5,7 +5,8 @@ struct TaskCardView: View {
     @State private var showCopied = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
+            // Title + priority dot
             HStack(alignment: .top) {
                 Text(task.title)
                     .font(.system(size: 15, weight: .semibold))
@@ -18,41 +19,40 @@ struct TaskCardView: View {
                     .padding(.top, 5)
             }
 
-            if let state = task.currentState, !state.isEmpty {
-                Text(state)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.textMuted)
+            // Blocker dominates when blocked
+            if task.status == .blocked, let blocker = task.blockers.first, !blocker.isEmpty {
+                Text("⊘ \(blocker)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.priorityUrgent)
                     .lineLimit(2)
             }
 
+            // Next action
             if let next = task.nextAction, !next.isEmpty {
                 Text("→ \(next)")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(task.status == .blocked ? Color.textMuted : Color.priorityLow)
+                    .lineLimit(2)
+            }
+
+            // Current state — secondary
+            if task.status != .blocked, let state = task.currentState, !state.isEmpty {
+                Text(state)
                     .font(.system(size: 12))
-                    .foregroundStyle(Color.priorityLow)
+                    .foregroundStyle(Color.textMuted)
                     .lineLimit(1)
             }
 
-            if let blocker = task.blockers.first, !blocker.isEmpty {
-                Text("⊘ \(blocker)")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Color.priorityUrgent)
-                    .lineLimit(1)
-            }
-
-            HStack {
-                if let claimed = task.claimedBy, !claimed.isEmpty {
-                    Label(claimed, systemImage: "lock.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.textDim)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.bgPrimary)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.bgBorder, lineWidth: 1))
-                } else if let assignee = task.assignee, !assignee.isEmpty {
-                    Text(assignee)
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.textDim)
+            // Footer — agent badge + time
+            HStack(spacing: 6) {
+                if let agent = task.claimedBy ?? task.assignee, !agent.isEmpty {
+                    Text(agent)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(Color.ctxDecision)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color.ctxDecision.opacity(0.12))
+                        .clipShape(Capsule())
                 }
 
                 if task.guardrail == .approvalRequired {
@@ -69,6 +69,7 @@ struct TaskCardView: View {
 
                 TimeAgoText(date: task.updatedAt ?? task.createdAt)
             }
+            .padding(.top, 2)
         }
         .padding(14)
         .background(Color.bgSurface)

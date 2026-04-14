@@ -3,7 +3,8 @@ import SwiftUI
 struct TaskBoardView: View {
     @Environment(TaskStore.self) private var taskStore
     @Environment(DomainStore.self) private var domainStore
-    @State private var showNewTask = false
+    @Environment(InboxStore.self) private var inboxStore
+    @State private var showCapture = false
     @State private var selectedTaskId: String?
     @State private var doneExpanded = false
 
@@ -39,13 +40,40 @@ struct TaskBoardView: View {
                             .padding(.bottom, 4)
                         }
 
-                        // Tag filter pills
-                        if !taskStore.allTags.isEmpty {
-                            tagPills
-                                .padding(.bottom, 4)
-                        }
-
                         Divider().background(Color.bgBorder).padding(.bottom, 8)
+
+                        // Inbox awareness banner
+                        if inboxStore.activeCount > 0 {
+                            Button {
+                                // Switch to inbox tab
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "tray.and.arrow.down")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Color.ctxProposal)
+                                    Text("Inbox")
+                                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                        .foregroundStyle(Color.ctxProposal)
+                                    Text("·")
+                                        .foregroundStyle(Color.textDim)
+                                    Text("\(inboxStore.activeCount) items")
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .foregroundStyle(Color.textMuted)
+                                    Spacer()
+                                    Text("→")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(Color.textDim)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color.ctxProposal.opacity(0.06))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.ctxProposal.opacity(0.15), lineWidth: 1))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                        }
 
                         // Active section
                         activeSection
@@ -65,9 +93,9 @@ struct TaskBoardView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showNewTask = true
+                        showCapture = true
                     } label: {
-                        Text("+ New Task")
+                        Label("Capture", systemImage: "tray.and.arrow.down.fill")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(Color.bgPrimary)
                             .padding(.horizontal, 14)
@@ -79,42 +107,14 @@ struct TaskBoardView: View {
             }
             .toolbarBackground(Color.bgPrimary, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .sheet(isPresented: $showNewTask) {
-                NewTaskView()
+            .sheet(isPresented: $showCapture) {
+                InboxCaptureView()
             }
             .navigationDestination(item: $selectedTaskId) { taskId in
                 TaskDetailView(taskId: taskId)
             }
             .task { await refresh() }
-        }
-    }
-
-    // MARK: - Tag pills (multi-select)
-    private var tagPills: some View {
-        @Bindable var store = taskStore
-        return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(taskStore.allTags, id: \.self) { tag in
-                    Button {
-                        if store.selectedTags.contains(tag) {
-                            store.selectedTags.remove(tag)
-                        } else {
-                            store.selectedTags.insert(tag)
-                        }
-                    } label: {
-                        Text("#\(tag)")
-                            .font(.system(size: 12))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 5)
-                            .foregroundStyle(store.selectedTags.contains(tag) ? Color.bgPrimary : Color.textMuted)
-                            .background(store.selectedTags.contains(tag) ? Color.textPrimary : Color.bgSurface)
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Color.bgBorder, lineWidth: store.selectedTags.contains(tag) ? 0 : 1))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 16)
+            .task { await inboxStore.fetchItems() }
         }
     }
 
@@ -159,11 +159,11 @@ struct TaskBoardView: View {
         let groups = taskStore.grouped(queue, projects: domainStore.projects)
 
         return VStack(alignment: .leading, spacing: 8) {
-            SectionHeaderView(title: "QUEUE", count: queue.count)
+            SectionHeaderView(title: "READY", count: queue.count)
                 .padding(.horizontal, 16)
 
             if queue.isEmpty {
-                emptyState("Queue is empty")
+                emptyState("No pending tasks")
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(groups.enumerated()), id: \.offset) { _, group in
