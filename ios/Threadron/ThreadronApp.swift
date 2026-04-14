@@ -39,14 +39,14 @@ struct ThreadronApp: App {
 struct MainTabView: View {
     var body: some View {
         TabView {
-            TaskBoardView()
-                .tabItem {
-                    Label("Tasks", systemImage: "checklist")
-                }
-
             InboxView()
                 .tabItem {
                     Label("Inbox", systemImage: "tray.and.arrow.down")
+                }
+
+            TaskBoardView()
+                .tabItem {
+                    Label("Tasks", systemImage: "checklist")
                 }
 
             AgentListView()
