@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { projects, domains } from "../db/schema.js";
+import { projects, domains, tasks } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { eq, and } from "drizzle-orm";
 
@@ -98,6 +98,7 @@ export function projectRoutes(db: DrizzleDb) {
     const body = await c.req.json<{
       name?: string;
       description?: string;
+      domain_id?: string;
     }>();
 
     const existing = await db
@@ -116,6 +117,20 @@ export function projectRoutes(db: DrizzleDb) {
     };
     if (body.name !== undefined) updates.name = body.name;
     if (body.description !== undefined) updates.description = body.description;
+
+    // Move project to a different domain — moves all associated tasks too
+    if (body.domain_id !== undefined && body.domain_id !== existing[0].project.domainId) {
+      const owned = await verifyDomainOwnership(db, body.domain_id, userId);
+      if (!owned) return c.json({ error: "Target domain not found" }, 404);
+
+      updates.domainId = body.domain_id;
+
+      // Move all tasks in this project to the new domain
+      await db
+        .update(tasks)
+        .set({ domainId: body.domain_id, updatedAt: new Date() })
+        .where(eq(tasks.projectId, id));
+    }
 
     const [row] = await db
       .update(projects)

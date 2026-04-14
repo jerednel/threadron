@@ -262,21 +262,16 @@ export function taskRoutes(db: DrizzleDb) {
     };
     if (body.title !== undefined) updates.title = body.title;
     if (body.status !== undefined) updates.status = body.status;
-    if (body.domain_id !== undefined) {
+    if (body.domain_id !== undefined && body.domain_id !== oldRow.domainId) {
+      // Reject domain move if task belongs to a project — move the project instead
+      if (oldRow.projectId) {
+        return c.json({ error: "Cannot move a task that belongs to a project. Move the project instead (PATCH /projects/:id with domain_id)." }, 400);
+      }
       // Verify the target domain belongs to this user
       const [targetDomain] = await db.select().from(domains)
         .where(and(eq(domains.id, body.domain_id), eq(domains.userId, userId))).limit(1);
       if (!targetDomain) return c.json({ error: "Target domain not found" }, 404);
       updates.domainId = body.domain_id;
-      // If moving domains and no new project_id specified, clear the project
-      // (a task cannot belong to a project in a different domain)
-      if (body.project_id === undefined && oldRow.projectId) {
-        const [oldProject] = await db.select().from(projects)
-          .where(eq(projects.id, oldRow.projectId)).limit(1);
-        if (oldProject && oldProject.domainId !== body.domain_id) {
-          updates.projectId = null;
-        }
-      }
     }
     if (body.project_id !== undefined) {
       // Verify the project belongs to the task's domain (use new domain if moving, else current)
