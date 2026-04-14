@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Threadron</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    .privacy-content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 80px 32px 120px;
+    }
+    .privacy-content h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .privacy-content .updated {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 48px;
+      font-family: var(--mono);
+    }
+    .privacy-content h2 {
+      font-size: 1.2rem;
+      margin-top: 40px;
+      margin-bottom: 12px;
+      color: var(--white);
+    }
+    .privacy-content p, .privacy-content li {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+    .privacy-content ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    .privacy-content li {
+      margin-bottom: 6px;
+    }
+    .privacy-content a {
+      color: var(--green);
+    }
+  </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
+  <ul class="links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="system.html">The System</a></li>
+    <li><a href="use-cases.html">Use Cases</a></li>
+    <li><a href="get-started.html">Get Started</a></li>
+    <li><a href="docs.html">Docs</a></li>
+    <li><a href="open-source.html">Open Source</a></li>
+    <li><a href="/dashboard/">Dashboard</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+  <div class="privacy-content">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: April 13, 2026</p>
+
+    <h2>1. What We Collect</h2>
+    <p>Threadron collects the minimum data necessary to operate the service:</p>
+    <ul>
+      <li><strong>Account information</strong> — email address, name, and a hashed password when you register.</li>
+      <li><strong>Task and inbox data</strong> — tasks, inbox items, context entries, artifacts, and project/domain metadata that you create through the app or API.</li>
+      <li><strong>Agent activity</strong> — agent names, types, capabilities, and last-seen timestamps for agents you register.</li>
+      <li><strong>API keys</strong> — stored securely. Full key values are shown only once at creation time.</li>
+    </ul>
+
+    <h2>2. How We Use Your Data</h2>
+    <p>Your data is used exclusively to provide Threadron's functionality:</p>
+    <ul>
+      <li>Authenticating your account</li>
+      <li>Storing and serving your tasks, inbox items, and execution state</li>
+      <li>Enabling agent coordination through the API and MCP server</li>
+    </ul>
+    <p>We do not use your data for advertising, analytics profiling, or training AI models.</p>
+
+    <h2>3. Data Storage</h2>
+    <p>Your data is stored in a PostgreSQL database hosted on Railway. Passwords are hashed with bcrypt. API communication is encrypted via HTTPS/TLS.</p>
+
+    <h2>4. Third-Party Sharing</h2>
+    <p>We do not sell, rent, or share your personal data with third parties. Your task data is only accessible through your authenticated API keys and JWT tokens.</p>
+
+    <h2>5. Data Retention</h2>
+    <p>Your data is retained as long as your account exists. You may delete your account and all associated data by contacting us.</p>
+
+    <h2>6. iOS App</h2>
+    <p>The Threadron iOS app connects to the same backend API. It stores your authentication token in the iOS Keychain with optional biometric (Face ID / Touch ID) protection. No data is stored locally beyond the authentication token.</p>
+    <p>The app requests Face ID permission solely for convenient sign-in. No biometric data is transmitted to our servers.</p>
+
+    <h2>7. Cookies</h2>
+    <p>The Threadron web dashboard stores a JWT authentication token in localStorage. We do not use tracking cookies or third-party analytics.</p>
+
+    <h2>8. Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+      <li>Access all data associated with your account via the API</li>
+      <li>Delete your domains, tasks, inbox items, and projects at any time</li>
+      <li>Request complete account deletion</li>
+      <li>Revoke API keys to cut off agent access</li>
+    </ul>
+
+    <h2>9. Security</h2>
+    <p>We implement industry-standard security practices including password hashing (bcrypt), encrypted transport (TLS), and scoped API key authentication. If you discover a security vulnerability, please report it to <a href="https://github.com/jerednel/threadron">our GitHub repository</a>.</p>
+
+    <h2>10. Changes to This Policy</h2>
+    <p>We may update this policy as the service evolves. Material changes will be noted with an updated date at the top of this page.</p>
+
+    <h2>11. Contact</h2>
+    <p>For privacy-related questions or data requests, open an issue on <a href="https://github.com/jerednel/threadron">GitHub</a> or reach out through the repository.</p>
+  </div>
+</div>
+
+</body>
+</html>
