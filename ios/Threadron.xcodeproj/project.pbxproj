@@ -11,6 +11,7 @@
 		0297B29B641423829BD56E81 /* FilterPillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 349DA33656A526DCF9C80964 /* FilterPillsView.swift */; };
 		08B301AE5647725EA0966D32 /* Color+Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7D8041EA1737151B61E72 /* Color+Theme.swift */; };
 		0B4A3F6BB0C1644510CD7191 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D966B39A6A0598D781A4CC87 /* HapticManager.swift */; };
+		0D5C2FFBA5F0C80ABDD92536 /* InboxEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788E2F8B79BD9D65A89C04E4 /* InboxEditView.swift */; };
 		125D2D09B5881D33ECEF9053 /* TaskBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F488823DAB0C3ADC02E9043A /* TaskBoardView.swift */; };
 		1D18ADDE9FC1C2C5954D2EC0 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D625BAC35BF9DC367FBDD2AA /* User.swift */; };
 		28EB08F196061DD0715E5ADA /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE5056BD7651D4F49A99315 /* Color+Hex.swift */; };
@@ -71,6 +72,7 @@
 		5CF14E487CE5F165AD590143 /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		5E91AB966FDF36AB4B263A2C /* NewTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTaskView.swift; sourceTree = "<group>"; };
 		603B5EB99DE945B5C00E8B87 /* ThreadronApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadronApp.swift; sourceTree = "<group>"; };
+		788E2F8B79BD9D65A89C04E4 /* InboxEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxEditView.swift; sourceTree = "<group>"; };
 		7B3A227AD768C40A2048C50E /* InboxCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboxCaptureView.swift; sourceTree = "<group>"; };
 		856AFA4AE931A329E7734926 /* NewDomainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDomainView.swift; sourceTree = "<group>"; };
 		8BCAADA4A087499F6384BE00 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -169,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				7B3A227AD768C40A2048C50E /* InboxCaptureView.swift */,
+				788E2F8B79BD9D65A89C04E4 /* InboxEditView.swift */,
 				FE643085835E780AB2221654 /* InboxItemView.swift */,
 				1C332B7DAE4720E5B69A1712 /* InboxView.swift */,
 			);
@@ -358,6 +361,7 @@
 				0297B29B641423829BD56E81 /* FilterPillsView.swift in Sources */,
 				0B4A3F6BB0C1644510CD7191 /* HapticManager.swift in Sources */,
 				F99DCE0BB24628B77D8E515A /* InboxCaptureView.swift in Sources */,
+				0D5C2FFBA5F0C80ABDD92536 /* InboxEditView.swift in Sources */,
 				A6E15AA83DA5298E7AEA4919 /* InboxItem.swift in Sources */,
 				61EE027004F4198BB545B62D /* InboxItemView.swift in Sources */,
 				80BB0A6C45C793A53DF2F883 /* InboxStore.swift in Sources */,

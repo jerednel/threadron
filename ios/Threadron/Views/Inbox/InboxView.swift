@@ -5,6 +5,7 @@ struct InboxView: View {
     @Environment(DomainStore.self) private var domainStore
     @State private var showCapture = false
     @State private var recentExpanded = false
+    @State private var editingItem: InboxItem?
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,7 @@ struct InboxView: View {
                                     InboxItemView(
                                         item: item,
                                         onPromote: { Task { await promote(item) } },
+                                        onEdit: { editingItem = item },
                                         onReject: { Task { await inboxStore.reject(id: item.id); HapticManager.warning() } }
                                     )
                                     .padding(.horizontal, 16)
@@ -42,6 +44,7 @@ struct InboxView: View {
                                     InboxItemView(
                                         item: item,
                                         onPromote: { Task { await promote(item) } },
+                                        onEdit: { editingItem = item },
                                         onReject: { Task { await inboxStore.reject(id: item.id); HapticManager.warning() } }
                                     )
                                     .padding(.horizontal, 16)
@@ -85,6 +88,7 @@ struct InboxView: View {
                                         InboxItemView(
                                             item: item,
                                             onPromote: {},
+                                            onEdit: {},
                                             onReject: {}
                                         )
                                         .padding(.horizontal, 16)
@@ -118,6 +122,23 @@ struct InboxView: View {
             }
             .sheet(isPresented: $showCapture) {
                 InboxCaptureView()
+            }
+            .sheet(item: $editingItem) { item in
+                InboxEditView(item: item) { title, nextAction, owner in
+                    Task {
+                        let domainId = item.domainId ?? domainStore.domains.first?.id
+                        guard let domainId else { return }
+                        if let _ = await inboxStore.promote(
+                            id: item.id,
+                            title: title,
+                            nextAction: nextAction,
+                            domainId: domainId,
+                            owner: owner
+                        ) {
+                            HapticManager.success()
+                        }
+                    }
+                }
             }
             .task { await inboxStore.fetchItems() }
         }

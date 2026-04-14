@@ -2,7 +2,9 @@ import SwiftUI
 
 struct TaskCardView: View {
     let task: TaskItem
+    var fromInbox: Bool = false
     @State private var showCopied = false
+    @State private var showFromInbox = false
 
     /// Strip agent prefixes like "agentname to do X:" from next action text
     private var cleanNextAction: String? {
@@ -18,6 +20,13 @@ struct TaskCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            if showFromInbox {
+                Text("Added from Inbox")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(Color.ctxProposal)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
             // Title
             Text(task.title)
                 .font(.system(size: 15, weight: .semibold))
@@ -100,5 +109,14 @@ struct TaskCardView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: showCopied)
+        .animation(.easeInOut(duration: 0.3), value: showFromInbox)
+        .onAppear {
+            if fromInbox {
+                showFromInbox = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    withAnimation { showFromInbox = false }
+                }
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 struct InboxItemView: View {
     let item: InboxItem
     let onPromote: () -> Void
+    let onEdit: () -> Void
     let onReject: () -> Void
 
     var body: some View {
@@ -70,7 +71,7 @@ struct InboxItemView: View {
                     }
 
                     // Action buttons
-                    HStack(spacing: 12) {
+                    HStack(spacing: 10) {
                         Button(action: onPromote) {
                             Text("Promote")
                                 .font(.system(size: 12, weight: .semibold))
@@ -81,15 +82,23 @@ struct InboxItemView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
 
-                        Button(action: onReject) {
-                            Text("Reject")
+                        Button(action: onEdit) {
+                            Text("Edit")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.textMuted)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(Color.bgPrimary)
+                                .background(Color.bgSurface)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.bgBorder, lineWidth: 1))
+                        }
+
+                        Button(action: onReject) {
+                            Text("Reject")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(Color.textDim)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
                         }
 
                         Spacer()
