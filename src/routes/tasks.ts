@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { tasks, contextEntries, domains, projects } from "../db/schema.js";
+import { tasks, contextEntries, domains, projects, config } from "../db/schema.js";
+import { formatTaskPush, sendMessage } from "../lib/telegram.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
 import { eq, and, or, isNull, lte, ilike, asc, sql } from "drizzle-orm";
@@ -377,6 +378,58 @@ export function taskRoutes(db: DrizzleDb) {
 
     await db.delete(tasks).where(eq(tasks.id, id));
     return c.json({ deleted: true });
+  });
+
+  // POST /:id/push-to-agent — push task to agent via Telegram
+  router.post("/:id/push-to-agent", async (c) => {
+    const id = c.req.param("id");
+    const userId: string = c.get("userId") as string;
+    const body = await c.req.json<{ agent_name?: string }>().catch(() => ({}));
+
+    // Get task
+    const taskRows = await db
+      .select({ task: tasks })
+      .from(tasks)
+      .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+      .where(eq(tasks.id, id))
+      .limit(1);
+
+    if (taskRows.length === 0) {
+      return c.json({ error: "Not found" }, 404);
+    }
+
+    const task = taskRows[0].task;
+
+    // Require goal or next_action
+    if (!task.goal && !task.nextAction) {
+      return c.json({ error: "Add a goal or next action to this task before pushing" }, 400);
+    }
+
+    // Get telegram config
+    const [tokenRow] = await db.select().from(config)
+      .where(and(eq(config.userId, userId), eq(config.key, "telegram_bot_token"))).limit(1);
+    const [chatIdRow] = await db.select().from(config)
+      .where(and(eq(config.userId, userId), eq(config.key, "telegram_chat_id"))).limit(1);
+
+    const token = tokenRow?.value as string | undefined;
+    const chatId = chatIdRow?.value as string | undefined;
+
+    if (!token || !chatId) {
+      return c.json({ error: "Connect Telegram in Settings first" }, 400);
+    }
+
+    // Format and send
+    const message = formatTaskPush(toApi(task), body.agent_name);
+    const result = await sendMessage(token, chatId, message);
+
+    if (!result.ok) {
+      return c.json({ error: `Failed to deliver: ${result.description}` }, 500);
+    }
+
+    // Log the push as a context entry
+    await recordEvent(db, id, "action_taken", `Task pushed to agent via Telegram${body.agent_name ? ` (${body.agent_name})` : ""}`, "system", "system");
+
+    return c.json({ pushed: true });
   });
 
   // POST /:id/claim — Claim a work item
