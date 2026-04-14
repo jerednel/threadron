@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { tasks, contextEntries, domains } from "../db/schema.js";
+import { tasks, contextEntries, domains, projects } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
 import { eq, and, or, isNull, lte, ilike, asc, sql } from "drizzle-orm";
@@ -85,6 +85,15 @@ export function taskRoutes(db: DrizzleDb) {
     const owned = await verifyDomainOwnership(db, body.domain_id, userId);
     if (!owned) {
       return c.json({ error: "Domain not found" }, 404);
+    }
+
+    // Verify project belongs to the same domain (if provided)
+    if (body.project_id) {
+      const [proj] = await db.select().from(projects)
+        .where(and(eq(projects.id, body.project_id), eq(projects.domainId, body.domain_id))).limit(1);
+      if (!proj) {
+        return c.json({ error: "Project does not belong to this domain" }, 400);
+      }
     }
 
     const id = genId("t");
@@ -259,8 +268,26 @@ export function taskRoutes(db: DrizzleDb) {
         .where(and(eq(domains.id, body.domain_id), eq(domains.userId, userId))).limit(1);
       if (!targetDomain) return c.json({ error: "Target domain not found" }, 404);
       updates.domainId = body.domain_id;
+      // If moving domains and no new project_id specified, clear the project
+      // (a task cannot belong to a project in a different domain)
+      if (body.project_id === undefined && oldRow.projectId) {
+        const [oldProject] = await db.select().from(projects)
+          .where(eq(projects.id, oldRow.projectId)).limit(1);
+        if (oldProject && oldProject.domainId !== body.domain_id) {
+          updates.projectId = null;
+        }
+      }
     }
-    if (body.project_id !== undefined) updates.projectId = body.project_id;
+    if (body.project_id !== undefined) {
+      // Verify the project belongs to the task's domain (use new domain if moving, else current)
+      if (body.project_id !== null) {
+        const taskDomainId = updates.domainId ?? oldRow.domainId;
+        const [proj] = await db.select().from(projects)
+          .where(and(eq(projects.id, body.project_id), eq(projects.domainId, taskDomainId))).limit(1);
+        if (!proj) return c.json({ error: "Project does not belong to this domain" }, 400);
+      }
+      updates.projectId = body.project_id;
+    }
     if (body.assignee !== undefined) updates.assignee = body.assignee;
     if (body.priority !== undefined) updates.priority = body.priority;
     if (body.guardrail !== undefined) updates.guardrail = body.guardrail;
