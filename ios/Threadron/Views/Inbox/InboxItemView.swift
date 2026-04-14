@@ -134,11 +134,18 @@ struct InboxItemView: View {
                 .font(.system(size: 12))
             }
 
-            // Source + time
+            // Source + parsing mode + time
             HStack {
                 Text(item.source)
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(Color.textDim)
+                if item.status == .parsed {
+                    Text("·")
+                        .foregroundStyle(Color.textDim)
+                    Text(ParsingMode.stored == .onDevice || ParsingMode.stored == .hybrid ? "parsed locally" : "parsed by agent")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(Color.textDim)
+                }
                 Spacer()
                 TimeAgoText(date: item.createdAt)
             }

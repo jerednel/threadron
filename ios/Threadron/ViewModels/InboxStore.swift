@@ -19,6 +19,11 @@ final class InboxStore {
         items.filter { $0.status != .promoted && $0.status != .rejected }.count
     }
 
+    var parsingMode: ParsingMode {
+        get { ParsingMode.stored }
+        set { ParsingMode.stored = newValue }
+    }
+
     func fetchItems() async {
         isLoading = true
         do {
@@ -28,16 +33,54 @@ final class InboxStore {
             self.error = error.localizedDescription
         }
         isLoading = false
+        // Auto-parse unprocessed items if local/hybrid mode
+        await autoParseUnprocessed()
     }
 
     func capture(rawText: String, domainId: String? = nil) async -> InboxItem? {
         do {
             let item: InboxItem = try await api.request(.captureInbox(rawText: rawText, domainId: domainId))
             items.insert(item, at: 0)
-            return item
+
+            // Auto-parse locally if mode is on-device or hybrid
+            if parsingMode == .onDevice || parsingMode == .hybrid {
+                await parseLocally(id: item.id)
+            }
+
+            return items.first(where: { $0.id == item.id }) ?? item
         } catch {
             self.error = error.localizedDescription
             return nil
+        }
+    }
+
+    /// Process an unprocessed item locally
+    func parseLocally(id: String) async {
+        guard let item = items.first(where: { $0.id == id }) else { return }
+
+        // Mark as processing
+        _ = await updateItem(id: id, fields: ["status": "processing"])
+
+        // Run local parser
+        let result = LocalParser.parse(item.rawText)
+
+        // Update with parsed results
+        var fields: [String: Any] = [
+            "status": "parsed",
+            "parsed_title": result.title,
+            "parsed_confidence": String(format: "%.2f", result.confidence),
+        ]
+        if let next = result.nextAction { fields["parsed_next_action"] = next }
+        if let project = result.project { fields["parsed_project"] = project }
+
+        _ = await updateItem(id: id, fields: fields)
+    }
+
+    /// Auto-parse any unprocessed items based on parsing mode
+    func autoParseUnprocessed() async {
+        guard parsingMode == .onDevice || parsingMode == .hybrid else { return }
+        for item in unprocessedItems {
+            await parseLocally(id: item.id)
         }
     }
 

@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(AuthManager.self) private var auth
     @Environment(DomainStore.self) private var domainStore
     @Environment(SettingsStore.self) private var settingsStore
+    @Environment(InboxStore.self) private var inboxStore
     @State private var showNewDomain = false
     @State private var showNewKey = false
     @State private var showLogoutConfirm = false
@@ -40,6 +41,34 @@ struct SettingsView: View {
                         .listRowBackground(Color.bgSurface)
                     } header: {
                         Text("ACCOUNT")
+                            .font(.system(size: 10, design: .monospaced))
+                            .tracking(1.5)
+                    }
+
+                    // Parsing
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Picker("Mode", selection: Binding(
+                                get: { inboxStore.parsingMode },
+                                set: { inboxStore.parsingMode = $0 }
+                            )) {
+                                ForEach(ParsingMode.allCases) { mode in
+                                    VStack(alignment: .leading) {
+                                        Text(mode.label)
+                                    }
+                                    .tag(mode)
+                                }
+                            }
+                            .foregroundStyle(Color.textPrimary)
+                            .listRowBackground(Color.bgSurface)
+
+                            Text(inboxStore.parsingMode.description)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Color.textDim)
+                        }
+                        .listRowBackground(Color.bgSurface)
+                    } header: {
+                        Text("INBOX PARSING")
                             .font(.system(size: 10, design: .monospaced))
                             .tracking(1.5)
                     }

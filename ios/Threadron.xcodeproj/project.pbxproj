@@ -14,6 +14,7 @@
 		0D5C2FFBA5F0C80ABDD92536 /* InboxEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788E2F8B79BD9D65A89C04E4 /* InboxEditView.swift */; };
 		125D2D09B5881D33ECEF9053 /* TaskBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F488823DAB0C3ADC02E9043A /* TaskBoardView.swift */; };
 		1D18ADDE9FC1C2C5954D2EC0 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D625BAC35BF9DC367FBDD2AA /* User.swift */; };
+		283C59A2557BAA9454F912E9 /* ParsingMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04578D4CCFDFF1B89892A13D /* ParsingMode.swift */; };
 		28EB08F196061DD0715E5ADA /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE5056BD7651D4F49A99315 /* Color+Hex.swift */; };
 		2BC6B3581015AF9A8ADE352A /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB2260495835C5BD70BABF80 /* SettingsStore.swift */; };
 		2E0C5A27DA73F093303D15AE /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BCAADA4A087499F6384BE00 /* APIClient.swift */; };
@@ -33,6 +34,7 @@
 		779ED531D02D2960954FE0FD /* DomainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E62EE196DCBC6CBF3FABEB /* DomainStore.swift */; };
 		80BB0A6C45C793A53DF2F883 /* InboxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF40583B0A2A87AC8E547E9 /* InboxStore.swift */; };
 		8601FE71C477AC97B15129B2 /* AddArtifactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21C599019FC32EFF98AB6DB /* AddArtifactView.swift */; };
+		86A3731217B2A46935560265 /* LocalParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9767AB0E20E2502C5CBE1CCE /* LocalParser.swift */; };
 		8820DEDDEC4ED51632964932 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4FB63DFBBD9E5243A9746A1 /* Assets.xcassets */; };
 		93402FECF828004D40E82616 /* AddContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56FCA4537887922F5097040 /* AddContextView.swift */; };
 		9E75A53802B284F8A29D367C /* BadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF14E487CE5F165AD590143 /* BadgeView.swift */; };
@@ -58,6 +60,7 @@
 /* Begin PBXFileReference section */
 		01EC8C0A203D52D88F8BA43E /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		039A3ED31885AACA7DCBDE41 /* AgentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentStore.swift; sourceTree = "<group>"; };
+		04578D4CCFDFF1B89892A13D /* ParsingMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingMode.swift; sourceTree = "<group>"; };
 		076AEAD7DD935732B66B3257 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		07D43266381A84BA5BDA363E /* Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoint.swift; sourceTree = "<group>"; };
 		0D71CB9ACD5AE68849CBB401 /* Date+Relative.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Relative.swift"; sourceTree = "<group>"; };
@@ -82,6 +85,7 @@
 		922043B91D8F0545BDC26135 /* TimeAgoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAgoText.swift; sourceTree = "<group>"; };
 		9245C29BFD4EC2F5F0444156 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		959A8A88E27D12A9CBD83A7C /* ContextEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextEntry.swift; sourceTree = "<group>"; };
+		9767AB0E20E2502C5CBE1CCE /* LocalParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalParser.swift; sourceTree = "<group>"; };
 		98991446A14DE7907548421A /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		98F7D8041EA1737151B61E72 /* Color+Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Theme.swift"; sourceTree = "<group>"; };
 		A430FA9685404BF71CCE8BC7 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -131,6 +135,7 @@
 				CA1F1D6AA42E4FD1DD3CE253 /* Domain.swift */,
 				98991446A14DE7907548421A /* Enums.swift */,
 				36C750F761AA2973281C5CBC /* InboxItem.swift */,
+				04578D4CCFDFF1B89892A13D /* ParsingMode.swift */,
 				CEB7193F2A90D154E6DF7182 /* Project.swift */,
 				8C1BF02EB533F8C58CFEB199 /* TaskModel.swift */,
 				D625BAC35BF9DC367FBDD2AA /* User.swift */,
@@ -193,6 +198,7 @@
 				07D43266381A84BA5BDA363E /* Endpoint.swift */,
 				D966B39A6A0598D781A4CC87 /* HapticManager.swift */,
 				22DF35929A8912D9CF16B117 /* KeychainManager.swift */,
+				9767AB0E20E2502C5CBE1CCE /* LocalParser.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -367,11 +373,13 @@
 				80BB0A6C45C793A53DF2F883 /* InboxStore.swift in Sources */,
 				5AA8F71BC79008FF792005B1 /* InboxView.swift in Sources */,
 				61B7B03F92152DFEFBB33A67 /* KeychainManager.swift in Sources */,
+				86A3731217B2A46935560265 /* LocalParser.swift in Sources */,
 				5C420DB8E32C050607C7C566 /* LoginView.swift in Sources */,
 				5ECA849B20876C0DA283CC46 /* NewAPIKeyView.swift in Sources */,
 				A81378188A1BEE9C315F9CD0 /* NewDomainView.swift in Sources */,
 				6770ACD450F74DBDDB934B7F /* NewTaskView.swift in Sources */,
 				BD1D0D977AD7F4810F62743E /* OnboardingView.swift in Sources */,
+				283C59A2557BAA9454F912E9 /* ParsingMode.swift in Sources */,
 				511F15F562CE268E6D68B777 /* Project.swift in Sources */,
 				E3F6915EC8F4FD8C8C9CF040 /* SectionHeaderView.swift in Sources */,
 				2BC6B3581015AF9A8ADE352A /* SettingsStore.swift in Sources */,
