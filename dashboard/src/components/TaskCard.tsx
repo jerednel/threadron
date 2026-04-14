@@ -4,6 +4,7 @@ import type { Task } from '../lib/api';
 interface TaskCardProps {
   task: Task;
   onClick: () => void;
+  highlight?: boolean;
 }
 
 const priorityColors: Record<string, string> = {
@@ -28,7 +29,7 @@ function timeAgo(dateStr: string): string {
   }
 }
 
-export default function TaskCard({ task, onClick }: TaskCardProps) {
+export default function TaskCard({ task, onClick, highlight }: TaskCardProps) {
   const priorityDot = priorityColors[task.priority] || '#8a8a8a';
   const blockerCount = task.blockers?.length ?? 0;
   const hasBlockers = blockerCount > 0;
@@ -37,7 +38,9 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
   return (
     <div
       onClick={onClick}
-      className="bg-[#141414] border border-[#222] hover:border-[#333] rounded-lg p-4 cursor-pointer transition-colors group"
+      className={`bg-[#141414] border rounded-lg p-4 cursor-pointer transition-all duration-500 group ${
+        highlight ? 'border-green-800/60 bg-green-950/20 shadow-[0_0_12px_rgba(34,197,94,0.08)]' : 'border-[#222] hover:border-[#333]'
+      }`}
     >
       {/* Title row */}
       <div className="flex items-start justify-between gap-2 mb-3">
@@ -82,12 +85,11 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
       )}
       {!task.next_action && !task.current_state && <div className="mb-2" />}
 
-      {/* Inline blocker — first blocker text */}
+      {/* Inline blocker — first blocker text (no label, red text is self-explanatory) */}
       {hasBlockers && task.blockers?.[0] && (
         <div className="mb-2">
-          <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">BLOCKED</span>
-          <p className="text-[11px] text-red-400/80 leading-snug mt-0.5 truncate">
-            {task.blockers[0]}
+          <p className="text-[11px] text-red-400/70 leading-snug truncate">
+            ⊘ {task.blockers[0]}
           </p>
         </div>
       )}

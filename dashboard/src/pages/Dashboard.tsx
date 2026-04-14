@@ -100,13 +100,27 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [loadInbox]);
 
+  // Track recently promoted task IDs for highlight animation
+  const [recentlyPromoted, setRecentlyPromoted] = useState<Set<string>>(new Set());
+
   // Inbox handlers
   const handlePromote = useCallback(async (id: string) => {
     try {
       const domainId = selectedDomainId || (domains.length > 0 ? domains[0].id : undefined);
-      await api.promoteInboxItem(id, {
+      const result = await api.promoteInboxItem(id, {
         ...(domainId ? { domain_id: domainId } : {}),
       });
+      // Highlight the newly created task
+      if (result?.task?.id) {
+        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+        setTimeout(() => {
+          setRecentlyPromoted(prev => {
+            const next = new Set(prev);
+            next.delete(result.task.id);
+            return next;
+          });
+        }, 2000);
+      }
       // Refresh both inbox and tasks
       await Promise.all([loadInbox(), loadData()]);
     } catch {
@@ -168,33 +182,8 @@ export default function Dashboard() {
     return [...named, ...none].map(([, v]) => v);
   }, [inProgressTasks, blockedTasks]);
 
-  // Group pending tasks by project
-  const pendingByProject = useMemo(() => {
-    const groups = new Map<string, { label: string | null; tasks: typeof pendingTasks }>();
-    for (const task of pendingTasks) {
-      const key = task.project_id || '__none__';
-      if (!groups.has(key)) {
-        groups.set(key, {
-          label: task.project?.name ?? (task.project_id ? task.project_id : null),
-          tasks: [],
-        });
-      }
-      groups.get(key)!.tasks.push(task);
-    }
-    const named = [...groups.entries()].filter(([k]) => k !== '__none__').sort(([, a], [, b]) => (a.label ?? '').localeCompare(b.label ?? ''));
-    const none = [...groups.entries()].filter(([k]) => k === '__none__');
-    return [...named, ...none].map(([, v]) => v);
-  }, [pendingTasks]);
-
-  // Track collapsed project groups in queue
-  const [collapsedQueueGroups, setCollapsedQueueGroups] = useState<Set<string>>(new Set());
-  const toggleQueueGroup = (label: string) => {
-    setCollapsedQueueGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(label)) { next.delete(label); } else { next.add(label); }
-      return next;
-    });
-  };
+  // Track collapsed sections (Ready, Done)
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   // Count active inbox items for mobile tab badge
   const activeInboxCount = inboxItems.filter(i =>
@@ -230,7 +219,7 @@ export default function Dashboard() {
       {/* Dual-pane container */}
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT PANE — Inbox */}
-        <div className={`w-full md:w-[38%] lg:w-[35%] border-r border-[#2a2a2a] bg-[#0a0a0a] flex-shrink-0 overflow-hidden ${
+        <div className={`w-full md:w-[42%] lg:w-[40%] border-r border-[#2a2a2a] bg-[#0a0a0a] flex-shrink-0 overflow-hidden ${
           mobilePane === 'inbox' ? 'flex flex-col' : 'hidden md:flex md:flex-col'
         }`}>
           <InboxPanel
@@ -241,6 +230,11 @@ export default function Dashboard() {
             onRefresh={loadInbox}
             defaultDomainId={selectedDomainId || undefined}
           />
+        </div>
+
+        {/* Flow indicator — directional divider */}
+        <div className="hidden md:flex flex-col items-center justify-center w-0 relative">
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-[#1e1e1e] text-lg z-10">›</div>
         </div>
 
         {/* RIGHT PANE — Tasks */}
@@ -429,6 +423,7 @@ export default function Dashboard() {
                                   <TaskCard
                                     task={task}
                                     onClick={() => setSelectedTaskId(task.id)}
+                                    highlight={recentlyPromoted.has(task.id)}
                                   />
                                 </div>
                               ) : (
@@ -436,6 +431,7 @@ export default function Dashboard() {
                                   key={task.id}
                                   task={task}
                                   onClick={() => setSelectedTaskId(task.id)}
+                                  highlight={recentlyPromoted.has(task.id)}
                                 />
                               )
                             ))}
@@ -446,74 +442,50 @@ export default function Dashboard() {
                   )}
                 </div>
 
-                {/* PENDING ZONE */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-widest">
-                      PENDING &middot; {pendingTasks.length} {pendingTasks.length === 1 ? 'item' : 'items'}
-                    </span>
-                  </div>
-
-                  {pendingTasks.length === 0 ? (
-                    <div className="border border-dashed border-[#1a1a1a] rounded-lg p-4 text-center">
-                      <span className="text-[#3a3a3a] text-xs font-mono">No pending tasks</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {pendingByProject.map((group, gi) => {
-                        const groupKey = group.label ?? '__none__';
-                        const isCollapsed = collapsedQueueGroups.has(groupKey);
-                        const headerLabel = group.label ?? 'No Project';
-                        return (
-                          <div key={gi} className="border border-[#1e1e1e] rounded-lg overflow-hidden">
-                            <button
-                              onClick={() => toggleQueueGroup(groupKey)}
-                              className="w-full flex items-center justify-between px-4 py-2 bg-[#111] hover:bg-[#161616] transition-colors cursor-pointer"
-                            >
-                              <span className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">
-                                {isCollapsed ? '\u25B6' : '\u25BC'} {headerLabel}
-                              </span>
-                              <span className="text-[10px] font-mono text-[#4a4a4a]">{group.tasks.length}</span>
-                            </button>
-                            {!isCollapsed && group.tasks.map((task) => (
-                              <button
-                                key={task.id}
-                                onClick={() => setSelectedTaskId(task.id)}
-                                className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer border-t border-[#1e1e1e] group/qitem`}
-                              >
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <span
-                                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                                    style={{ backgroundColor: ({ low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444' } as Record<string,string>)[task.priority] || '#4a4a4a' }}
-                                  />
-                                  <span className="text-sm text-[#d8d8d8] truncate">{task.title}</span>
-                                  {task.current_state && (
-                                    <span className="text-xs text-[#6a6a6a] truncate hidden md:block">
-                                      — {task.current_state}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0 ml-3">
-                                  {task.assignee || task.claimed_by || '\u2014'}
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigator.clipboard.writeText(task.id);
-                                  }}
-                                  className="text-[9px] font-mono text-[#3a3a3a] hover:text-[#8a8a8a] transition-colors cursor-pointer shrink-0 ml-2 opacity-0 group-hover/qitem:opacity-100"
-                                  title={task.id}
-                                >
-                                  ID
-                                </button>
-                              </button>
-                            ))}
-                          </div>
-                        );
+                {/* READY — pending tasks, collapsed by default, clearly separate from active */}
+                {pendingTasks.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setCollapsedSections(prev => {
+                        const next = new Set(prev);
+                        if (next.has('__pending__')) { next.delete('__pending__'); } else { next.add('__pending__'); }
+                        return next;
                       })}
-                    </div>
-                  )}
-                </div>
+                      className="flex items-center gap-2 mb-3 cursor-pointer group"
+                    >
+                      <span className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest group-hover:text-[#6a6a6a] transition-colors">
+                        {collapsedSections.has('__pending__') ? '\u25B6' : '\u25BC'} READY &middot; {pendingTasks.length} {pendingTasks.length === 1 ? 'task' : 'tasks'} awaiting execution
+                      </span>
+                    </button>
+
+                    {!collapsedSections.has('__pending__') && (
+                      <div className="border border-[#1a1a1a] rounded-lg overflow-hidden opacity-70">
+                        {pendingTasks.map((task, idx) => (
+                          <button
+                            key={task.id}
+                            onClick={() => setSelectedTaskId(task.id)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[#141414] transition-colors cursor-pointer ${
+                              idx < pendingTasks.length - 1 ? 'border-b border-[#1a1a1a]' : ''
+                            } group/qitem`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ backgroundColor: ({ low: '#22c55e', medium: '#eab308', high: '#f97316', urgent: '#ef4444' } as Record<string,string>)[task.priority] || '#4a4a4a' }}
+                              />
+                              <span className="text-sm text-[#c0c0c0] truncate">{task.title}</span>
+                            </div>
+                            {(task.assignee || task.claimed_by) && (
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-900/15 text-purple-400/60 border border-purple-800/20 shrink-0 ml-3">
+                                {task.claimed_by || task.assignee}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* COMPLETED ZONE */}
                 {completedTasks.length > 0 && (

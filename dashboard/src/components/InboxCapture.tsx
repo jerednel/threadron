@@ -82,7 +82,7 @@ const InboxCapture = forwardRef<InboxCaptureHandle, InboxCaptureProps>(
               if (!text.trim()) setExpanded(false);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="What's on your mind?"
+            placeholder="Capture a thought… agents will structure it."
             rows={expanded ? 3 : 1}
             className={`w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-[#f0f0f0] font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#3a3a3a] resize-none transition-all duration-150 ${
               expanded ? 'min-h-[60px]' : 'min-h-[28px]'

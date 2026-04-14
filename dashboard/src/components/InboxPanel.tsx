@@ -93,8 +93,9 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
         {/* Processing items */}
         {processing.length > 0 && (
           <div>
-            <div className="px-3 py-1.5 bg-[#111]">
-              <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">
+            <div className="px-3 py-1.5 bg-[#111] flex items-center gap-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              <span className="text-[9px] font-mono text-blue-400/60 uppercase tracking-widest">
                 PROCESSING &middot; {processing.length}
               </span>
             </div>
@@ -104,11 +105,12 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onRefr
           </div>
         )}
 
-        {/* Ready to review (parsed) */}
+        {/* Ready to review (parsed) — actionable, more prominent */}
         {parsed.length > 0 && (
           <div>
-            <div className="px-3 py-1.5 bg-[#111]">
-              <span className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">
+            <div className="px-3 py-1.5 bg-green-950/10 flex items-center gap-2">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span className="text-[9px] font-mono text-green-400/60 uppercase tracking-widest">
                 READY TO REVIEW &middot; {parsed.length}
               </span>
             </div>
