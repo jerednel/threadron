@@ -7,6 +7,26 @@ description: Track work across sessions using Threadron shared execution state. 
 
 You have access to Threadron tools for tracking work across sessions. Use them to maintain continuity — so the next session (yours or another agent's) knows exactly where things stand.
 
+## Setup (MCP Server)
+
+The Threadron tools (`threadron_checkin`, `threadron_list_tasks`, etc.) require an MCP server connection. If you try to use the tools and they don't exist, the MCP server is not configured. Help the user set it up:
+
+**Claude Code:**
+```bash
+claude mcp add --transport http threadron \
+  https://threadron.com/mcp \
+  -- --header "Authorization:Bearer YOUR_API_KEY"
+```
+
+**OpenClaw:**
+```bash
+openclaw mcp set threadron '{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
+```
+
+The user needs an API key from [threadron.com/dashboard](https://threadron.com/dashboard/). If they don't have one, direct them there to create an account and generate a key.
+
+After adding the MCP server, the user must **restart Claude Code** for the tools to become available.
+
 ## CRITICAL RULES
 
 ### Rule 1: One work item = one discrete goal
