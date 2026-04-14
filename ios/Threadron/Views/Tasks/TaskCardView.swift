@@ -6,18 +6,12 @@ struct TaskCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Title + priority dot
-            HStack(alignment: .top) {
-                Text(task.title)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.textPrimary)
-                    .lineLimit(2)
-                Spacer()
-                Circle()
-                    .fill(task.priority.color)
-                    .frame(width: 8, height: 8)
-                    .padding(.top, 5)
-            }
+            // Title
+            Text(task.title)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             // Blocker dominates when blocked
             if task.status == .blocked, let blocker = task.blockers.first, !blocker.isEmpty {
@@ -68,6 +62,7 @@ struct TaskCardView: View {
                 Spacer()
 
                 TimeAgoText(date: task.updatedAt ?? task.createdAt)
+                    .opacity(0.6)
             }
             .padding(.top, 2)
         }

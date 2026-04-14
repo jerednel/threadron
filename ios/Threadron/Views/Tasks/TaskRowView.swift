@@ -5,10 +5,6 @@ struct TaskRowView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Circle()
-                .fill(task.priority.color)
-                .frame(width: 7, height: 7)
-
             Text(task.title)
                 .font(.system(size: 14))
                 .foregroundStyle(Color.textPrimary)
@@ -16,11 +12,17 @@ struct TaskRowView: View {
 
             Spacer()
 
+            if let agent = task.claimedBy ?? task.assignee, !agent.isEmpty {
+                Text(agent)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(Color.ctxDecision.opacity(0.7))
+            }
+
             Image(systemName: "chevron.right")
-                .font(.system(size: 12))
+                .font(.system(size: 10))
                 .foregroundStyle(Color.bgBorder)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.vertical, 11)
     }
 }

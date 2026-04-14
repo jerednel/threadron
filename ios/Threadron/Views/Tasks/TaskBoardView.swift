@@ -42,38 +42,43 @@ struct TaskBoardView: View {
 
                         Divider().background(Color.bgBorder).padding(.bottom, 8)
 
-                        // Inbox awareness banner
-                        if inboxStore.activeCount > 0 {
-                            Button {
-                                // Switch to inbox tab
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "tray.and.arrow.down")
-                                        .font(.system(size: 11))
+                        // Inbox floating pill — always visible to show system boundary
+                        HStack(spacing: 0) {
+                            Spacer()
+                            if inboxStore.activeCount > 0 {
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(Color.ctxProposal)
+                                        .frame(width: 6, height: 6)
+                                    Text("\(inboxStore.activeCount) in inbox")
+                                        .font(.system(size: 11, weight: .medium, design: .monospaced))
                                         .foregroundStyle(Color.ctxProposal)
-                                    Text("Inbox")
-                                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                                        .foregroundStyle(Color.ctxProposal)
-                                    Text("·")
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 9, weight: .semibold))
+                                        .foregroundStyle(Color.ctxProposal.opacity(0.6))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(Color.ctxProposal.opacity(0.08))
+                                .clipShape(Capsule())
+                                .overlay(Capsule().stroke(Color.ctxProposal.opacity(0.2), lineWidth: 1))
+                            } else {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "tray")
+                                        .font(.system(size: 10))
                                         .foregroundStyle(Color.textDim)
-                                    Text("\(inboxStore.activeCount) items")
+                                    Text("Inbox clear")
                                         .font(.system(size: 11, design: .monospaced))
-                                        .foregroundStyle(Color.textMuted)
-                                    Spacer()
-                                    Text("→")
-                                        .font(.system(size: 11))
                                         .foregroundStyle(Color.textDim)
                                 }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 10)
-                                .background(Color.ctxProposal.opacity(0.06))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.ctxProposal.opacity(0.15), lineWidth: 1))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(Color.bgSurface.opacity(0.5))
+                                .clipShape(Capsule())
                             }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8)
+                            Spacer()
                         }
+                        .padding(.bottom, 8)
 
                         // Active section
                         activeSection
@@ -95,13 +100,13 @@ struct TaskBoardView: View {
                     Button {
                         showCapture = true
                     } label: {
-                        Label("Capture", systemImage: "tray.and.arrow.down.fill")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color.bgPrimary)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(Color.textPrimary)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        HStack(spacing: 5) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 14))
+                            Text("Capture")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundStyle(Color.textPrimary)
                     }
                 }
             }
@@ -159,8 +164,15 @@ struct TaskBoardView: View {
         let groups = taskStore.grouped(queue, projects: domainStore.projects)
 
         return VStack(alignment: .leading, spacing: 8) {
-            SectionHeaderView(title: "READY", count: queue.count)
-                .padding(.horizontal, 16)
+            VStack(alignment: .leading, spacing: 2) {
+                SectionHeaderView(title: "READY", count: queue.count)
+                if queue.count > 0 {
+                    Text("Queued work awaiting execution")
+                        .font(.system(size: 10))
+                        .foregroundStyle(Color.textDim)
+                }
+            }
+            .padding(.horizontal, 16)
 
             if queue.isEmpty {
                 emptyState("No pending tasks")
