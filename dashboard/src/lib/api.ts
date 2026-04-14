@@ -241,4 +241,16 @@ export const api = {
   promoteInboxItem: (id: string, data: { title?: string; next_action?: string; domain_id?: string; project_id?: string; owner?: string }): Promise<{ inbox_item: InboxItem; task: Task }> =>
     request(`/inbox/${id}/promote`, { method: 'POST', body: JSON.stringify(data) }),
   deleteInboxItem: (id: string) => request(`/inbox/${id}`, { method: 'DELETE' }),
+
+  // Telegram
+  getTelegramConfig: (): Promise<{ connected: boolean; chat_id: string | null; token_preview: string | null }> =>
+    request('/config/telegram'),
+  updateTelegramConfig: (data: { bot_token: string; chat_id: string }): Promise<{ connected: boolean; bot_name?: string }> =>
+    request('/config/telegram', { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTelegramConfig: () => request('/config/telegram', { method: 'DELETE' }),
+  pushTaskToAgent: (taskId: string, agentName?: string): Promise<{ pushed: boolean }> =>
+    request(`/tasks/${taskId}/push-to-agent`, {
+      method: 'POST',
+      body: JSON.stringify({ agent_name: agentName }),
+    }),
 };

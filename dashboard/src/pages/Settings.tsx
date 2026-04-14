@@ -3,7 +3,7 @@ import { api, type Domain, type Agent } from '../lib/api';
 import NewDomain from '../components/NewDomain';
 import NewProject from '../components/NewProject';
 
-type Tab = 'setup' | 'domains' | 'agents' | 'apikeys' | 'preferences';
+type Tab = 'setup' | 'domains' | 'agents' | 'apikeys' | 'preferences' | 'telegram';
 
 interface ApiKeyRecord {
   id: string;
@@ -49,6 +49,15 @@ export default function Settings() {
   const [watchedSources, setWatchedSources] = useState('');
   const [configSaving, setConfigSaving] = useState(false);
   const [configMsg, setConfigMsg] = useState('');
+
+  // Telegram state
+  const [telegramToken, setTelegramToken] = useState('');
+  const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramConnected, setTelegramConnected] = useState(false);
+  const [telegramPreview, setTelegramPreview] = useState<string | null>(null);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [telegramError, setTelegramError] = useState('');
+  const [telegramSuccess, setTelegramSuccess] = useState('');
 
   async function loadDomains() {
     try {
@@ -96,6 +105,14 @@ export default function Settings() {
     setError('');
     Promise.all([loadDomains(), loadAgents()])
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api.getTelegramConfig().then(cfg => {
+      setTelegramConnected(cfg.connected);
+      setTelegramChatId(cfg.chat_id || '');
+      setTelegramPreview(cfg.token_preview);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -172,6 +189,35 @@ export default function Settings() {
       setKeyCopied(true);
       setTimeout(() => setKeyCopied(false), 2000);
     });
+  }
+
+  async function handleTelegramConnect() {
+    setTelegramLoading(true);
+    setTelegramError('');
+    setTelegramSuccess('');
+    try {
+      const result = await api.updateTelegramConfig({ bot_token: telegramToken, chat_id: telegramChatId });
+      setTelegramConnected(true);
+      setTelegramSuccess(`Connected to @${result.bot_name || 'bot'}. Check Telegram for a test message.`);
+      setTelegramPreview(telegramToken.substring(0, 10) + '...');
+      setTelegramToken(''); // Clear the raw token from UI
+    } catch (e: unknown) {
+      setTelegramError(e instanceof Error ? e.message : 'Connection failed');
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
+
+  async function handleTelegramDisconnect() {
+    try {
+      await api.deleteTelegramConfig();
+      setTelegramConnected(false);
+      setTelegramPreview(null);
+      setTelegramChatId('');
+      setTelegramSuccess('');
+    } catch {
+      // ignore
+    }
   }
 
   const [setupTab, setSetupTab] = useState<'claude' | 'openclaw' | 'rest'>('claude');
@@ -293,6 +339,7 @@ Use Threadron tools to track work across sessions:
     { id: 'agents', label: 'Agents' },
     { id: 'apikeys', label: 'API Keys' },
     { id: 'preferences', label: 'Preferences' },
+    { id: 'telegram', label: 'Telegram' },
   ];
 
   return (
@@ -882,6 +929,91 @@ curl -X POST ${API_URL}/v1/tasks \\
               {configSaving ? '...' : 'Save Preferences'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Telegram tab */}
+      {tab === 'telegram' && (
+        <div className="max-w-md">
+          <h2 className="font-mono text-sm font-bold text-[#f0f0f0] uppercase tracking-wide mb-6">
+            Telegram
+          </h2>
+
+          {/* Telegram */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-mono font-bold text-[#f0f0f0]">Telegram Push-to-Agent</h3>
+              {telegramConnected && (
+                <span className="text-[10px] font-mono px-2 py-1 rounded bg-green-900/30 text-green-400 border border-green-800/50">
+                  Connected
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-[#6a6a6a] font-mono">
+              Push tasks directly to your agent via Telegram. One-way dispatch — agents update progress through Threadron.
+            </p>
+
+            {telegramConnected ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-[#141414] border border-[#222] rounded-lg">
+                  <div>
+                    <span className="text-xs font-mono text-[#8a8a8a]">Bot Token: </span>
+                    <span className="text-xs font-mono text-[#f0f0f0]">{telegramPreview}</span>
+                  </div>
+                  <button
+                    onClick={handleTelegramDisconnect}
+                    className="text-[10px] font-mono text-red-400 hover:text-red-300 cursor-pointer"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+                <div className="p-3 bg-[#141414] border border-[#222] rounded-lg">
+                  <span className="text-xs font-mono text-[#8a8a8a]">Chat ID: </span>
+                  <span className="text-xs font-mono text-[#f0f0f0]">{telegramChatId}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-1">Bot Token</label>
+                  <input
+                    type="password"
+                    value={telegramToken}
+                    onChange={e => setTelegramToken(e.target.value)}
+                    placeholder="110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw"
+                    className="w-full px-3 py-2 bg-[#111] border border-[#2a2a2a] rounded text-xs text-[#f0f0f0] font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
+                  />
+                  <span className="text-[9px] font-mono text-[#3a3a3a] mt-1 block">Get from @BotFather on Telegram</span>
+                </div>
+                <div>
+                  <label className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest block mb-1">Chat ID</label>
+                  <input
+                    type="text"
+                    value={telegramChatId}
+                    onChange={e => setTelegramChatId(e.target.value)}
+                    placeholder="8302575789"
+                    className="w-full px-3 py-2 bg-[#111] border border-[#2a2a2a] rounded text-xs text-[#f0f0f0] font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
+                  />
+                  <span className="text-[9px] font-mono text-[#3a3a3a] mt-1 block">Get from @userinfobot on Telegram</span>
+                </div>
+                <button
+                  onClick={handleTelegramConnect}
+                  disabled={telegramLoading || !telegramToken || !telegramChatId}
+                  className="px-4 py-2 rounded text-xs font-mono font-bold bg-[#f0f0f0] text-[#0a0a0a] hover:bg-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {telegramLoading ? 'Connecting...' : 'Connect Telegram'}
+                </button>
+              </div>
+            )}
+
+            {telegramError && (
+              <p className="text-xs font-mono text-red-400">{telegramError}</p>
+            )}
+            {telegramSuccess && (
+              <p className="text-xs font-mono text-green-400">{telegramSuccess}</p>
+            )}
+          </div>
         </div>
       )}
 

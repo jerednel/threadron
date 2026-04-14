@@ -277,6 +277,11 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
   // Blockers
   const [newBlocker, setNewBlocker] = useState('');
 
+  // Push to agent
+  const [pushing, setPushing] = useState(false);
+  const [pushResult, setPushResult] = useState<'success' | 'error' | null>(null);
+  const [pushError, setPushError] = useState('');
+
   async function loadTask() {
     setLoading(true);
     try {
@@ -407,6 +412,23 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
     }
   }
 
+  async function handlePush() {
+    setPushing(true);
+    setPushResult(null);
+    setPushError('');
+    try {
+      await api.pushTaskToAgent(taskId, task?.assignee || undefined);
+      setPushResult('success');
+      setTimeout(() => setPushResult(null), 3000);
+    } catch (e: unknown) {
+      setPushResult('error');
+      setPushError(e instanceof Error ? e.message : 'Push failed');
+      setTimeout(() => setPushResult(null), 5000);
+    } finally {
+      setPushing(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex">
       {/* Backdrop — desktop only */}
@@ -521,6 +543,25 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                   </div>
                 )}
               </div>
+
+              {/* Push to Agent */}
+              {task && (task.goal || task.next_action) && (
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={handlePush}
+                    disabled={pushing}
+                    className="px-3 py-1.5 rounded text-[10px] font-mono font-bold bg-blue-900/30 text-blue-400 border border-blue-800/50 hover:bg-blue-900/50 hover:border-blue-700/60 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {pushing ? 'Pushing...' : '📤 Push to Agent'}
+                  </button>
+                  {pushResult === 'success' && (
+                    <span className="text-[10px] font-mono text-green-400">Sent to Telegram</span>
+                  )}
+                  {pushResult === 'error' && (
+                    <span className="text-[10px] font-mono text-red-400">{pushError}</span>
+                  )}
+                </div>
+              )}
 
               {/* ━━━ State fields ━━━ */}
               <InlineEdit
