@@ -453,6 +453,109 @@ Triggered when the user says "redo onboarding", "change preferences", or "reset 
 
 ---
 
+## Skill: Intent Clarification (Inbox Processing)
+
+### Description
+
+The system can interpret vague user input and propose structured tasks while preserving user intent and control. Raw text captured in the Inbox is processed into structured task proposals that the user reviews before promotion.
+
+### Pipeline
+
+```
+Captured → Interpreted → Proposed → Confirmed → Task
+```
+
+- **Captured** — raw user input, no structure
+- **Interpreted** — agent begins parsing intent
+- **Proposed** — agent produces structured suggestion
+- **Confirmed** — user approves or edits
+- **Task** — becomes part of execution layer
+
+### Capabilities
+
+- Parse raw text into: title, next action, optional metadata (project, owner, blockers)
+- Generate structured task proposals
+- Present multiple interpretations when ambiguous
+- Assign confidence levels to interpretations
+
+### Behavior Rules
+
+- Never create tasks silently (unless high confidence)
+- Always show proposed structure before promotion
+- Default to proposing, not asking questions
+- Ask clarifying questions only when ambiguity is high
+- Every proposed task must include a clear, actionable next step
+
+### Agent Inbox Processing
+
+To process inbox items, agents should:
+
+1. **List unprocessed items:**
+   ```
+   GET /v1/inbox?status=unprocessed
+   Authorization: Bearer $TFA_API_KEY
+   ```
+
+2. **Parse and propose structure:**
+   ```
+   PATCH /v1/inbox/{item_id}
+   Authorization: Bearer $TFA_API_KEY
+   Content-Type: application/json
+
+   {
+     "status": "parsed",
+     "parsed_title": "Fill out Rowan Park West forms",
+     "parsed_next_action": "Gather all required forms + Rowan DOB",
+     "parsed_project": "Personal / Rowan",
+     "parsed_owner": "user",
+     "parsed_confidence": "0.75"
+   }
+   ```
+
+3. **Handle errors gracefully:**
+   ```
+   PATCH /v1/inbox/{item_id}
+   {"status": "error", "error": "Could not determine intent from input"}
+   ```
+
+### Confidence Model
+
+| Level | Threshold | Behavior |
+|-------|-----------|----------|
+| High | >= 0.8 | Safe to auto-promote; show lightweight "Added from Inbox" feedback |
+| Medium | 0.4 - 0.8 | Requires user confirmation (default behavior) |
+| Low | < 0.4 | Requires clarification or multiple options |
+
+### Example
+
+Input: `"fix dbt bug"`
+
+Output:
+```
+→ Fix issue in mature_stores_weekly_count pipeline
+→ Next: Identify root cause of left-censoring logic
+   Confidence: 75%
+```
+
+### Inbox API Reference
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/inbox` | List inbox items (optional `?status=` filter) |
+| `GET` | `/v1/inbox/:id` | Get single inbox item |
+| `POST` | `/v1/inbox` | Capture new item (`raw_text` required) |
+| `PATCH` | `/v1/inbox/:id` | Update item (status, parsed fields, error) |
+| `POST` | `/v1/inbox/:id/promote` | Promote to task (accepts field overrides) |
+| `DELETE` | `/v1/inbox/:id` | Delete item |
+
+### Success Criteria
+
+- User recognizes intent in proposed task
+- Minimal editing required before promotion
+- System feels helpful, not intrusive
+
+---
+
 ## Full API Reference
 
 ### Base URL
