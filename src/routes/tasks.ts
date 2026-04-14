@@ -213,6 +213,7 @@ export function taskRoutes(db: DrizzleDb) {
     const body = await c.req.json<{
       title?: string;
       status?: string;
+      domain_id?: string;
       project_id?: string;
       assignee?: string;
       priority?: string;
@@ -252,6 +253,13 @@ export function taskRoutes(db: DrizzleDb) {
     };
     if (body.title !== undefined) updates.title = body.title;
     if (body.status !== undefined) updates.status = body.status;
+    if (body.domain_id !== undefined) {
+      // Verify the target domain belongs to this user
+      const [targetDomain] = await db.select().from(domains)
+        .where(and(eq(domains.id, body.domain_id), eq(domains.userId, userId))).limit(1);
+      if (!targetDomain) return c.json({ error: "Target domain not found" }, 404);
+      updates.domainId = body.domain_id;
+    }
     if (body.project_id !== undefined) updates.projectId = body.project_id;
     if (body.assignee !== undefined) updates.assignee = body.assignee;
     if (body.priority !== undefined) updates.priority = body.priority;
