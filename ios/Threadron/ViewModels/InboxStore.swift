@@ -76,7 +76,7 @@ final class InboxStore {
             "parsed_title": result.title,
             "parsed_confidence": String(format: "%.2f", result.confidence),
         ]
-        if let next = result.nextAction { fields["parsed_next_action"] = next }
+        fields["parsed_next_action"] = result.nextAction
         if let project = result.project { fields["parsed_project"] = project }
 
         _ = await updateItem(id: id, fields: fields)
