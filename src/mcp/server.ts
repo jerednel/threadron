@@ -315,28 +315,109 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
   server.tool(
     "threadron_checkin",
-    "Session start check-in. Returns your in-progress work, pending items, and any blocked items. Use this at the start of every session to understand what needs attention.",
+    "Session start check-in. Returns your in-progress work, pending items, blocked items, and unprocessed inbox items. Use this at the start of every session to understand what needs attention.",
     {},
     async () => {
-      const [inProgress, pending, blocked] = await Promise.all([
+      const [inProgress, pending, blocked, inbox] = await Promise.all([
         api(`/tasks?assignee=${agentId}&status=in_progress`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?assignee=${agentId}&status=pending`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?status=blocked`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
+        api(`/inbox?status=unprocessed`).then((d) => (d as { items?: unknown[] }).items || d).catch(() => []),
       ]);
 
       const inProgressArr = inProgress as unknown[];
       const pendingArr = pending as unknown[];
       const blockedArr = blocked as unknown[];
+      const inboxArr = inbox as unknown[];
 
       const summary = {
         in_progress: inProgressArr,
         pending: pendingArr,
         blocked: blockedArr,
-        summary: `${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked`,
+        unprocessed_inbox: inboxArr,
+        summary: `${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked, ${inboxArr.length} inbox items to parse`,
       };
 
       return {
         content: [{ type: "text" as const, text: JSON.stringify(summary, null, 2) }],
+      };
+    }
+  );
+
+  // ─── Inbox: List items ──────────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_list_inbox",
+    "List inbox items. Use at session start to find unprocessed items that need parsing. Filter by status to see what needs attention.",
+    {
+      status: z.string().optional().describe("Filter: unprocessed, processing, parsed, promoted, rejected, error"),
+    },
+    async ({ status }) => {
+      const qs = status ? `?status=${status}` : "";
+      const data = await api(`/inbox${qs}`);
+      const items = (data as { items?: unknown[] }).items || data;
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(items, null, 2) }],
+      };
+    }
+  );
+
+  // ─── Inbox: Parse item (propose structure) ────────────────────────────────────
+
+  server.tool(
+    "threadron_parse_inbox",
+    "Parse an unprocessed inbox item — interpret the raw text and propose structured task fields. Set status to 'processing' first, then 'parsed' with your interpretation. Always include a concrete next_action.",
+    {
+      item_id: z.string().describe("Inbox item ID"),
+      title: z.string().describe("Proposed task title — clear and actionable"),
+      next_action: z.string().describe("Concrete next step — what should happen first"),
+      project: z.string().optional().describe("Suggested project name"),
+      owner: z.string().optional().describe("Suggested owner/assignee"),
+      confidence: z.string().describe("Confidence in interpretation: 0.0 to 1.0 as string"),
+    },
+    async ({ item_id, title, next_action, project, owner, confidence }) => {
+      // Mark as processing first
+      await api(`/inbox/${item_id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "processing" }),
+      });
+
+      // Submit parsed proposal
+      const fields: Record<string, unknown> = {
+        status: "parsed",
+        parsed_title: title,
+        parsed_next_action: next_action,
+        parsed_confidence: confidence,
+      };
+      if (project) fields.parsed_project = project;
+      if (owner) fields.parsed_owner = owner;
+
+      const data = await api(`/inbox/${item_id}`, {
+        method: "PATCH",
+        body: JSON.stringify(fields),
+      });
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  // ─── Inbox: Capture item ──────────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_capture_inbox",
+    "Capture a new inbox item. Use when the user mentions something that should be tracked but isn't a fully formed task yet.",
+    {
+      raw_text: z.string().describe("Raw text to capture"),
+      domain_id: z.string().optional().describe("Optional domain ID"),
+    },
+    async ({ raw_text, domain_id }) => {
+      const body: Record<string, unknown> = { raw_text, source: "agent" };
+      if (domain_id) body.domain_id = domain_id;
+      const data = await api("/inbox", { method: "POST", body: JSON.stringify(body) });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
       };
     }
   );
