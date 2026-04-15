@@ -234,13 +234,35 @@ description: Track work across sessions using Threadron shared execution state. 
 
 You have access to Threadron tools for tracking work across sessions. Use them to maintain continuity — so the next session (yours or another agent's) knows exactly where things stand.
 
-## CRITICAL RULE
+## CRITICAL RULES
+
+### Rule 1: One work item = one discrete goal
+
+A work item is a **single, specific thing** that can be completed. NOT a category, NOT a role, NOT a bucket of tasks.
+
+Good work items:
+- "Fix connection pool race condition in api-v2"
+- "Write migration rollback tests for the users table"
+
+Bad work items:
+- "Handle all backend tasks" ← too broad
+- "Various fixes and improvements" ← vague
+
+### Rule 2: Always pair state updates with context
 
 **Every time you change what you're doing, call BOTH:**
-1. \`threadron_update_state\` — to update the structured fields (current_state, next_action, blockers)
-2. \`threadron_add_context\` — to explain WHY in the timeline (what you observed, decided, or did)
+1. \`threadron_add_context\` — to explain WHY in the timeline
+2. \`threadron_update_state\` — to update the structured fields
 
-State fields tell the next reader WHAT. Context entries tell them WHY. Both are required. A state update without a context entry leaves the timeline empty and makes the work item history useless.
+State fields tell the next reader WHAT. Context entries tell them WHY. Both are required.
+
+### Rule 3: Don't create work items for everything
+
+Only create work items for work that spans more than a quick exchange, benefits from tracking across sessions, or involves handoff between agents.
+
+### Rule 4: Identify yourself
+
+Each agent should have a unique identity — "openclaw", "hermes", "claude-code", etc.
 
 ## Session Start
 
@@ -248,12 +270,11 @@ At the **start of every session**, call \`threadron_checkin\` to see:
 - Work items you left in progress (resume these first)
 - Pending items assigned to you
 - Blocked items that need attention
+- **Unprocessed inbox items that need parsing**
 
-If there's in-progress work, call \`threadron_get_task\` on it to read the full state (goal, current_state, next_action, blockers, timeline, artifacts) before doing anything else.
+If there's in-progress work, call \`threadron_get_task\` on it to read the full state before doing anything else.
 
 ## While Working
-
-When you're actively working on a Threadron work item, follow this pattern at EVERY meaningful step:
 
 ### The Update Pattern (use this every time something changes)
 
@@ -262,9 +283,9 @@ When you're actively working on a Threadron work item, follow this pattern at EV
 2. threadron_update_state → update current_state and next_action
 \`\`\`
 
-Always log context FIRST, then update state. This ensures the timeline explains every state change.
+Always log context FIRST, then update state.
 
-### Examples of when to use this pattern:
+### Examples:
 
 - You investigate something → \`add_context(type: "observation", body: "Found X")\` → \`update_state(current_state: "Investigated, found X")\`
 - You make a choice → \`add_context(type: "decision", body: "Going with approach A because...")\` → \`update_state(next_action: "Implement approach A")\`
@@ -281,28 +302,72 @@ Always log context FIRST, then update state. This ensures the timeline explains 
 - \`threadron_create_artifact\` for branches, PRs, files, plans, terminal output
 - Always pair with \`threadron_add_context(type: "action_taken", body: "Created branch X")\`
 
+**Important — file artifacts:** Include file contents in the \`body\` field. Do NOT use \`uri\` with local paths or made-up URLs.
+
 ## Session End / Pausing
 
-Before the session ends or when switching to other work:
-
-1. \`threadron_add_context(type: "action_taken", body: "Pausing. Summary of what was done...")\` — summarize the session
-2. \`threadron_update_state\` — set current_state and next_action to exactly what the next session needs to know
-3. \`threadron_release\` — release the claim so other agents can pick it up
+1. \`threadron_add_context(type: "action_taken", body: "Pausing. Summary...")\`
+2. \`threadron_update_state\` — set current_state and next_action for the next session
+3. \`threadron_release\` — release the claim
 4. If done: \`threadron_update_state(status: "completed")\`
+
+## Organizing Work — Projects
+
+Projects group related work items within a domain.
+
+- \`threadron_list_projects(domain_id?)\` — see existing projects
+- \`threadron_create_project(name, domain_id, description?)\` — create a new project
+- \`threadron_update_state(task_id, project_id)\` — assign a work item to a project
+
+## Processing Inbox
+
+The inbox is where raw, unstructured input lives before becoming tasks. At session start, \`threadron_checkin\` will tell you if there are unprocessed inbox items. **Process them.**
+
+### The inbox processing loop
+
+1. \`threadron_checkin\` reports e.g. "3 inbox items to parse"
+2. \`threadron_list_inbox(status: "unprocessed")\` to see the raw text
+3. For each item, interpret the \`raw_text\` and call \`threadron_parse_inbox\`:
+   - \`title\` — clear, actionable task name (NOT the raw text repeated)
+   - \`next_action\` — concrete first step (never the same as the title)
+   - \`confidence\` — how sure you are ("0.8" = high, "0.5" = medium, "0.3" = low)
+   - \`project\` — optional, if you can infer it
+   - \`owner\` — optional, if you can infer who should do this
+
+### Interpretation guidelines
+
+Transform vague input into specific, actionable language:
+- "fix dbt bug" → Title: "Fix mature_stores_weekly_count pipeline", Next: "Identify root cause of left-censoring logic"
+- "rowan forms" → Title: "Complete Rowan Park West enrollment paperwork", Next: "Gather all required forms and documents"
+- "buy milk" → Title: "Buy groceries", Next: "Purchase milk, check if anything else is needed"
+
+### Rules
+
+- **Never echo the raw text as the title.** Always transform it.
+- **Never skip the next_action.** Every proposal needs a concrete first step.
+- **Don't create tasks directly from inbox items.** Parse them — the user will Promote/Edit/Reject in the UI.
+
+### Capturing new inbox items
+
+When the user mentions something that should be tracked but isn't a fully formed task:
+- \`threadron_capture_inbox(raw_text: "what they said", domain_id: "d_xyz")\`
 
 ## Creating New Work
 
-When you identify new work to be done:
+1. **Check scope** — Is this a single, discrete goal? If not, break it up.
+2. \`threadron_list_tasks\` with \`search\` to check it doesn't already exist
+3. If the work belongs to a group, check if a project exists or create one
+4. \`threadron_create_task\` with at minimum: title, domain_id, goal, and outcome_definition
+5. Set current_state and next_action if you know them
+6. **One work item per goal.** Never bundle unrelated tasks.
 
-1. \`threadron_list_tasks\` with search to check it doesn't already exist
-2. \`threadron_create_task\` with at minimum: title, domain_id, goal, and outcome_definition
-3. Set current_state and next_action if you know them
+## Key Principles
 
-## Key Principle
+**Write state for the next reader, not for yourself.** A different session — possibly a different agent — should be able to pick up any work item and immediately understand what's going on.
 
-**Write state for the next reader, not for yourself.** The whole point is that a different session — possibly a different agent — should be able to pick up any work item and immediately understand what's going on without re-investigating.
+**The timeline IS the story.** Every state change needs a context entry explaining it.
 
-**The timeline IS the story.** If the timeline is empty, the work item is useless for handoff. Every state change needs a context entry explaining it.`;
+**Threadron is not a to-do list.** It's shared execution state. Use it for work that needs continuity.`;
 
   const MCP_CONFIG = `{
   "mcpServers": {
@@ -320,11 +385,13 @@ When you identify new work to be done:
 
 Use Threadron tools to track work across sessions:
 - Start each session with \`threadron_checkin\` to see what's in progress
+- Process any unprocessed inbox items with \`threadron_parse_inbox\`
 - Before starting work, \`threadron_claim\` the item
 - Update \`threadron_update_state\` as you make progress
 - Record decisions and observations with \`threadron_add_context\`
 - Attach outputs with \`threadron_create_artifact\`
-- When done or pausing, \`threadron_release\` the item`;
+- When done or pausing, \`threadron_release\` the item
+- Capture loose thoughts with \`threadron_capture_inbox\``;
 
   function handleCopyText(text: string, setter: (v: boolean) => void) {
     navigator.clipboard.writeText(text).then(() => {
