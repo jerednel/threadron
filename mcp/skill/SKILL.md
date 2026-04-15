@@ -148,6 +148,42 @@ Example flow:
 2. `threadron_create_task(title: "Migrate auth endpoints", domain_id: "d_xyz", project_id: "p_abc")`
 3. `threadron_update_state(task_id: "t_existing", project_id: "p_abc")` — move existing tasks into the project
 
+## Processing Inbox
+
+The inbox is where raw, unstructured input lives before becoming tasks. At session start, `threadron_checkin` will tell you if there are unprocessed inbox items. Process them.
+
+### The inbox processing loop
+
+1. `threadron_checkin` reports e.g. "3 inbox items to parse"
+2. `threadron_list_inbox(status: "unprocessed")` to see the raw text
+3. For each item, interpret the `raw_text` and call `threadron_parse_inbox`:
+   - `title` — clear, actionable task name (NOT the raw text repeated)
+   - `next_action` — concrete first step (never the same as the title)
+   - `confidence` — how sure you are ("0.8" = high, "0.5" = medium, "0.3" = low)
+   - `project` — optional, if you can infer it
+   - `owner` — optional, if you can infer who should do this
+
+### Interpretation guidelines
+
+Transform vague input into specific, actionable language:
+- "fix dbt bug" → Title: "Fix mature_stores_weekly_count pipeline", Next: "Identify root cause of left-censoring logic"
+- "rowan forms" → Title: "Complete Rowan Park West enrollment paperwork", Next: "Gather all required forms and documents"
+- "buy milk" → Title: "Buy groceries", Next: "Purchase milk, check if anything else is needed"
+- "call john" → Title: "Contact John", Next: "Call John to discuss"
+
+### Rules
+
+- **Never echo the raw text as the title.** Always transform it.
+- **Never skip the next_action.** Every proposal needs a concrete first step.
+- **Don't create tasks directly from inbox items.** Parse them — the user will Promote/Edit/Reject in the UI.
+- **If you can't interpret it**, set confidence low ("0.3") and do your best. The user can always edit.
+
+### Capturing new inbox items
+
+When the user mentions something that should be tracked but isn't a fully formed task:
+- `threadron_capture_inbox(raw_text: "what they said", domain_id: "d_xyz")`
+- This goes to the inbox for later processing, not directly into the task list
+
 ## Creating New Work
 
 When you identify new work to be done:

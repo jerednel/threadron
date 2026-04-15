@@ -67,6 +67,9 @@ Use Threadron tools to track work across sessions:
 | `threadron_release` | Release claim when done or pausing |
 | `threadron_list_domains` | List available domains |
 | `threadron_list_agents` | List registered agents and activity |
+| `threadron_list_inbox` | List inbox items (filter by status: unprocessed, parsed, etc.) |
+| `threadron_parse_inbox` | Interpret raw inbox text → propose title, next_action, confidence |
+| `threadron_capture_inbox` | Capture a new inbox item (raw text, optional domain) |
 
 If you are using MCP, the tools above replace the REST API documented below. You do not need to make manual HTTP calls.
 
@@ -140,6 +143,27 @@ Run these at the start of every session:
    Authorization: Bearer $TFA_API_KEY
    ```
    Read `current_state`, `next_action`, `blockers`, and the `context` array to understand where things stand.
+
+5. **Process inbox** — check for unprocessed inbox items and parse them:
+   ```
+   GET $TFA_API_URL/v1/inbox?status=unprocessed
+   Authorization: Bearer $TFA_API_KEY
+   ```
+   For each item, interpret the `raw_text` and propose structure:
+   ```
+   PATCH $TFA_API_URL/v1/inbox/{item_id}
+   Authorization: Bearer $TFA_API_KEY
+   Content-Type: application/json
+
+   {
+     "status": "parsed",
+     "parsed_title": "Clear, actionable task title",
+     "parsed_next_action": "Concrete first step",
+     "parsed_project": "Project name (optional)",
+     "parsed_confidence": "0.75"
+   }
+   ```
+   If using MCP, use `threadron_parse_inbox` instead. The `threadron_checkin` tool automatically includes unprocessed inbox items in its response.
 
 ---
 
