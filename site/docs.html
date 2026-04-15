@@ -519,7 +519,7 @@
             <p>Hosted MCP server — one command connects. No git clone, no npm install, no build step.</p>
             <div class="code-block" style="font-size: 12px;">
               <span class="label-tag">bash</span>
-claude mcp add --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
+claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
             </div>
             <p style="margin-top: 12px; font-size: 0.8rem;">Then install the skill: <span class="inline-code">curl -sL .../SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs</span>. Restart Claude Code. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
           </div>

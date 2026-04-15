@@ -415,14 +415,14 @@ Use Threadron tools to track work across sessions:
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-mono text-sm font-bold text-[#f0f0f0]">Step 1 — Add the MCP server</h3>
                   <button
-                    onClick={() => handleCopyText(`claude mcp add --transport http threadron https://threadron.com/mcp -- --header "Authorization:Bearer YOUR_API_KEY"`, setMcpCopied)}
+                    onClick={() => handleCopyText(`claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header "Authorization:Bearer YOUR_API_KEY"`, setMcpCopied)}
                     className="text-[10px] font-mono text-[#9a9a9a] hover:text-[#f0f0f0] transition-colors cursor-pointer border border-[#2a2a2a] rounded px-2 py-0.5"
                   >
                     {mcpCopied ? 'copied!' : 'copy command'}
                   </button>
                 </div>
                 <p className="text-[10px] font-mono text-[#9a9a9a] mb-3">One command — connects Claude Code to the hosted Threadron MCP server globally (all projects).</p>
-                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`claude mcp add --transport http threadron https://threadron.com/mcp -- --header "Authorization:Bearer YOUR_API_KEY"`}</pre>
+                <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto">{`claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header "Authorization:Bearer YOUR_API_KEY"`}</pre>
                 <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Replace <code className="text-[#f0f0f0]">YOUR_API_KEY</code> with a key from the API Keys tab.</p>
                 <p className="text-[10px] font-mono text-[#9a9a9a] mt-2">Or add to your project's <code className="text-[#f0f0f0]">.mcp.json</code>:</p>
                 <pre className="bg-[#0a0a0a] border border-[#2a2a2a] rounded p-3 text-xs font-mono text-[#c0c0c0] overflow-x-auto mt-2 whitespace-pre-wrap">{MCP_CONFIG}</pre>

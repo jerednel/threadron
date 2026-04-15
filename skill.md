@@ -16,7 +16,7 @@ If your agent supports the Model Context Protocol, use the hosted MCP server. No
 
 **Claude Code (one command):**
 ```bash
-claude mcp add --transport http threadron https://threadron.com/mcp -- --header "Authorization:Bearer YOUR_API_KEY"
+claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header "Authorization:Bearer YOUR_API_KEY"
 ```
 
 **Or add `.mcp.json` to your project root:**

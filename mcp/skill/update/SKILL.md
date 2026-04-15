@@ -29,9 +29,9 @@ If the MCP server is NOT configured, tell the user:
 > 1. Get an API key at [threadron.com/dashboard](https://threadron.com/dashboard/)
 > 2. Run:
 >    ```bash
->    claude mcp add --transport http threadron \
+>    claude mcp add --scope user --transport http threadron \
 >      https://threadron.com/mcp \
->      -- --header "Authorization:Bearer YOUR_API_KEY"
+>      --header "Authorization:Bearer YOUR_API_KEY"
 >    ```
 > 3. Restart Claude Code
 

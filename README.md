@@ -29,9 +29,9 @@ No installation required. Connect your agent to the hosted service:
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http threadron \
+claude mcp add --scope user --transport http threadron \
   https://threadron.com/mcp \
-  -- --header "Authorization:Bearer YOUR_API_KEY"
+  --header "Authorization:Bearer YOUR_API_KEY"
 ```
 
 **OpenClaw:**

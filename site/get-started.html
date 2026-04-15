@@ -187,7 +187,7 @@ curl -X POST https://threadron.com/v1/tasks \
         <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 1 — Add the MCP server (one command)</div>
         <div class="code-block">
           <span class="label-tag">bash</span>
-claude mcp add --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
+claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
         </div>
         <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or add to your project's <span style="font-family: var(--mono); color: var(--gray-5);">.mcp.json</span>:</p>
         <div class="code-block" style="margin-top: 8px;">
