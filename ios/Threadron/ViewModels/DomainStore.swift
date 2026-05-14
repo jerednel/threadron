@@ -62,6 +62,15 @@ final class DomainStore {
         }
     }
 
+    func deleteProject(id: String) async {
+        do {
+            try await api.requestVoid(.deleteProject(id: id))
+            projects.removeAll { $0.id == id }
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
     func projectsForDomain(_ domainId: String) -> [Project] {
         projects.filter { $0.domainId == domainId }
     }

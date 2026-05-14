@@ -301,6 +301,22 @@ server.tool(
   }
 );
 
+// ─── Delete project ─────────────────────────────────────────────────
+
+server.tool(
+  "threadron_delete_project",
+  "Delete a project by ID. Existing work items remain and are moved to no project.",
+  {
+    project_id: z.string().describe("Project ID to delete"),
+  },
+  async ({ project_id }) => {
+    const data = await api(`/projects/${project_id}`, { method: "DELETE" });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
 // ─── List agents ───────────────────────────────────────────────────
 
 server.tool(

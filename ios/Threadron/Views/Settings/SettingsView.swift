@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var showNewKey = false
     @State private var showLogoutConfirm = false
     @State private var domainToDelete: Domain?
+    @State private var projectToDelete: Project?
     @State private var keyToDelete: APIKeyItem?
 
     var body: some View {
@@ -107,6 +108,36 @@ struct SettingsView: View {
                             .tracking(1.5)
                     }
 
+                    // Projects
+                    Section {
+                        ForEach(domainStore.projects) { project in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(project.name)
+                                        .foregroundStyle(Color.textPrimary)
+                                    if let domain = domainStore.domains.first(where: { $0.id == project.domainId }) {
+                                        Text(domain.name)
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(Color.textDim)
+                                    }
+                                }
+                                Spacer()
+                            }
+                            .listRowBackground(Color.bgSurface)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    projectToDelete = project
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    } header: {
+                        Text("PROJECTS")
+                            .font(.system(size: 10, design: .monospaced))
+                            .tracking(1.5)
+                    }
+
                     // API Keys
                     Section {
                         ForEach(settingsStore.apiKeys) { key in
@@ -181,6 +212,22 @@ struct SettingsView: View {
             } message: {
                 Text("This will also delete all projects and tasks in this domain.")
             }
+            .alert("Delete Project?", isPresented: Binding(
+                get: { projectToDelete != nil },
+                set: { if !$0 { projectToDelete = nil } }
+            )) {
+                Button("Cancel", role: .cancel) { projectToDelete = nil }
+                Button("Delete", role: .destructive) {
+                    if let project = projectToDelete {
+                        let store = domainStore
+                        Task { await store.deleteProject(id: project.id) }
+                        HapticManager.warning()
+                    }
+                    projectToDelete = nil
+                }
+            } message: {
+                Text("Tasks in this project will be kept and moved to no project.")
+            }
             .alert("Revoke API Key?", isPresented: Binding(
                 get: { keyToDelete != nil },
                 set: { if !$0 { keyToDelete = nil } }
@@ -203,6 +250,9 @@ struct SettingsView: View {
             }
             .task { [settingsStore] in
                 await settingsStore.fetchKeys()
+            }
+            .task { [domainStore] in
+                await domainStore.fetchProjects()
             }
         }
     }

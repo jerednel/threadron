@@ -139,6 +139,7 @@ Projects group related work items within a domain. Use them when multiple work i
 
 - `threadron_list_projects(domain_id?)` — see existing projects
 - `threadron_create_project(name, domain_id, description?)` — create a new project
+- `threadron_delete_project(project_id)` — delete a project; linked work items remain unassigned to a project
 - `threadron_update_state(task_id, project_id)` — assign a work item to a project
 
 **Projects are separate entities, not tasks.** Don't create a task as a "project container" — use `threadron_create_project` instead. Then link work items to it via `project_id`.
