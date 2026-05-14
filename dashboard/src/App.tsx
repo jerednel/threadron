@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { AuthProvider, useAuth } from './lib/auth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Threads from './pages/Threads';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
 
@@ -30,6 +31,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="/threads" element={<Threads />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

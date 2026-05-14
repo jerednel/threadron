@@ -167,7 +167,7 @@ POST /v1/tasks/{id}/claim
 
 ## MCP Tools
 
-When connected via MCP, agents get 15 native tools:
+When connected via MCP, agents get 16 native tools:
 
 | Tool | Purpose |
 |------|---------|
@@ -176,6 +176,7 @@ When connected via MCP, agents get 15 native tools:
 | `threadron_get_task` | Full detail with timeline + artifacts |
 | `threadron_list_threads` | List durable execution threads |
 | `threadron_get_thread` | Thread detail with member tasks |
+| `threadron_resume` | Exact resume snapshot for a thread |
 | `threadron_create_thread` | Create a durable execution thread |
 | `threadron_update_thread` | Update a thread snapshot |
 | `threadron_create_task` | Create with structured state fields |

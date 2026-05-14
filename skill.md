@@ -63,6 +63,7 @@ Use Threadron tools to track work across sessions:
 | `threadron_get_task` | Full work item with goal, state, timeline, artifacts |
 | `threadron_list_threads` | List durable execution threads |
 | `threadron_get_thread` | Thread detail with member tasks |
+| `threadron_resume` | Exact resume snapshot for a thread |
 | `threadron_create_thread` | Create a durable execution thread |
 | `threadron_update_thread` | Update a thread snapshot |
 | `threadron_create_task` | Create with structured fields (goal, current_state, outcome) |

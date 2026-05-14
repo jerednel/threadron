@@ -28,6 +28,9 @@ export default function Layout() {
       <NavLink to="/" end className={navLinkClass} onClick={closeSidebar}>
         Board
       </NavLink>
+      <NavLink to="/threads" className={navLinkClass} onClick={closeSidebar}>
+        Threads
+      </NavLink>
       <NavLink to="/settings" className={navLinkClass} onClick={closeSidebar}>
         Settings
       </NavLink>

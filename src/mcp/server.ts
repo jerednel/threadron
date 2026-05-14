@@ -107,6 +107,61 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
   );
 
   server.tool(
+    "threadron_resume",
+    "Return the exact resume snapshot for a thread. Use this instead of manually reconstructing state from scattered tasks.",
+    {
+      thread_id: z.string().describe("Thread ID"),
+    },
+    async ({ thread_id }) => {
+      const data = await api(`/threads/${thread_id}`);
+      const thread = data as {
+        id?: string;
+        name?: string;
+        status?: string;
+        current_state?: string | null;
+        next_action?: string | null;
+        blockers?: string[];
+        outcome_definition?: string | null;
+        confidence?: string | null;
+        current_task_id?: string | null;
+        root_task_id?: string | null;
+        tasks?: Array<Record<string, unknown>>;
+      };
+      const tasks = Array.isArray(thread.tasks) ? thread.tasks : [];
+      const focusTask =
+        tasks.find((task) => task.id === thread.current_task_id) ||
+        tasks.find((task) => task.status === "in_progress") ||
+        tasks.find((task) => task.status === "blocked") ||
+        tasks[0] ||
+        null;
+
+      const resumeSnapshot = {
+        thread_id: thread.id,
+        thread_name: thread.name,
+        status: thread.status,
+        current_state: thread.current_state,
+        next_action: thread.next_action,
+        blockers: thread.blockers || [],
+        outcome_definition: thread.outcome_definition,
+        confidence: thread.confidence,
+        current_task_id: thread.current_task_id,
+        root_task_id: thread.root_task_id,
+        focus_task: focusTask,
+        task_count: tasks.length,
+        open_task_count: tasks.filter((task) => {
+          const status = String(task.status || "");
+          return status === "pending" || status === "in_progress" || status === "blocked";
+        }).length,
+        recommended_next_step: thread.next_action || (focusTask?.next_action as string | undefined) || thread.current_state || "Open the thread and continue from the latest state.",
+      };
+
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(resumeSnapshot, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
     "threadron_create_thread",
     "Create a durable execution thread. Use when starting a new worktree or feature stream that multiple agents may touch.",
     {
