@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settingsStore
     @Environment(InboxStore.self) private var inboxStore
     @State private var showNewDomain = false
+    @State private var showNewProject = false
     @State private var showNewKey = false
     @State private var showLogoutConfirm = false
     @State private var domainToDelete: Domain?
@@ -132,10 +133,24 @@ struct SettingsView: View {
                                 }
                             }
                         }
+
+                        Button {
+                            showNewProject = true
+                        } label: {
+                            Text("+ Add Project")
+                                .foregroundStyle(domainStore.domains.isEmpty ? Color.textDim : Color.linkBlue)
+                        }
+                        .disabled(domainStore.domains.isEmpty)
+                        .listRowBackground(Color.bgSurface)
                     } header: {
                         Text("PROJECTS")
                             .font(.system(size: 10, design: .monospaced))
                             .tracking(1.5)
+                    } footer: {
+                        if domainStore.domains.isEmpty {
+                            Text("Create a domain before adding projects.")
+                                .foregroundStyle(Color.textDim)
+                        }
                     }
 
                     // API Keys
@@ -192,6 +207,9 @@ struct SettingsView: View {
             .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(isPresented: $showNewDomain) {
                 NewDomainView()
+            }
+            .sheet(isPresented: $showNewProject) {
+                NewProjectView()
             }
             .sheet(isPresented: $showNewKey) {
                 NewAPIKeyView()
@@ -252,8 +270,115 @@ struct SettingsView: View {
                 await settingsStore.fetchKeys()
             }
             .task { [domainStore] in
+                await domainStore.fetchDomains()
                 await domainStore.fetchProjects()
             }
+        }
+    }
+}
+
+private struct NewProjectView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(DomainStore.self) private var domainStore
+
+    @State private var name = ""
+    @State private var selectedDomainId = ""
+    @State private var description = ""
+    @State private var isCreating = false
+
+    private var canCreate: Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !selectedDomainId.isEmpty &&
+        !isCreating
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.bgPrimary.ignoresSafeArea()
+
+                VStack(spacing: 16) {
+                    fieldGroup("NAME *") {
+                        TextField("Project name", text: $name)
+                            .foregroundStyle(Color.textPrimary)
+                            .textInputAutocapitalization(.words)
+                    }
+
+                    fieldGroup("DOMAIN *") {
+                        Picker("Domain", selection: $selectedDomainId) {
+                            ForEach(domainStore.domains) { domain in
+                                Text(domain.name).tag(domain.id)
+                            }
+                        }
+                        .foregroundStyle(Color.textPrimary)
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    fieldGroup("DESCRIPTION") {
+                        TextField("Optional", text: $description, axis: .vertical)
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(3...6)
+                    }
+
+                    Spacer()
+                }
+                .padding(16)
+            }
+            .navigationTitle("New Project")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.bgPrimary, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.foregroundStyle(Color.textDim)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create") { Task { await create() } }
+                        .foregroundStyle(canCreate ? Color.linkBlue : Color.textDim)
+                        .fontWeight(.semibold)
+                        .disabled(!canCreate)
+                }
+            }
+            .task {
+                if domainStore.domains.isEmpty {
+                    await domainStore.fetchDomains()
+                }
+                if selectedDomainId.isEmpty {
+                    selectedDomainId = domainStore.domains.first?.id ?? ""
+                }
+            }
+        }
+    }
+
+    private func create() async {
+        isCreating = true
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let project = await domainStore.createProject(
+            name: trimmedName,
+            domainId: selectedDomainId,
+            description: trimmedDescription.isEmpty ? nil : trimmedDescription
+        )
+        if project != nil {
+            HapticManager.success()
+            dismiss()
+        }
+        isCreating = false
+    }
+
+    @ViewBuilder
+    private func fieldGroup(_ label: String, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .font(.system(size: 9, design: .monospaced))
+                .textCase(.uppercase).tracking(1.5)
+                .foregroundStyle(Color.textDim)
+            content()
+                .padding(14)
+                .background(Color.bgSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.bgBorder, lineWidth: 1))
         }
     }
 }
