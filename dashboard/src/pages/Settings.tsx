@@ -287,12 +287,13 @@ Each agent should have a unique identity — "openclaw", "hermes", "claude-code"
 ## Session Start
 
 At the **start of every session**, call \`threadron_checkin\` to see:
+- Active threads you can resume immediately
 - Work items you left in progress (resume these first)
 - Pending items assigned to you
 - Blocked items that need attention
 - **Unprocessed inbox items that need parsing**
 
-If there's in-progress work, call \`threadron_get_task\` on it to read the full state before doing anything else.
+If there's in-progress work, call \`threadron_get_task\` on it to read the full state before doing anything else. If you need the broader workstream, call \`threadron_get_thread\` for the durable thread snapshot and member tasks.
 
 ## While Working
 
@@ -551,12 +552,16 @@ Use Threadron tools to track work across sessions:
 
               {/* Available tools reference */}
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Available Tools (11)</h3>
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Available Tools (15)</h3>
                 <div className="space-y-1.5">
                   {[
                     ['threadron_checkin', 'Session start — returns in-progress, pending, and blocked work'],
                     ['threadron_list_tasks', 'List/filter work items by status, assignee, domain, search'],
                     ['threadron_get_task', 'Full work item with goal, state, timeline, artifacts'],
+                    ['threadron_list_threads', 'List durable execution threads'],
+                    ['threadron_get_thread', 'Thread detail with member tasks'],
+                    ['threadron_create_thread', 'Create a durable execution thread'],
+                    ['threadron_update_thread', 'Update a thread snapshot'],
                     ['threadron_create_task', 'Create with structured fields (goal, current_state, outcome)'],
                     ['threadron_update_state', 'Update current_state, next_action, blockers, confidence, status'],
                     ['threadron_add_context', 'Add timeline entries: observation, decision, action_taken, blocker, handoff'],

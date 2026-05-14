@@ -43,6 +43,13 @@
       "when": 1776121476591,
       "tag": "0005_chief_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776122476591,
+      "tag": "0006_shared_threads",
+      "breakpoints": true
     }
   ]
 }

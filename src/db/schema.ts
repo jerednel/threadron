@@ -34,6 +34,42 @@ export const projects = pgTable(
   (table) => [index("projects_domain_idx").on(table.domainId)]
 );
 
+// Threads
+export const threads = pgTable(
+  "threads",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    userId: text("user_id").notNull(),
+    status: text("status").notNull().default("active"),
+    source: text("source"),
+    parentThreadId: text("parent_thread_id").references(() => threads.id, {
+      onDelete: "set null",
+    }),
+    rootTaskId: text("root_task_id").references(() => tasks.id, {
+      onDelete: "set null",
+    }),
+    currentTaskId: text("current_task_id").references(() => tasks.id, {
+      onDelete: "set null",
+    }),
+    currentState: text("current_state"),
+    nextAction: text("next_action"),
+    blockers: jsonb("blockers").$type<string[]>().default([]),
+    outcomeDefinition: text("outcome_definition"),
+    confidence: text("confidence"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("threads_user_idx").on(table.userId),
+    index("threads_status_idx").on(table.status),
+    index("threads_source_idx").on(table.source),
+    index("threads_parent_idx").on(table.parentThreadId),
+  ]
+);
+
 // Tasks
 export const tasks = pgTable(
   "tasks",
@@ -44,6 +80,12 @@ export const tasks = pgTable(
     domainId: text("domain_id")
       .notNull()
       .references(() => domains.id, { onDelete: "cascade" }),
+    threadId: text("thread_id")
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    parentTaskId: text("parent_task_id").references(() => tasks.id, {
+      onDelete: "set null",
+    }),
     projectId: text("project_id").references(() => projects.id, {
       onDelete: "set null",
     }),
@@ -69,6 +111,8 @@ export const tasks = pgTable(
   },
   (table) => [
     index("tasks_domain_idx").on(table.domainId),
+    index("tasks_thread_idx").on(table.threadId),
+    index("tasks_parent_idx").on(table.parentTaskId),
     index("tasks_project_idx").on(table.projectId),
     index("tasks_assignee_idx").on(table.assignee),
     index("tasks_status_idx").on(table.status),

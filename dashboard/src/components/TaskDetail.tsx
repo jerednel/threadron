@@ -544,6 +544,21 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                 )}
               </div>
 
+              {task.thread && (
+                <div className="mb-4 rounded border border-[#1f1f1f] bg-[#101010] px-3 py-2">
+                  <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[#7a7a7a] mb-1">
+                    <span>Thread</span>
+                    <span className="text-[#4a4a4a]">·</span>
+                    <span className="text-[#9a9a9a] normal-case tracking-normal">{task.thread.name}</span>
+                    <span className="text-[#4a4a4a]">·</span>
+                    <span className="text-[#6a6a6a] normal-case">{task.thread.status}</span>
+                  </div>
+                  <div className="text-xs text-[#c0c0c0] font-mono leading-relaxed">
+                    {task.thread.current_state || 'No thread state yet'}
+                  </div>
+                </div>
+              )}
+
               {/* Push to Agent */}
               {task && (task.goal || task.next_action) && (
                 <div className="flex items-center gap-2 mt-2">

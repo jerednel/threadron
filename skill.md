@@ -2,6 +2,8 @@
 
 Threadron is a **shared execution state layer for agents**. It gives multiple agents a common work queue, structured per-item state, a persistent event log, and first-class artifact tracking — so any agent can pick up where another left off, and humans can observe what happened without asking.
 
+Threads are the durable unit of work. Use a thread for a feature or worktree, then attach tasks to that thread as the work branches and moves across agents or machines.
+
 ---
 
 ## Connection Options
@@ -59,6 +61,10 @@ Use Threadron tools to track work across sessions:
 | `threadron_checkin` | Session start — returns in-progress, pending, and blocked work |
 | `threadron_list_tasks` | List / filter work items by status, assignee, domain, search |
 | `threadron_get_task` | Full work item with goal, state, timeline, artifacts |
+| `threadron_list_threads` | List durable execution threads |
+| `threadron_get_thread` | Thread detail with member tasks |
+| `threadron_create_thread` | Create a durable execution thread |
+| `threadron_update_thread` | Update a thread snapshot |
 | `threadron_create_task` | Create with structured fields (goal, current_state, outcome) |
 | `threadron_update_state` | Update current_state, next_action, blockers, confidence |
 | `threadron_add_context` | Add timeline entries: observation, decision, action_taken, etc. |

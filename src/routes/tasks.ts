@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { tasks, contextEntries, domains, projects, config } from "../db/schema.js";
+import { tasks, contextEntries, domains, projects, config, threads } from "../db/schema.js";
 import { formatTaskPush, sendMessage } from "../lib/telegram.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
+import { createThread, getThreadById, updateThreadSnapshot } from "../lib/threads.js";
 import { eq, and, or, isNull, lte, ilike, asc, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
@@ -23,6 +24,8 @@ function toApi(row: typeof tasks.$inferSelect) {
     title: row.title,
     status: normalizeTaskStatus(row.status),
     domain_id: row.domainId,
+    thread_id: row.threadId,
+    parent_task_id: row.parentTaskId,
     project_id: row.projectId,
     assignee: row.assignee,
     created_by: row.createdBy,
@@ -68,6 +71,9 @@ export function taskRoutes(db: DrizzleDb) {
       domain_id: string;
       created_by: string;
       project_id?: string;
+      thread_id?: string;
+      parent_task_id?: string;
+      thread_name?: string;
       assignee?: string;
       priority?: string;
       guardrail?: string;
@@ -93,13 +99,64 @@ export function taskRoutes(db: DrizzleDb) {
       return c.json({ error: "Domain not found" }, 404);
     }
 
-    // Verify project belongs to the same domain (if provided)
+      // Verify project belongs to the same domain (if provided)
     if (body.project_id) {
       const [proj] = await db.select().from(projects)
         .where(and(eq(projects.id, body.project_id), eq(projects.domainId, body.domain_id))).limit(1);
       if (!proj) {
         return c.json({ error: "Project does not belong to this domain" }, 400);
       }
+    }
+
+    let threadId = body.thread_id ?? null;
+    let parentTaskId = body.parent_task_id ?? null;
+    let threadRow = null;
+
+    if (parentTaskId) {
+      const parentRows = await db
+        .select({ task: tasks })
+        .from(tasks)
+        .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+        .where(eq(tasks.id, parentTaskId))
+        .limit(1);
+
+      if (parentRows.length === 0) {
+        return c.json({ error: "Parent task not found" }, 404);
+      }
+
+      const parentThreadId = parentRows[0].task.threadId;
+      if (threadId && threadId !== parentThreadId) {
+        return c.json({ error: "parent_task_id must point to a task in the same thread" }, 400);
+      }
+      threadId = threadId ?? parentThreadId;
+      if (!threadId) {
+        return c.json({ error: "Parent task is missing a thread" }, 400);
+      }
+    }
+
+    if (threadId) {
+      const [existingThread] = await db.select().from(threads)
+        .where(and(eq(threads.id, threadId), eq(threads.userId, userId))).limit(1);
+      if (!existingThread) {
+        return c.json({ error: "Thread not found" }, 404);
+      }
+    } else {
+      const createdThread = await createThread(db, {
+        id: genId("th"),
+        name: body.thread_name?.trim() || body.title,
+        userId,
+        createdBy: body.created_by,
+        status: normalizeTaskStatus(body.status) ?? "active",
+        currentState: body.current_state ?? null,
+        nextAction: body.next_action ?? null,
+        blockers: body.blockers ?? [],
+        outcomeDefinition: body.outcome_definition ?? null,
+        confidence: body.confidence ?? null,
+        metadata: body.metadata ?? {},
+      });
+      threadRow = createdThread;
+      threadId = createdThread.id;
+      parentTaskId = null;
     }
 
     const id = genId("t");
@@ -110,6 +167,8 @@ export function taskRoutes(db: DrizzleDb) {
         id,
         title: body.title,
         domainId: body.domain_id,
+        threadId,
+        parentTaskId,
         createdBy: body.created_by,
         projectId: body.project_id ?? null,
         assignee: body.assignee ?? null,
@@ -131,6 +190,29 @@ export function taskRoutes(db: DrizzleDb) {
       })
       .returning();
 
+    if (threadRow) {
+      await updateThreadSnapshot(db, threadRow.id, {
+        rootTaskId: row.id,
+        currentTaskId: row.id,
+        status: normalizeTaskStatus(row.status) ?? "active",
+        currentState: row.currentState,
+        nextAction: row.nextAction,
+        blockers: row.blockers,
+        outcomeDefinition: row.outcomeDefinition,
+        confidence: row.confidence,
+      });
+    } else {
+      await updateThreadSnapshot(db, threadId, {
+        currentTaskId: row.id,
+        status: normalizeTaskStatus(row.status) ?? "active",
+        currentState: row.currentState,
+        nextAction: row.nextAction,
+        blockers: row.blockers,
+        outcomeDefinition: row.outcomeDefinition,
+        confidence: row.confidence,
+      });
+    }
+
     return c.json(toApi(row), 201);
   });
 
@@ -143,6 +225,7 @@ export function taskRoutes(db: DrizzleDb) {
     const status = c.req.query("status");
     const domainId = c.req.query("domain_id");
     const projectId = c.req.query("project_id");
+    const threadId = c.req.query("thread_id");
     const guardrail = c.req.query("guardrail");
     const search = c.req.query("search");
 
@@ -156,6 +239,7 @@ export function taskRoutes(db: DrizzleDb) {
     }
     if (domainId) filters.push(eq(tasks.domainId, domainId));
     if (projectId) filters.push(eq(tasks.projectId, projectId));
+    if (threadId) filters.push(eq(tasks.threadId, threadId));
     if (guardrail) filters.push(eq(tasks.guardrail, guardrail));
     if (search) filters.push(ilike(tasks.title, `%${escapeIlike(search)}%`));
 
@@ -191,6 +275,8 @@ export function taskRoutes(db: DrizzleDb) {
       .where(eq(contextEntries.taskId, id))
       .orderBy(asc(contextEntries.createdAt));
 
+    const thread = await getThreadById(db, rows[0].task.threadId);
+
     const ctxToApi = (row: typeof contextEntries.$inferSelect) => ({
       id: row.id,
       task_id: row.taskId,
@@ -223,6 +309,24 @@ export function taskRoutes(db: DrizzleDb) {
 
     return c.json({
       ...toApi(rows[0].task),
+      thread: thread ? {
+        id: thread.id,
+        name: thread.name,
+        status: thread.status,
+        current_state: thread.currentState,
+        next_action: thread.nextAction,
+        blockers: thread.blockers,
+        outcome_definition: thread.outcomeDefinition,
+        confidence: thread.confidence,
+        source: thread.source,
+        root_task_id: thread.rootTaskId,
+        current_task_id: thread.currentTaskId,
+        parent_thread_id: thread.parentThreadId,
+        metadata: thread.metadata,
+        created_by: thread.createdBy,
+        created_at: thread.createdAt,
+        updated_at: thread.updatedAt,
+      } : null,
       context: context.map(ctxToApi),
       artifacts: artifactRows.map(artifactToApi),
     });
@@ -252,6 +356,8 @@ export function taskRoutes(db: DrizzleDb) {
       confidence?: string;
       claimed_by?: string;
       claim_expires_at?: string;
+      thread_id?: string;
+      parent_task_id?: string;
       // Actor attribution for auto-events
       _actor?: string;
       _actor_type?: string;
@@ -313,6 +419,30 @@ export function taskRoutes(db: DrizzleDb) {
     if (body.confidence !== undefined) updates.confidence = body.confidence;
     if (body.claimed_by !== undefined) updates.claimedBy = body.claimed_by;
     if (body.claim_expires_at !== undefined) updates.claimExpiresAt = new Date(body.claim_expires_at);
+    if (body.thread_id !== undefined) {
+      const [thread] = await db.select().from(threads)
+        .where(and(eq(threads.id, body.thread_id), eq(threads.userId, userId))).limit(1);
+      if (!thread) return c.json({ error: "Thread not found" }, 404);
+      updates.threadId = body.thread_id;
+    }
+    if (body.parent_task_id !== undefined) {
+      if (body.parent_task_id !== null) {
+        const parentRows = await db
+          .select({ task: tasks })
+          .from(tasks)
+          .innerJoin(domains, and(eq(tasks.domainId, domains.id), eq(domains.userId, userId)))
+          .where(eq(tasks.id, body.parent_task_id))
+          .limit(1);
+        if (parentRows.length === 0) return c.json({ error: "Parent task not found" }, 404);
+        if (updates.threadId !== undefined && updates.threadId !== parentRows[0].task.threadId) {
+          return c.json({ error: "parent_task_id must point to a task in the same thread" }, 400);
+        }
+        updates.parentTaskId = body.parent_task_id;
+        updates.threadId = parentRows[0].task.threadId;
+      } else {
+        updates.parentTaskId = null;
+      }
+    }
 
     const [row] = await db
       .update(tasks)
@@ -369,6 +499,18 @@ export function taskRoutes(db: DrizzleDb) {
           `Blocker resolved: ${removed.join(", ")}`,
           actor, actorType);
       }
+    }
+
+    if (row.threadId) {
+      await updateThreadSnapshot(db, row.threadId, {
+        currentTaskId: row.id,
+        status: normalizeTaskStatus(row.status) ?? "active",
+        currentState: row.currentState,
+        nextAction: row.nextAction,
+        blockers: row.blockers,
+        outcomeDefinition: row.outcomeDefinition,
+        confidence: row.confidence,
+      });
     }
 
     return c.json(toApi(row));

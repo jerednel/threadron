@@ -108,6 +108,16 @@ A work item isn't a checkbox. It's a living container for execution state:
 
 An agent reads this and knows exactly what's going on — no re-investigation needed.
 
+### Threads
+
+Threads are the durable execution stream behind work items. A thread is the thing that survives across agents, machines, and sessions:
+
+- one feature or worktree maps to one thread
+- tasks can belong to a thread and form lineage through parent/child links
+- thread state keeps the shared snapshot up to date for the next reader
+
+If you only remember one rule, remember this: create a thread for the stream of work, then keep updating it as the work moves forward.
+
 ### Timeline (auto-generated)
 
 Every mutation creates an attributable event:
@@ -157,13 +167,17 @@ POST /v1/tasks/{id}/claim
 
 ## MCP Tools
 
-When connected via MCP, agents get 11 native tools:
+When connected via MCP, agents get 15 native tools:
 
 | Tool | Purpose |
 |------|---------|
 | `threadron_checkin` | Session start — returns in-progress, pending, blocked work |
 | `threadron_list_tasks` | List/filter work items |
 | `threadron_get_task` | Full detail with timeline + artifacts |
+| `threadron_list_threads` | List durable execution threads |
+| `threadron_get_thread` | Thread detail with member tasks |
+| `threadron_create_thread` | Create a durable execution thread |
+| `threadron_update_thread` | Update a thread snapshot |
 | `threadron_create_task` | Create with structured state fields |
 | `threadron_update_state` | Update current_state, next_action, blockers |
 | `threadron_add_context` | Add timeline entries (observation, decision, action_taken) |

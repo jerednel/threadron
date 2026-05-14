@@ -33,13 +33,15 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       status: z.string().optional().describe("Filter: pending, in_progress, blocked, completed"),
       assignee: z.string().optional().describe("Filter by agent ID"),
       domain_id: z.string().optional().describe("Filter by domain ID"),
+      thread_id: z.string().optional().describe("Filter by thread ID"),
       search: z.string().optional().describe("Search title text"),
     },
-    async ({ status, assignee, domain_id, search }) => {
+    async ({ status, assignee, domain_id, thread_id, search }) => {
       const params = new URLSearchParams();
       if (status) params.set("status", status);
       if (assignee) params.set("assignee", assignee);
       if (domain_id) params.set("domain_id", domain_id);
+      if (thread_id) params.set("thread_id", thread_id);
       if (search) params.set("search", search);
       const qs = params.toString() ? `?${params}` : "";
       const data = await api(`/tasks${qs}`);
@@ -66,6 +68,95 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
     }
   );
 
+  // ─── Thread operations ───────────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_list_threads",
+    "List durable execution threads. Use this to find the shared thread that survives across agents and machines.",
+    {
+      status: z.string().optional().describe("Filter: active, paused, completed, archived"),
+      search: z.string().optional().describe("Search thread name or state text"),
+      source: z.string().optional().describe("Filter by source string"),
+    },
+    async ({ status, search, source }) => {
+      const params = new URLSearchParams();
+      if (status) params.set("status", status);
+      if (search) params.set("search", search);
+      if (source) params.set("source", source);
+      const qs = params.toString() ? `?${params}` : "";
+      const data = await api(`/threads${qs}`);
+      const threads = (data as { threads?: unknown }).threads || data;
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(threads, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_get_thread",
+    "Get a thread with its latest state and member tasks. Use to resume a worktree or feature thread.",
+    {
+      thread_id: z.string().describe("Thread ID"),
+    },
+    async ({ thread_id }) => {
+      const data = await api(`/threads/${thread_id}`);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_create_thread",
+    "Create a durable execution thread. Use when starting a new worktree or feature stream that multiple agents may touch.",
+    {
+      name: z.string().describe("Thread name"),
+      source: z.string().optional().describe("Optional worktree/repo/source identifier"),
+      status: z.string().optional().describe("active, paused, completed, archived"),
+      current_state: z.string().optional().describe("Current state of the thread"),
+      next_action: z.string().optional().describe("Next action for the thread"),
+      blockers: z.array(z.string()).optional().describe("Current blockers"),
+      outcome_definition: z.string().optional().describe("What done looks like"),
+      confidence: z.string().optional().describe("low, medium, high"),
+      parent_thread_id: z.string().optional().describe("Optional parent thread for lineage"),
+      root_task_id: z.string().optional().describe("Optional root task that started this thread"),
+    },
+    async (params) => {
+      const data = await api("/threads", {
+        method: "POST",
+        body: JSON.stringify(params),
+      });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_update_thread",
+    "Update a thread's durable snapshot. Use this to keep the shared execution state current across sessions and agents.",
+    {
+      thread_id: z.string().describe("Thread ID"),
+      name: z.string().optional().describe("Rename the thread"),
+      status: z.string().optional().describe("active, paused, completed, archived"),
+      current_state: z.string().optional().describe("Current state of the thread"),
+      next_action: z.string().optional().describe("Next action for the thread"),
+      blockers: z.array(z.string()).optional().describe("Replace blockers"),
+      outcome_definition: z.string().optional().describe("Update what done looks like"),
+      confidence: z.string().optional().describe("low, medium, high"),
+      source: z.string().optional().describe("Update source identifier"),
+    },
+    async ({ thread_id, ...updates }) => {
+      const data = await api(`/threads/${thread_id}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
   // ─── Create work item ─────────────────────────────────────────────────────────
 
   server.tool(
@@ -74,6 +165,9 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
     {
       title: z.string().describe("Short title of the work item"),
       domain_id: z.string().describe("Domain ID this belongs to"),
+      thread_id: z.string().optional().describe("Attach to an existing thread"),
+      parent_task_id: z.string().optional().describe("Link this as a child task of another task"),
+      thread_name: z.string().optional().describe("Name for a newly created thread if thread_id is omitted"),
       goal: z.string().optional().describe("What this work aims to achieve"),
       current_state: z.string().optional().describe("Current state of the work"),
       next_action: z.string().optional().describe("What should happen next"),
@@ -116,6 +210,8 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       tags: z.array(z.string()).optional().describe("Replace tags"),
       goal: z.string().optional().describe("Update the goal"),
       outcome_definition: z.string().optional().describe("Update what done looks like"),
+      thread_id: z.string().optional().describe("Move task to a different thread"),
+      parent_task_id: z.string().optional().describe("Set or clear task lineage by linking to a parent task"),
     },
     async ({ task_id, ...updates }) => {
       const body: Record<string, unknown> = {
@@ -134,6 +230,8 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       if (updates.tags !== undefined) body.tags = updates.tags;
       if (updates.goal !== undefined) body.goal = updates.goal;
       if (updates.outcome_definition !== undefined) body.outcome_definition = updates.outcome_definition;
+      if (updates.thread_id !== undefined) body.thread_id = updates.thread_id;
+      if (updates.parent_task_id !== undefined) body.parent_task_id = updates.parent_task_id;
 
       const data = await api(`/tasks/${task_id}`, {
         method: "PATCH",
@@ -331,27 +429,30 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
   server.tool(
     "threadron_checkin",
-    "Session start check-in. Returns your in-progress work, pending items, blocked items, and unprocessed inbox items. Use this at the start of every session to understand what needs attention.",
+    "Session start check-in. Returns your active threads, in-progress work, pending items, blocked items, and unprocessed inbox items. Use this at the start of every session to understand what needs attention.",
     {},
     async () => {
-      const [inProgress, pending, blocked, inbox] = await Promise.all([
+      const [threadsData, inProgress, pending, blocked, inbox] = await Promise.all([
+        api(`/threads?status=active`).then((d) => (d as { threads?: unknown[] }).threads || d).catch(() => []),
         api(`/tasks?assignee=${agentId}&status=in_progress`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?assignee=${agentId}&status=pending`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?status=blocked`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/inbox?status=unprocessed`).then((d) => (d as { items?: unknown[] }).items || d).catch(() => []),
       ]);
 
+      const threadArr = threadsData as unknown[];
       const inProgressArr = inProgress as unknown[];
       const pendingArr = pending as unknown[];
       const blockedArr = blocked as unknown[];
       const inboxArr = inbox as unknown[];
 
       const summary = {
+        active_threads: threadArr,
         in_progress: inProgressArr,
         pending: pendingArr,
         blocked: blockedArr,
         unprocessed_inbox: inboxArr,
-        summary: `${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked, ${inboxArr.length} inbox items to parse`,
+        summary: `${threadArr.length} active threads, ${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked, ${inboxArr.length} inbox items to parse`,
       };
 
       return {

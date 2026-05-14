@@ -70,6 +70,8 @@ export interface Task {
   priority: string;
   assignee?: string;
   domain_id?: string;
+  thread_id?: string;
+  parent_task_id?: string;
   domain?: Domain;
   project_id?: string;
   project?: Project;
@@ -88,6 +90,29 @@ export interface Task {
   claimed_until?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface Thread {
+  id: string;
+  name: string;
+  user_id: string;
+  status: string;
+  source?: string | null;
+  parent_thread_id?: string | null;
+  root_task_id?: string | null;
+  current_task_id?: string | null;
+  current_state?: string | null;
+  next_action?: string | null;
+  blockers?: string[];
+  outcome_definition?: string | null;
+  confidence?: string | null;
+  metadata?: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  task_count?: number;
+  open_task_count?: number;
+  tasks?: Task[];
 }
 
 export interface ContextEntry {
@@ -112,6 +137,7 @@ export interface Artifact {
 }
 
 export interface TaskDetail extends Task {
+  thread?: Thread | null;
   context?: ContextEntry[];
   artifacts?: Artifact[];
 }
@@ -199,6 +225,37 @@ export const api = {
     request('/tasks', { method: 'POST', body: JSON.stringify(data) }),
   updateTask: (id: string, data: Partial<Task>): Promise<Task> =>
     request(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // Threads
+  listThreads: (params?: Record<string, string>): Promise<Thread[]> => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request(`/threads${qs}`).then(r => r.threads ?? r);
+  },
+  getThread: (id: string): Promise<Thread> => request(`/threads/${id}`),
+  createThread: (data: {
+    name: string;
+    source?: string;
+    status?: string;
+    current_state?: string;
+    next_action?: string;
+    blockers?: string[];
+    outcome_definition?: string;
+    confidence?: string;
+    parent_thread_id?: string;
+    root_task_id?: string;
+  }): Promise<Thread> =>
+    request('/threads', { method: 'POST', body: JSON.stringify(data) }),
+  updateThread: (id: string, data: Partial<Thread> & {
+    current_state?: string | null;
+    next_action?: string | null;
+    blockers?: string[];
+    outcome_definition?: string | null;
+    confidence?: string | null;
+    parent_thread_id?: string | null;
+    current_task_id?: string | null;
+    root_task_id?: string | null;
+  }): Promise<Thread> =>
+    request(`/threads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
   // Context
   addContext: (taskId: string, data: { type: string; body: string; author: string }): Promise<ContextEntry> =>
