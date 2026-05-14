@@ -163,8 +163,25 @@ export default function Dashboard() {
       }
       setEditingInboxItem(null);
       await Promise.all([loadInbox(), loadData()]);
-    } catch {}
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to promote inbox item');
+    }
   }, [selectedDomainId, domains, loadInbox, loadData]);
+
+  const handleDeleteProject = useCallback(async (project: Project) => {
+    if (!confirm(`Delete project "${project.name}"? Tasks in this project will be kept and moved to no project.`)) return;
+    try {
+      await api.deleteProject(project.id);
+      const deletedSelectedProject = selectedProjectId === project.id;
+      if (deletedSelectedProject) setSelectedProjectId('');
+      const domId = selectedDomainId || undefined;
+      const updatedProjects = await api.listProjects(domId);
+      setProjects(updatedProjects);
+      if (!deletedSelectedProject) await loadData();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete project');
+    }
+  }, [selectedDomainId, selectedProjectId, loadData]);
 
   // Collect unique tags from all fetched tasks
   const allTags = [...new Set(tasks.flatMap(t => t.tags || []))].sort();
@@ -328,17 +345,29 @@ export default function Dashboard() {
                   </button>
                 )}
                 {projects.map(p => (
-                  <button
+                  <div
                     key={p.id}
-                    onClick={() => setSelectedProjectId(p.id)}
-                    className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer whitespace-nowrap border ${
+                    className={`flex items-center rounded border overflow-hidden whitespace-nowrap ${
                       selectedProjectId === p.id
                         ? 'bg-[#2a2a2a] text-[#f0f0f0] border-[#3a3a3a]'
                         : 'bg-[#1a1a1a] text-[#8a8a8a] border-[#2a2a2a] hover:text-[#c0c0c0] hover:border-[#3a3a3a]'
                     }`}
                   >
-                    {p.name}
-                  </button>
+                    <button
+                      onClick={() => setSelectedProjectId(p.id)}
+                      className="px-2.5 py-1 text-[11px] font-mono transition-colors cursor-pointer"
+                    >
+                      {p.name}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProject(p)}
+                      className="px-1.5 py-1 text-[11px] font-mono text-[#5a5a5a] hover:text-red-400 transition-colors cursor-pointer border-l border-[#2a2a2a]"
+                      title={`Delete ${p.name}`}
+                      aria-label={`Delete project ${p.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
                 {selectedDomainId && (
                   <button

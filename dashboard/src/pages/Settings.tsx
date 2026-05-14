@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { api, type Domain, type Agent } from '../lib/api';
+import { api, type Domain, type Agent, type Project } from '../lib/api';
 import NewDomain from '../components/NewDomain';
 import NewProject from '../components/NewProject';
 
@@ -27,6 +27,7 @@ function formatDate(dateStr: string) {
 export default function Settings() {
   const [tab, setTab] = useState<Tab>('domains');
   const [domains, setDomains] = useState<Domain[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKeyRecord[]>([]);
   // Create key form
@@ -77,6 +78,15 @@ export default function Settings() {
     }
   }
 
+  async function loadProjects() {
+    try {
+      const res = await api.listProjects();
+      setProjects(Array.isArray(res) ? res : []);
+    } catch {
+      setProjects([]);
+    }
+  }
+
   async function loadApiKeys() {
     try {
       const res = await api.listApiKeys();
@@ -103,7 +113,7 @@ export default function Settings() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    Promise.all([loadDomains(), loadAgents()])
+    Promise.all([loadDomains(), loadProjects(), loadAgents()])
       .finally(() => setLoading(false));
   }, []);
 
@@ -124,7 +134,17 @@ export default function Settings() {
     if (!confirm('Delete this domain? All associated tasks will be affected.')) return;
     try {
       await api.deleteDomain(id);
-      await loadDomains();
+      await Promise.all([loadDomains(), loadProjects()]);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Delete failed');
+    }
+  }
+
+  async function handleDeleteProject(project: Project) {
+    if (!confirm(`Delete project "${project.name}"? Tasks in this project will be kept and moved to no project.`)) return;
+    try {
+      await api.deleteProject(project.id);
+      await loadProjects();
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : 'Delete failed');
     }
@@ -317,6 +337,7 @@ Projects group related work items within a domain.
 
 - \`threadron_list_projects(domain_id?)\` — see existing projects
 - \`threadron_create_project(name, domain_id, description?)\` — create a new project
+- \`threadron_delete_project(project_id)\` — delete a project; linked work items remain unassigned to a project
 - \`threadron_update_state(task_id, project_id)\` — assign a work item to a project
 
 ## Processing Inbox
@@ -713,6 +734,47 @@ TFA_AGENT_ID=hermes`}</pre>
               ))}
             </div>
           )}
+
+          <div className="mt-8">
+            <h3 className="font-mono text-xs font-bold text-[#8a8a8a] uppercase tracking-wide mb-3">
+              Projects
+            </h3>
+            {projects.length === 0 ? (
+              <div className="border border-dashed border-[#2a2a2a] rounded-lg p-6 text-center">
+                <p className="text-[#4a4a4a] font-mono text-sm">No projects yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {projects.map(p => {
+                  const domain = domains.find(d => d.id === p.domain_id);
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg px-4 py-3"
+                    >
+                      <div className="min-w-0">
+                        <span className="font-mono text-sm text-[#f0f0f0] font-medium">{p.name}</span>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-[10px] font-mono text-[#8a8a8a]">
+                            domain: <span className="text-[#f0f0f0]">{domain?.name || p.domain_id}</span>
+                          </span>
+                          <span className="text-[10px] font-mono text-[#4a4a4a]">
+                            {formatDate(p.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteProject(p)}
+                        className="text-[#4a4a4a] hover:text-red-400 text-xs font-mono transition-colors cursor-pointer shrink-0 ml-4"
+                      >
+                        delete
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1094,7 +1156,7 @@ curl -X POST ${API_URL}/v1/tasks \\
       {showNewProject && (
         <NewProject
           onClose={() => setShowNewProject(false)}
-          onCreated={() => {}}
+          onCreated={loadProjects}
         />
       )}
     </div>

@@ -187,6 +187,7 @@ export const api = {
     request(`/projects${domainId ? `?domain_id=${domainId}` : ''}`).then(r => r.projects ?? r),
   createProject: (data: { name: string; domain_id: string; description?: string }): Promise<Project> =>
     request('/projects', { method: 'POST', body: JSON.stringify(data) }),
+  deleteProject: (id: string) => request(`/projects/${id}`, { method: 'DELETE' }),
 
   // Tasks
   listTasks: (params?: Record<string, string>): Promise<Task[]> => {

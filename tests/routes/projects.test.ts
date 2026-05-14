@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { createTestContext, TEST_USER_ID } from "../helpers/api.js";
 import { domainRoutes } from "../../src/routes/domains.js";
 import { projectRoutes } from "../../src/routes/projects.js";
+import { taskRoutes } from "../../src/routes/tasks.js";
 
 let ctx: Awaited<ReturnType<typeof createTestContext>>;
 
@@ -22,6 +23,7 @@ function buildApp() {
   });
   app.route("/domains", domainRoutes(ctx.db));
   app.route("/projects", projectRoutes(ctx.db));
+  app.route("/tasks", taskRoutes(ctx.db));
   return app;
 }
 
@@ -166,5 +168,39 @@ describe("DELETE /v1/projects/:id", () => {
 
     const getRes = await app.request(`/v1/projects/${id}`);
     expect(getRes.status).toBe(404);
+  });
+
+  it("keeps tasks and clears their project when deleting a project", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+
+    const createProjectRes = await app.request("/v1/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Project With Tasks", domain_id: domain.id }),
+    });
+    const project = await createProjectRes.json();
+
+    const createTaskRes = await app.request("/v1/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Keep Me",
+        domain_id: domain.id,
+        project_id: project.id,
+        created_by: "test",
+      }),
+    });
+    const task = await createTaskRes.json();
+
+    const deleteRes = await app.request(`/v1/projects/${project.id}`, {
+      method: "DELETE",
+    });
+    expect(deleteRes.status).toBe(200);
+
+    const taskRes = await app.request(`/v1/tasks/${task.id}`);
+    expect(taskRes.status).toBe(200);
+    const taskBody = await taskRes.json();
+    expect(taskBody.project_id).toBeNull();
   });
 });
