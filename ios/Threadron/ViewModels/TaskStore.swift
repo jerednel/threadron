@@ -27,15 +27,21 @@ final class TaskStore {
     }
 
     var activeTasks: [TaskItem] {
-        filtered.filter { $0.status == .inProgress || $0.status == .blocked }
+        filtered
+            .filter { $0.status == .inProgress || $0.status == .blocked }
+            .sortedByRecentUpdate()
     }
 
     var queueTasks: [TaskItem] {
-        filtered.filter { $0.status == .pending }
+        filtered
+            .filter { $0.status == .pending }
+            .sortedByRecentUpdate()
     }
 
     var doneTasks: [TaskItem] {
-        filtered.filter { $0.status == .completed || $0.status == .cancelled }
+        filtered
+            .filter { $0.status == .completed || $0.status == .cancelled || $0.status == .closed }
+            .sortedByRecentUpdate()
     }
 
     var allTags: [String] {
@@ -144,6 +150,14 @@ final class TaskStore {
         } catch {
             self.error = error.localizedDescription
             return nil
+        }
+    }
+}
+
+private extension Array where Element == TaskItem {
+    func sortedByRecentUpdate() -> [TaskItem] {
+        sorted {
+            ($0.updatedAt ?? $0.createdAt ?? .distantPast) > ($1.updatedAt ?? $1.createdAt ?? .distantPast)
         }
     }
 }

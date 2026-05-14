@@ -54,7 +54,7 @@ const confidenceColors: Record<string, string> = {
   high: 'bg-green-900/40 text-green-400 border-green-800/50',
 };
 
-const statusOptions = ['pending', 'in_progress', 'completed', 'cancelled', 'blocked'];
+const statusOptions = ['pending', 'in_progress', 'completed', 'cancelled', 'closed', 'blocked'];
 const contextTypes = ['observation', 'action_taken', 'decision', 'blocker', 'handoff', 'proposal', 'approval_requested', 'approval_received', 'progress', 'artifact'];
 const artifactTypes = ['file', 'branch', 'commit', 'pull_request', 'patch', 'plan', 'doc', 'terminal_output'];
 

@@ -13,11 +13,15 @@ function escapeIlike(str: string): string {
   return str.replace(/[%_\\]/g, '\\$&');
 }
 
+function normalizeTaskStatus(status: string | undefined): string | undefined {
+  return status === "closed" ? "completed" : status;
+}
+
 function toApi(row: typeof tasks.$inferSelect) {
   return {
     id: row.id,
     title: row.title,
-    status: row.status,
+    status: normalizeTaskStatus(row.status),
     domain_id: row.domainId,
     project_id: row.projectId,
     assignee: row.assignee,
@@ -60,6 +64,7 @@ export function taskRoutes(db: DrizzleDb) {
   router.post("/", async (c) => {
     const body = await c.req.json<{
       title: string;
+      status?: string;
       domain_id: string;
       created_by: string;
       project_id?: string;
@@ -108,6 +113,7 @@ export function taskRoutes(db: DrizzleDb) {
         createdBy: body.created_by,
         projectId: body.project_id ?? null,
         assignee: body.assignee ?? null,
+        status: normalizeTaskStatus(body.status) ?? "pending",
         priority: body.priority ?? "medium",
         guardrail: body.guardrail ?? null,
         dependencies: body.dependencies ?? null,
@@ -141,7 +147,13 @@ export function taskRoutes(db: DrizzleDb) {
     const search = c.req.query("search");
 
     if (assignee) filters.push(eq(tasks.assignee, assignee));
-    if (status) filters.push(eq(tasks.status, status));
+    if (status) {
+      if (status === "completed") {
+        filters.push(or(eq(tasks.status, "completed"), eq(tasks.status, "closed"))!);
+      } else {
+        filters.push(eq(tasks.status, status));
+      }
+    }
     if (domainId) filters.push(eq(tasks.domainId, domainId));
     if (projectId) filters.push(eq(tasks.projectId, projectId));
     if (guardrail) filters.push(eq(tasks.guardrail, guardrail));
@@ -261,8 +273,10 @@ export function taskRoutes(db: DrizzleDb) {
     const updates: Partial<typeof tasks.$inferInsert> = {
       updatedAt: new Date(),
     };
+    const normalizedStatus = normalizeTaskStatus(body.status);
+
     if (body.title !== undefined) updates.title = body.title;
-    if (body.status !== undefined) updates.status = body.status;
+    if (normalizedStatus !== undefined) updates.status = normalizedStatus;
     if (body.domain_id !== undefined && body.domain_id !== oldRow.domainId) {
       // Reject domain move if task belongs to a project — move the project instead
       if (oldRow.projectId) {
@@ -310,9 +324,9 @@ export function taskRoutes(db: DrizzleDb) {
     const actor = body._actor || "system";
     const actorType = body._actor_type || "system";
 
-    if (body.status !== undefined && body.status !== oldRow.status) {
+    if (normalizedStatus !== undefined && normalizedStatus !== normalizeTaskStatus(oldRow.status)) {
       await recordEvent(db, id, "state_transition",
-        `Status changed from ${oldRow.status} to ${body.status}`,
+        `Status changed from ${normalizeTaskStatus(oldRow.status)} to ${normalizedStatus}`,
         actor, actorType);
     }
     if (body.assignee !== undefined && body.assignee !== oldRow.assignee) {
