@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum TaskStatus: String, Codable, CaseIterable, Identifiable {
-    case pending, inProgress = "in_progress", completed, cancelled, blocked
+    case pending, inProgress = "in_progress", completed, cancelled, closed, blocked
     var id: String { rawValue }
 
     var label: String {
@@ -10,6 +10,7 @@ enum TaskStatus: String, Codable, CaseIterable, Identifiable {
         case .inProgress: "in_progress"
         case .completed: "completed"
         case .cancelled: "cancelled"
+        case .closed: "closed"
         case .blocked: "blocked"
         }
     }
@@ -20,6 +21,7 @@ enum TaskStatus: String, Codable, CaseIterable, Identifiable {
         case .inProgress: .priorityMedium
         case .completed: .priorityLow
         case .cancelled: .textDim
+        case .closed: .textDim
         case .blocked: .priorityUrgent
         }
     }

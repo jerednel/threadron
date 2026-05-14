@@ -3,7 +3,7 @@ import Foundation
 actor APIClient {
     static let shared = APIClient()
 
-    private let baseURL = URL(string: "https://api-production-ca21c.up.railway.app/v1")!
+    private let baseURL = URL(string: "https://threadron.com/v1")!
     private let session = URLSession.shared
     private var token: String?
 

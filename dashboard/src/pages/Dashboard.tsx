@@ -207,7 +207,9 @@ export default function Dashboard() {
   const inProgressTasks = activeTasks.filter(t => t.status === 'in_progress');
   const blockedTasks = activeTasks.filter(t => t.status === 'blocked');
   const pendingTasks = filteredTasks.filter(t => t.status === 'pending');
-  const completedTasks = filteredTasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
+  const completedTasks = filteredTasks.filter(t =>
+    t.status === 'completed' || t.status === 'cancelled' || t.status === 'closed'
+  );
 
   // Group active tasks by project for display
   const activeByProject = useMemo(() => {
