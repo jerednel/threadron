@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   NODE_VERSION: "22"
   RAILWAY_PROJECT_ID: 4e203420-b591-4b22-8cdd-cabad3fd197a
   RAILWAY_ENVIRONMENT: production
