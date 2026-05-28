@@ -7,13 +7,15 @@ interface InboxPanelProps {
   items: InboxItem[];
   loading: boolean;
   onPromote: (id: string) => void;
+  onPromoteThread: (id: string) => void;
+  onRemember: (id: string) => void;
   onReject: (id: string) => void;
   onEdit: (id: string) => void;
   onRefresh: () => void;
   defaultDomainId?: string;
 }
 
-export default function InboxPanel({ items, loading, onPromote, onReject, onEdit, onRefresh, defaultDomainId }: InboxPanelProps) {
+export default function InboxPanel({ items, loading, onPromote, onPromoteThread, onRemember, onReject, onEdit, onRefresh, defaultDomainId }: InboxPanelProps) {
   const [recentCollapsed, setRecentCollapsed] = useState(true);
   const captureRef = useRef<InboxCaptureHandle>(null);
 
@@ -26,7 +28,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
   const processing = items.filter(i => i.status === 'processing');
   const parsed = items.filter(i => i.status === 'parsed');
   const errored = items.filter(i => i.status === 'error');
-  const recent = items.filter(i => i.status === 'promoted' || i.status === 'rejected');
+  const recent = items.filter(i => i.status === 'promoted' || i.status === 'remembered' || i.status === 'rejected');
 
   const activeCount = unprocessed.length + processing.length + parsed.length + errored.length;
 
@@ -72,7 +74,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
               </span>
             </div>
             {errored.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onPromoteThread={onPromoteThread} onRemember={onRemember} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -86,7 +88,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
               </span>
             </div>
             {unprocessed.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onPromoteThread={onPromoteThread} onRemember={onRemember} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -101,7 +103,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
               </span>
             </div>
             {processing.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onPromoteThread={onPromoteThread} onRemember={onRemember} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -116,7 +118,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
               </span>
             </div>
             {parsed.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onPromoteThread={onPromoteThread} onRemember={onRemember} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}
@@ -148,7 +150,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
           </div>
         )}
 
-        {/* Recent (promoted/rejected) — collapsed by default */}
+        {/* Recent outcomes — collapsed by default */}
         {recent.length > 0 && (
           <div>
             <button
@@ -160,7 +162,7 @@ export default function InboxPanel({ items, loading, onPromote, onReject, onEdit
               </span>
             </button>
             {!recentCollapsed && recent.map(item => (
-              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onReject={onReject} onEdit={onEdit} />
+              <InboxItemCard key={item.id} item={item} onPromote={onPromote} onPromoteThread={onPromoteThread} onRemember={onRemember} onReject={onReject} onEdit={onEdit} />
             ))}
           </div>
         )}

@@ -188,6 +188,8 @@ When connected via MCP, agents get 16 native tools:
 | `threadron_release` | Release claim when done |
 | `threadron_list_domains` | List organizational domains |
 | `threadron_list_agents` | List registered agents |
+| `threadron_list_context` | List shared notes, decisions, resources, questions, and memories |
+| `threadron_create_context` | Store durable shared context that is not actionable work |
 
 ## REST API
 

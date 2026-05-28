@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './lib/auth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Threads from './pages/Threads';
+import Context from './pages/Context';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
 
@@ -32,6 +33,7 @@ function AppRoutes() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="/threads" element={<Threads />} />
+          <Route path="/context" element={<Context />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

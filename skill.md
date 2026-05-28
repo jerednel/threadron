@@ -82,6 +82,8 @@ Use Threadron tools to track work across sessions:
 | `threadron_list_inbox` | List inbox items (filter by status: unprocessed, parsed, etc.) |
 | `threadron_parse_inbox` | Interpret raw inbox text → propose title, next_action, confidence |
 | `threadron_capture_inbox` | Capture a new inbox item (raw text, optional domain) |
+| `threadron_list_context` | List shared notes, decisions, resources, questions, and memories |
+| `threadron_create_context` | Store durable shared context that is not actionable work |
 
 If you are using MCP, the tools above replace the REST API documented below. You do not need to make manual HTTP calls.
 

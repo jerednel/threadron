@@ -378,6 +378,18 @@ Transform vague input into specific, actionable language:
 When the user mentions something that should be tracked but isn't a fully formed task:
 - \`threadron_capture_inbox(raw_text: "what they said", domain_id: "d_xyz")\`
 
+## Shared Context Objects
+
+Use context objects for things to remember, not things to do. A task says "do this." A context object says "remember this."
+
+- \`threadron_create_context(type: "note", ...)\` for facts worth remembering
+- \`threadron_create_context(type: "decision", ...)\` for durable choices and rationale
+- \`threadron_create_context(type: "resource", ...)\` for links, repos, docs, dashboards, and files
+- \`threadron_create_context(type: "question", ...)\` for open unknowns
+- \`threadron_create_context(type: "memory", ...)\` for stable reusable context
+
+Before answering a context-heavy question, call \`threadron_list_context\` with a relevant thread, domain, type, or search filter.
+
 ## Creating New Work
 
 1. **Check scope** — Is this a single, discrete goal? If not, break it up.
@@ -557,7 +569,7 @@ Use Threadron tools to track work across sessions:
 
               {/* Available tools reference */}
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-5">
-                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Available Tools (16)</h3>
+                <h3 className="font-mono text-sm font-bold text-[#f0f0f0] mb-3">Available Tools</h3>
                 <div className="space-y-1.5">
                   {[
                     ['threadron_checkin', 'Session start — returns in-progress, pending, and blocked work'],
@@ -576,6 +588,8 @@ Use Threadron tools to track work across sessions:
                     ['threadron_release', 'Release claim when done or pausing'],
                     ['threadron_list_domains', 'List available domains'],
                     ['threadron_list_agents', 'List registered agents and last activity'],
+                    ['threadron_list_context', 'List shared notes, decisions, resources, questions, and memories'],
+                    ['threadron_create_context', 'Store durable shared context that is not actionable work'],
                   ].map(([name, desc]) => (
                     <div key={name} className="flex gap-3">
                       <code className="text-[11px] font-mono text-[#f0f0f0] shrink-0 w-48">{name}</code>

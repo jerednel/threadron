@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, type Thread } from '../lib/api';
 import TaskDetailPanel from '../components/TaskDetail';
+import NewThread from '../components/NewThread';
 
 const statusOptions = ['active', 'paused', 'completed', 'archived'];
 
@@ -29,6 +30,17 @@ export default function Threads() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [showNewThread, setShowNewThread] = useState(false);
+  const [savingSnapshot, setSavingSnapshot] = useState(false);
+  const [snapshotError, setSnapshotError] = useState('');
+  const [handoffCopied, setHandoffCopied] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftStatus, setDraftStatus] = useState('active');
+  const [draftCurrentState, setDraftCurrentState] = useState('');
+  const [draftNextAction, setDraftNextAction] = useState('');
+  const [draftBlockers, setDraftBlockers] = useState('');
+  const [draftOutcome, setDraftOutcome] = useState('');
+  const [draftConfidence, setDraftConfidence] = useState('');
 
   const loadThreads = async () => {
     setLoading(true);
@@ -86,6 +98,108 @@ export default function Threads() {
     };
   }, [selectedThreadId]);
 
+  useEffect(() => {
+    if (!selectedThread) return;
+    setDraftName(selectedThread.name || '');
+    setDraftStatus(selectedThread.status || 'active');
+    setDraftCurrentState(selectedThread.current_state || '');
+    setDraftNextAction(selectedThread.next_action || '');
+    setDraftBlockers((selectedThread.blockers || []).join('\n'));
+    setDraftOutcome(selectedThread.outcome_definition || '');
+    setDraftConfidence(selectedThread.confidence || '');
+    setSnapshotError('');
+
+    const key = `threadron_thread_seen_${selectedThread.id}`;
+    const previous = localStorage.getItem(key);
+    if (!previous || new Date(selectedThread.updated_at).getTime() > new Date(previous).getTime()) {
+      localStorage.setItem(key, new Date().toISOString());
+    }
+  }, [selectedThread]);
+
+  function buildHandoffPrompt(thread: Thread) {
+    const tasks = thread.tasks || [];
+    const focusTask = tasks.find(task => task.id === thread.current_task_id) || tasks[0];
+    return [
+      `Resume Threadron thread ${thread.id}: ${thread.name}`,
+      '',
+      `Current state: ${thread.current_state || 'No current state recorded.'}`,
+      `Next action: ${thread.next_action || focusTask?.next_action || 'Inspect the thread and choose the next action.'}`,
+      `Blockers: ${(thread.blockers && thread.blockers.length > 0) ? thread.blockers.join('; ') : 'None recorded.'}`,
+      `Current task: ${thread.current_task_id || focusTask?.id || 'none'}`,
+      '',
+      'First, call threadron_get_thread or threadron_resume for this thread. Then continue from the next action and update Threadron before replying.',
+    ].join('\n');
+  }
+
+  async function handleCopyHandoff() {
+    if (!selectedThread) return;
+    await navigator.clipboard.writeText(buildHandoffPrompt(selectedThread));
+    setHandoffCopied(true);
+    setTimeout(() => setHandoffCopied(false), 1500);
+  }
+
+  function changedSinceLastLook(thread: Thread) {
+    const key = `threadron_thread_seen_${thread.id}`;
+    const previous = localStorage.getItem(key);
+    if (!previous) return 'First time opening this thread on this browser.';
+    const previousTime = new Date(previous).getTime();
+    const changedTasks = (thread.tasks || []).filter(task => new Date(task.updated_at).getTime() > previousTime);
+    if (new Date(thread.updated_at).getTime() <= previousTime && changedTasks.length === 0) return 'No changes since you last opened it here.';
+    if (changedTasks.length === 0) return 'Thread resume state changed since you last opened it here.';
+    return `${changedTasks.length} member ${changedTasks.length === 1 ? 'task changed' : 'tasks changed'} since you last opened it here.`;
+  }
+
+  async function refreshSelectedThread(threadId = selectedThreadId) {
+    await loadThreads();
+    if (threadId) {
+      const refreshed = await api.getThread(threadId);
+      setSelectedThread(refreshed);
+      setSelectedThreadId(refreshed.id);
+    }
+  }
+
+  async function handleSaveSnapshot() {
+    if (!selectedThread || savingSnapshot) return;
+    setSavingSnapshot(true);
+    setSnapshotError('');
+    try {
+      const blockers = draftBlockers
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean);
+      const updated = await api.updateThread(selectedThread.id, {
+        name: draftName.trim() || selectedThread.name,
+        status: draftStatus,
+        current_state: draftCurrentState.trim() || null,
+        next_action: draftNextAction.trim() || null,
+        blockers,
+        outcome_definition: draftOutcome.trim() || null,
+        confidence: draftConfidence.trim() || null,
+      });
+      setSelectedThread({ ...selectedThread, ...updated });
+      await loadThreads();
+    } catch (e: unknown) {
+      setSnapshotError(e instanceof Error ? e.message : 'Failed to save thread');
+    } finally {
+      setSavingSnapshot(false);
+    }
+  }
+
+  async function handleSyncFromTask(taskId: string) {
+    if (!selectedThread) return;
+    setSavingSnapshot(true);
+    setSnapshotError('');
+    try {
+      const updated = await api.syncThreadFromTask(selectedThread.id, taskId);
+      setSelectedThread({ ...selectedThread, ...updated });
+      await refreshSelectedThread(selectedThread.id);
+    } catch (e: unknown) {
+      setSnapshotError(e instanceof Error ? e.message : 'Failed to sync from task');
+    } finally {
+      setSavingSnapshot(false);
+    }
+  }
+
   const groupedThreads = useMemo(() => {
     const buckets = new Map<string, Thread[]>();
     for (const thread of threads) {
@@ -128,8 +242,14 @@ export default function Threads() {
               ))}
             </select>
             <button
-              onClick={loadThreads}
+              onClick={() => setShowNewThread(true)}
               className="bg-[#f0f0f0] text-[#0a0a0a] px-4 py-2 rounded text-sm font-mono font-bold hover:bg-white transition-colors cursor-pointer"
+            >
+              + New Thread
+            </button>
+            <button
+              onClick={loadThreads}
+              className="border border-[#2a2a2a] text-[#8a8a8a] px-4 py-2 rounded text-sm font-mono hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer"
             >
               Refresh
             </button>
@@ -182,7 +302,7 @@ export default function Threads() {
                           </div>
                         </div>
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a]">
-                          {thread.task_count ?? 0}
+                          {thread.open_task_count ?? 0}/{thread.task_count ?? 0}
                         </span>
                       </div>
                       <div className="text-xs text-[#8a8a8a] line-clamp-2">
@@ -210,42 +330,120 @@ export default function Threads() {
           {selectedThread && (
             <div className="p-4 md:p-6 space-y-5">
               <div className="flex flex-col gap-2 border border-[#1f1f1f] rounded-lg bg-[#101010] p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-xl font-semibold text-white">{selectedThread.name}</h2>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a] uppercase">
-                    {selectedThread.status}
-                  </span>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-xl font-semibold text-white">{selectedThread.name}</h2>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a] uppercase">
+                        {selectedThread.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-[#8a8a8a] mt-2">
+                      {selectedThread.current_state || 'No current state set.'}
+                    </p>
+                    <p className="text-xs text-[#6a6a6a] mt-2" title="Stored locally per browser; useful for quickly seeing whether this thread moved since you opened it.">
+                      {changedSinceLastLook(selectedThread)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCopyHandoff}
+                    className="border border-[#2a2a2a] text-[#c0c0c0] px-3 py-1.5 rounded text-xs font-mono hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer shrink-0"
+                    title="Copy a prompt any agent can paste to resume this thread through Threadron."
+                  >
+                    {handoffCopied ? 'Copied' : 'Copy handoff prompt'}
+                  </button>
                 </div>
-                <p className="text-sm text-[#8a8a8a]">
-                  {selectedThread.current_state || 'No current state set.'}
-                </p>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="border border-[#1f1f1f] rounded-lg bg-[#101010] p-4">
-                  <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-2">Resume Snapshot</div>
-                  <div className="space-y-3 text-sm">
+                <div className="border border-[#1f1f1f] rounded-lg bg-[#101010] p-4 md:col-span-2">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">Resume Snapshot</div>
+                      <div className="text-xs text-[#6a6a6a] mt-1">This is the handoff state agents read when they resume the thread.</div>
+                    </div>
+                    <button
+                      onClick={handleSaveSnapshot}
+                      disabled={savingSnapshot || !draftName.trim()}
+                      className="bg-[#f0f0f0] text-[#0a0a0a] px-3 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingSnapshot ? 'Saving...' : 'Save Snapshot'}
+                    </button>
+                  </div>
+                  {snapshotError && <p className="text-red-400 font-mono text-xs mb-3">{snapshotError}</p>}
+                  <div className="grid gap-3 md:grid-cols-2">
                     <div>
                       <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Next action</div>
-                      <div className="text-[#c0c0c0]">{selectedThread.next_action || 'No next action yet.'}</div>
+                      <textarea
+                        value={draftNextAction}
+                        onChange={e => setDraftNextAction(e.target.value)}
+                        rows={3}
+                        className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+                        placeholder="The exact next move."
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Current state</div>
+                      <textarea
+                        value={draftCurrentState}
+                        onChange={e => setDraftCurrentState(e.target.value)}
+                        rows={3}
+                        className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+                        placeholder="What changed, what is true now?"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Name</div>
+                      <input
+                        value={draftName}
+                        onChange={e => setDraftName(e.target.value)}
+                        className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none focus:border-[#4a4a4a]"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Status</div>
+                        <select
+                          value={draftStatus}
+                          onChange={e => setDraftStatus(e.target.value)}
+                          className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none focus:border-[#4a4a4a]"
+                        >
+                          {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Confidence</div>
+                        <select
+                          value={draftConfidence}
+                          onChange={e => setDraftConfidence(e.target.value)}
+                          className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none focus:border-[#4a4a4a]"
+                        >
+                          <option value="">unset</option>
+                          <option value="low">low</option>
+                          <option value="medium">medium</option>
+                          <option value="high">high</option>
+                        </select>
+                      </div>
                     </div>
                     <div>
                       <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Blockers</div>
-                      <div className="text-[#c0c0c0]">
-                        {(selectedThread.blockers && selectedThread.blockers.length > 0)
-                          ? selectedThread.blockers.join(', ')
-                          : 'None'}
-                      </div>
+                      <textarea
+                        value={draftBlockers}
+                        onChange={e => setDraftBlockers(e.target.value)}
+                        rows={3}
+                        className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+                        placeholder="One blocker per line."
+                      />
                     </div>
-                    <div className="flex gap-4">
-                      <div>
-                        <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Confidence</div>
-                        <div className="text-[#c0c0c0]">{selectedThread.confidence || 'unset'}</div>
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Tasks</div>
-                        <div className="text-[#c0c0c0]">{selectedThread.task_count ?? 0}</div>
-                      </div>
+                    <div>
+                      <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Outcome definition</div>
+                      <textarea
+                        value={draftOutcome}
+                        onChange={e => setDraftOutcome(e.target.value)}
+                        rows={3}
+                        className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono placeholder-[#4a4a4a] focus:outline-none focus:border-[#4a4a4a] resize-none"
+                        placeholder="What done looks like."
+                      />
                     </div>
                   </div>
                 </div>
@@ -274,26 +472,47 @@ export default function Threads() {
                     <div className="text-xs text-[#4a4a4a] font-mono">No tasks attached yet.</div>
                   ) : (
                     (selectedThread.tasks || []).map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() => setSelectedTaskId(task.id)}
-                        className="w-full text-left rounded border border-[#222] bg-[#0f0f0f] px-3 py-2 hover:border-[#333] transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="text-sm text-[#f0f0f0] truncate">{task.title}</div>
-                            <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mt-1">
-                              {task.status} {task.assignee ? `· ${task.assignee}` : ''}
+                      <div key={task.id} className="rounded border border-[#222] bg-[#0f0f0f] hover:border-[#333] transition-colors">
+                        <button
+                          onClick={() => setSelectedTaskId(task.id)}
+                          className="w-full text-left px-3 pt-2 pb-1.5 cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm text-[#f0f0f0] truncate">{task.title}</div>
+                              <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mt-1">
+                                {task.status} {task.assignee ? `· ${task.assignee}` : ''}
+                              </div>
                             </div>
+                            <span className="text-[10px] font-mono text-[#6a6a6a]">{timeAgo(task.updated_at)}</span>
                           </div>
-                          <span className="text-[10px] font-mono text-[#6a6a6a]">{timeAgo(task.updated_at)}</span>
+                          {(task.next_action || task.current_state) && (
+                            <div className="text-xs text-[#8a8a8a] mt-2 line-clamp-2">
+                              {task.next_action || task.current_state}
+                            </div>
+                          )}
+                          {task.last_event && (
+                            <div className="mt-2 border-l-2 border-[#2a2a2a] pl-2">
+                              <div className="text-[9px] font-mono text-[#4a4a4a] uppercase tracking-widest">
+                                Last meaningful event · {task.last_event.type}
+                              </div>
+                              <div className="text-xs text-[#8a8a8a] line-clamp-2">{task.last_event.body}</div>
+                            </div>
+                          )}
+                        </button>
+                        <div className="flex items-center justify-between border-t border-[#1a1a1a] px-3 py-1.5">
+                          <span className="text-[10px] font-mono text-[#3a3a3a]">
+                            {task.context_count || 0} notes · {task.artifact_count || 0} artifacts
+                          </span>
+                          <button
+                            onClick={() => handleSyncFromTask(task.id)}
+                            disabled={savingSnapshot}
+                            className="text-[10px] font-mono text-[#6a6a6a] hover:text-[#f0f0f0] transition-colors cursor-pointer disabled:opacity-40"
+                          >
+                            Sync snapshot
+                          </button>
                         </div>
-                        {(task.next_action || task.current_state) && (
-                          <div className="text-xs text-[#8a8a8a] mt-2 line-clamp-2">
-                            {task.next_action || task.current_state}
-                          </div>
-                        )}
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>
@@ -313,6 +532,16 @@ export default function Threads() {
               const refreshed = await api.getThread(selectedThreadId);
               setSelectedThread(refreshed);
             }
+          }}
+        />
+      )}
+
+      {showNewThread && (
+        <NewThread
+          onClose={() => setShowNewThread(false)}
+          onCreated={(threadId) => {
+            setSelectedThreadId(threadId);
+            refreshSelectedThread(threadId);
           }}
         />
       )}

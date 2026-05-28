@@ -211,6 +211,8 @@ export const inboxItems = pgTable(
     parsedBlockers: jsonb("parsed_blockers").$type<string[]>().default([]),
     parsedConfidence: text("parsed_confidence"), // stored as decimal string e.g. "0.85"
     promotedTaskId: text("promoted_task_id").references(() => tasks.id, { onDelete: "set null" }),
+    promotedThreadId: text("promoted_thread_id").references(() => threads.id, { onDelete: "set null" }),
+    rememberedObjectId: text("remembered_object_id"),
     error: text("error"),
     createdBy: text("created_by").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -219,6 +221,33 @@ export const inboxItems = pgTable(
   (table) => [
     index("inbox_items_status_idx").on(table.status),
     index("inbox_items_created_by_idx").on(table.createdBy),
+  ]
+);
+
+// Shared Context Objects
+export const contextObjects = pgTable(
+  "context_objects",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    type: text("type").notNull(), // note | decision | resource | question | person | org | incident | routine | memory
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    status: text("status").notNull().default("active"),
+    domainId: text("domain_id").references(() => domains.id, { onDelete: "set null" }),
+    threadId: text("thread_id").references(() => threads.id, { onDelete: "set null" }),
+    source: text("source").notNull().default("dashboard"),
+    createdBy: text("created_by").notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("context_objects_user_idx").on(table.userId),
+    index("context_objects_type_idx").on(table.type),
+    index("context_objects_status_idx").on(table.status),
+    index("context_objects_domain_idx").on(table.domainId),
+    index("context_objects_thread_idx").on(table.threadId),
   ]
 );
 

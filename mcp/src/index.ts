@@ -438,6 +438,63 @@ server.tool(
   }
 );
 
+// ─── Shared context objects ───────────────────────────────────────
+
+server.tool(
+  "threadron_list_context",
+  "List shared context objects: notes, decisions, resources, questions, people/orgs, incidents, routines, and memories. Use when you need facts to remember, not tasks to execute.",
+  {
+    type: z.string().optional().describe("Filter: note, decision, resource, question, person, org, incident, routine, memory"),
+    status: z.string().optional().describe("Filter by status, usually active or archived"),
+    domain_id: z.string().optional().describe("Filter by domain ID"),
+    thread_id: z.string().optional().describe("Filter by thread ID"),
+    search: z.string().optional().describe("Search title/body"),
+  },
+  async ({ type, status, domain_id, thread_id, search }) => {
+    const params = new URLSearchParams();
+    if (type) params.set("type", type);
+    if (status) params.set("status", status);
+    if (domain_id) params.set("domain_id", domain_id);
+    if (thread_id) params.set("thread_id", thread_id);
+    if (search) params.set("search", search);
+    const qs = params.toString() ? `?${params}` : "";
+    const data = await api(`/context-objects${qs}`);
+    const objects = data.objects || data;
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(objects, null, 2) }],
+    };
+  }
+);
+
+server.tool(
+  "threadron_create_context",
+  "Create a shared context object. Use this for durable notes, decisions, resources, questions, incidents, routines, people/org context, and stable memories. Do not use this for actionable work; create a task instead.",
+  {
+    type: z.string().describe("note, decision, resource, question, person, org, incident, routine, memory"),
+    title: z.string().describe("Short human-readable title"),
+    body: z.string().describe("The durable context to remember"),
+    domain_id: z.string().optional().describe("Optional domain ID"),
+    thread_id: z.string().optional().describe("Optional thread ID"),
+    status: z.string().optional().describe("Usually active or archived"),
+  },
+  async ({ type, title, body, domain_id, thread_id, status }) => {
+    const payload: Record<string, unknown> = {
+      type,
+      title,
+      body,
+      source: "agent",
+      created_by: AGENT_ID,
+    };
+    if (domain_id) payload.domain_id = domain_id;
+    if (thread_id) payload.thread_id = thread_id;
+    if (status) payload.status = status;
+    const data = await api("/context-objects", { method: "POST", body: JSON.stringify(payload) });
+    return {
+      content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+    };
+  }
+);
+
 // ─── Start server ──────────────────────────────────────────────────
 
 async function main() {

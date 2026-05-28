@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { api, type Task, type Domain, type Project, type InboxItem } from '../lib/api';
+import { api, type Task, type Domain, type Project, type InboxItem, type Thread } from '../lib/api';
 import TaskCard from '../components/TaskCard';
 import TaskDetail from '../components/TaskDetail';
 import NewTask from '../components/NewTask';
@@ -28,6 +28,7 @@ export default function Dashboard() {
 
   // Inbox state
   const [inboxItems, setInboxItems] = useState<InboxItem[]>([]);
+  const [threads, setThreads] = useState<Thread[]>([]);
   const [inboxLoading, setInboxLoading] = useState(true);
   const [editingInboxItem, setEditingInboxItem] = useState<InboxItem | null>(null);
 
@@ -57,11 +58,13 @@ export default function Dashboard() {
       const params: Record<string, string> = {};
       if (selectedDomainId) params.domain_id = selectedDomainId;
       if (selectedProjectId) params.project_id = selectedProjectId;
-      const [tasksRes, domainsRes] = await Promise.all([
+      const [tasksRes, domainsRes, threadsRes] = await Promise.all([
         api.listTasks(Object.keys(params).length > 0 ? params : undefined),
         api.listDomains(),
+        api.listThreads({ status: 'active' }),
       ]);
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
+      setThreads(Array.isArray(threadsRes) ? threadsRes : []);
       const domainList = Array.isArray(domainsRes) ? domainsRes : [];
       setDomains(domainList);
       if ((domainList.length === 0 || localStorage.getItem('tfa_initial_api_key')) && !onboardingDismissed) {
@@ -115,12 +118,13 @@ export default function Dashboard() {
         ...(domainId ? { domain_id: domainId } : {}),
       });
       // Highlight the newly created task
-      if (result?.task?.id) {
-        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+      const promotedTaskId = result?.task?.id;
+      if (promotedTaskId) {
+        setRecentlyPromoted(prev => new Set(prev).add(promotedTaskId));
         setTimeout(() => {
           setRecentlyPromoted(prev => {
             const next = new Set(prev);
-            next.delete(result.task.id);
+            next.delete(promotedTaskId);
             return next;
           });
         }, 2000);
@@ -131,6 +135,30 @@ export default function Dashboard() {
       // Error handling could be improved
     }
   }, [selectedDomainId, domains, loadInbox, loadData]);
+
+  const handlePromoteThread = useCallback(async (id: string) => {
+    try {
+      await api.promoteInboxItem(id, { mode: 'thread' });
+      await Promise.all([loadInbox(), loadData()]);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to promote inbox item to thread');
+    }
+  }, [loadInbox, loadData]);
+
+  const handleRemember = useCallback(async (id: string) => {
+    try {
+      const item = inboxItems.find(i => i.id === id);
+      const domainId = selectedDomainId || item?.domain_id || (domains.length > 0 ? domains[0].id : undefined);
+      await api.promoteInboxItem(id, {
+        mode: 'note',
+        context_type: 'note',
+        ...(domainId ? { domain_id: domainId } : {}),
+      });
+      await Promise.all([loadInbox(), loadData()]);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to remember inbox item');
+    }
+  }, [inboxItems, selectedDomainId, domains, loadInbox, loadData]);
 
   const handleReject = useCallback(async (id: string) => {
     try {
@@ -146,19 +174,23 @@ export default function Dashboard() {
     if (item) setEditingInboxItem(item);
   }, [inboxItems]);
 
-  const handleEditPromote = useCallback(async (id: string, fields: { title: string; next_action?: string; owner?: string }) => {
+  const handleEditPromote = useCallback(async (id: string, fields: { title: string; next_action?: string; owner?: string; mode?: 'task' | 'thread' | 'note'; thread_id?: string; context_type?: string }) => {
     try {
       const domainId = selectedDomainId || (domains.length > 0 ? domains[0].id : undefined);
       const result = await api.promoteInboxItem(id, {
         title: fields.title,
         ...(fields.next_action ? { next_action: fields.next_action } : {}),
         ...(fields.owner ? { owner: fields.owner } : {}),
+        ...(fields.mode ? { mode: fields.mode } : {}),
+        ...(fields.thread_id ? { thread_id: fields.thread_id } : {}),
+        ...(fields.context_type ? { context_type: fields.context_type } : {}),
         ...(domainId ? { domain_id: domainId } : {}),
       });
-      if (result?.task?.id) {
-        setRecentlyPromoted(prev => new Set(prev).add(result.task.id));
+      const promotedTaskId = result?.task?.id;
+      if (promotedTaskId) {
+        setRecentlyPromoted(prev => new Set(prev).add(promotedTaskId));
         setTimeout(() => {
-          setRecentlyPromoted(prev => { const next = new Set(prev); next.delete(result.task.id); return next; });
+          setRecentlyPromoted(prev => { const next = new Set(prev); next.delete(promotedTaskId); return next; });
         }, 2000);
       }
       setEditingInboxItem(null);
@@ -210,6 +242,16 @@ export default function Dashboard() {
   const completedTasks = filteredTasks.filter(t =>
     t.status === 'completed' || t.status === 'cancelled' || t.status === 'closed'
   );
+  const activeClaims = filteredTasks.filter(t => t.claimed_by);
+  const staleThreads = threads.filter(t => {
+    if (t.status !== 'active') return false;
+    const ageMs = Date.now() - new Date(t.updated_at).getTime();
+    return ageMs > 24 * 60 * 60 * 1000;
+  });
+  const recentOutcomes = filteredTasks
+    .filter(t => t.status === 'completed' || t.status === 'closed')
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 5);
 
   // Group active tasks by project for display
   const activeByProject = useMemo(() => {
@@ -274,6 +316,8 @@ export default function Dashboard() {
             items={inboxItems}
             loading={inboxLoading}
             onPromote={handlePromote}
+            onPromoteThread={handlePromoteThread}
+            onRemember={handleRemember}
             onReject={handleReject}
             onEdit={handleEdit}
             onRefresh={loadInbox}
@@ -290,6 +334,35 @@ export default function Dashboard() {
         <div className={`flex-1 flex flex-col overflow-hidden ${
           mobilePane === 'tasks' ? 'flex' : 'hidden md:flex'
         }`}>
+          <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-4 shrink-0 bg-[#0d0d0d]">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-[#4a4a4a] mb-1">What needs attention?</p>
+                <h1 className="text-lg font-semibold text-white">Shared state triage</h1>
+              </div>
+              <span
+                className="hidden sm:inline text-[10px] font-mono text-[#4a4a4a]"
+                title="Built from active threads, claims, inbox items, blockers, and recent completed work."
+              >
+                live from Threadron state
+              </span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+              {[
+                { label: 'Stale threads', value: staleThreads.length, hint: 'Active threads untouched for more than 24 hours.' },
+                { label: 'Blocked work', value: blockedTasks.length, hint: 'Tasks currently marked blocked.' },
+                { label: 'Active claims', value: activeClaims.length, hint: 'Items currently claimed by agents or humans.' },
+                { label: 'Inbox', value: activeInboxCount, hint: 'Unprocessed, parsed, processing, or error inbox items.' },
+                { label: 'Recent outcomes', value: recentOutcomes.length, hint: 'Recently completed or closed work visible in this filter.' },
+              ].map(item => (
+                <div key={item.label} title={item.hint} className="border border-[#1f1f1f] bg-[#101010] rounded p-3">
+                  <div className="text-xl font-mono text-[#f0f0f0]">{item.value}</div>
+                  <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mt-1">{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Top bar */}
           <div className="border-b border-[#2a2a2a] px-4 md:px-6 py-3 flex flex-col gap-2 shrink-0">
             {/* Domain tabs row */}

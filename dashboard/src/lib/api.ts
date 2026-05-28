@@ -88,6 +88,14 @@ export interface Task {
   confidence?: 'low' | 'medium' | 'high';
   claimed_by?: string;
   claimed_until?: string;
+  context_count?: number;
+  artifact_count?: number;
+  last_event?: {
+    type: string;
+    body: string;
+    author: string;
+    created_at: string;
+  } | null;
   created_at: string;
   updated_at: string;
 }
@@ -162,12 +170,29 @@ export interface InboxItem {
   id: string;
   raw_text: string;
   source: string;
-  status: 'unprocessed' | 'processing' | 'parsed' | 'promoted' | 'rejected' | 'error';
+  status: 'unprocessed' | 'processing' | 'parsed' | 'promoted' | 'remembered' | 'rejected' | 'error';
   domain_id?: string;
   parsed?: ParsedInbox | null;
   promoted_task_id?: string;
+  promoted_thread_id?: string;
+  remembered_object_id?: string;
   error?: string;
   created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContextObject {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  status: string;
+  domain_id?: string | null;
+  thread_id?: string | null;
+  source: string;
+  created_by: string;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -256,6 +281,8 @@ export const api = {
     root_task_id?: string | null;
   }): Promise<Thread> =>
     request(`/threads/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  syncThreadFromTask: (id: string, taskId: string): Promise<Thread> =>
+    request(`/threads/${id}/sync-from-task`, { method: 'POST', body: JSON.stringify({ task_id: taskId }) }),
 
   // Context
   addContext: (taskId: string, data: { type: string; body: string; author: string }): Promise<ContextEntry> =>
@@ -296,9 +323,40 @@ export const api = {
     request('/inbox', { method: 'POST', body: JSON.stringify(data) }),
   updateInboxItem: (id: string, data: Partial<InboxItem>): Promise<InboxItem> =>
     request(`/inbox/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  promoteInboxItem: (id: string, data: { title?: string; next_action?: string; domain_id?: string; project_id?: string; owner?: string }): Promise<{ inbox_item: InboxItem; task: Task }> =>
+  promoteInboxItem: (id: string, data: {
+    title?: string;
+    next_action?: string;
+    domain_id?: string;
+    project_id?: string;
+    thread_id?: string;
+    owner?: string;
+    blockers?: string[];
+    mode?: 'task' | 'thread' | 'note';
+    context_type?: string;
+  }): Promise<{ inbox_item: InboxItem; task?: Task; thread?: Thread; context_object?: ContextObject }> =>
     request(`/inbox/${id}/promote`, { method: 'POST', body: JSON.stringify(data) }),
   deleteInboxItem: (id: string) => request(`/inbox/${id}`, { method: 'DELETE' }),
+
+  // Shared context
+  listContextObjects: (params?: Record<string, string>): Promise<ContextObject[]> => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request(`/context-objects${qs}`).then(r => r.objects ?? r);
+  },
+  createContextObject: (data: {
+    type: string;
+    title: string;
+    body: string;
+    status?: string;
+    domain_id?: string | null;
+    thread_id?: string | null;
+    source?: string;
+    created_by?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ContextObject> =>
+    request('/context-objects', { method: 'POST', body: JSON.stringify(data) }),
+  updateContextObject: (id: string, data: Partial<ContextObject>): Promise<ContextObject> =>
+    request(`/context-objects/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteContextObject: (id: string) => request(`/context-objects/${id}`, { method: 'DELETE' }),
 
   // Telegram
   getTelegramConfig: (): Promise<{ connected: boolean; chat_id: string | null; token_preview: string | null }> =>

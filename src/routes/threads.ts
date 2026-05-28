@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { db as DbType } from "../db/connection.js";
-import { domains, tasks, threads } from "../db/schema.js";
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { artifacts, contextEntries, domains, tasks, threads } from "../db/schema.js";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { genId } from "../lib/id.js";
 import { createThread, normalizeThreadStatus, toThreadApi, updateThreadSnapshot } from "../lib/threads.js";
 
@@ -141,6 +141,30 @@ export function threadRoutes(db: DrizzleDb) {
       .where(eq(tasks.threadId, id))
       .orderBy(desc(tasks.updatedAt), asc(tasks.createdAt));
 
+    const taskIds = threadTasks.map((r) => r.tasks.id);
+    const contextCounts = new Map<string, number>();
+    const artifactCounts = new Map<string, number>();
+    const latestContext = new Map<string, typeof contextEntries.$inferSelect>();
+
+    if (taskIds.length > 0) {
+      const contextRows = await db
+        .select()
+        .from(contextEntries)
+        .where(inArray(contextEntries.taskId, taskIds))
+        .orderBy(desc(contextEntries.createdAt));
+      for (const entry of contextRows) {
+        contextCounts.set(entry.taskId, (contextCounts.get(entry.taskId) || 0) + 1);
+        if (!latestContext.has(entry.taskId)) latestContext.set(entry.taskId, entry);
+      }
+
+      const artifactRows = await db
+        .select({ taskId: artifacts.taskId, count: sql<number>`count(${artifacts.id})`.as("count") })
+        .from(artifacts)
+        .where(inArray(artifacts.taskId, taskIds))
+        .groupBy(artifacts.taskId);
+      for (const row of artifactRows) artifactCounts.set(row.taskId, Number(row.count));
+    }
+
     return c.json({
       ...toThreadApi(row),
       tasks: threadTasks.map((r) => ({
@@ -162,6 +186,16 @@ export function threadRoutes(db: DrizzleDb) {
         claim_expires_at: r.tasks.claimExpiresAt,
         parent_task_id: r.tasks.parentTaskId,
         thread_id: r.tasks.threadId,
+        context_count: contextCounts.get(r.tasks.id) || 0,
+        artifact_count: artifactCounts.get(r.tasks.id) || 0,
+        last_event: latestContext.get(r.tasks.id)
+          ? {
+              type: latestContext.get(r.tasks.id)!.type,
+              body: latestContext.get(r.tasks.id)!.body,
+              author: latestContext.get(r.tasks.id)!.author,
+              created_at: latestContext.get(r.tasks.id)!.createdAt,
+            }
+          : null,
         created_at: r.tasks.createdAt,
         updated_at: r.tasks.updatedAt,
       })),

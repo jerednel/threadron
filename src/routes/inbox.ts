@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { eq, and, desc } from "drizzle-orm";
 import type { db as DbType } from "../db/connection.js";
-import { inboxItems, domains, projects, tasks } from "../db/schema.js";
+import { inboxItems, domains, projects, tasks, threads, contextObjects } from "../db/schema.js";
 import { genId } from "../lib/id.js";
 import { createThread, updateThreadSnapshot } from "../lib/threads.js";
 
@@ -25,6 +25,8 @@ function toApi(row: typeof inboxItems.$inferSelect) {
         }
       : null,
     promoted_task_id: row.promotedTaskId,
+    promoted_thread_id: row.promotedThreadId,
+    remembered_object_id: row.rememberedObjectId,
     error: row.error,
     created_by: row.createdBy,
     created_at: row.createdAt,
@@ -164,8 +166,11 @@ export function inboxRoutes(db: DrizzleDb) {
       next_action?: string;
       domain_id?: string;
       project_id?: string;
+      thread_id?: string;
       owner?: string;
       blockers?: string[];
+      mode?: "task" | "thread" | "note";
+      context_type?: string;
     }>();
 
     const [item] = await db
@@ -175,7 +180,7 @@ export function inboxRoutes(db: DrizzleDb) {
       .limit(1);
 
     if (!item) return c.json({ error: "Not found" }, 404);
-    if (item.status === "promoted") return c.json({ error: "Already promoted" }, 409);
+    if (item.status === "promoted" || item.status === "remembered") return c.json({ error: "Already handled" }, 409);
 
     // Use provided overrides or fall back to parsed values
     const title = body.title || item.parsedTitle || item.rawText;
@@ -183,20 +188,23 @@ export function inboxRoutes(db: DrizzleDb) {
     const domainId = body.domain_id || item.domainId;
     const assignee = body.owner || item.parsedOwner || null;
     const blockers = body.blockers || item.parsedBlockers || [];
+    const requestedMode = body.mode || "task";
 
-    if (!domainId) {
+    if (requestedMode === "task" && !domainId) {
       return c.json({ error: "domain_id is required for promotion" }, 400);
     }
 
     // Verify domain ownership
-    const [domain] = await db
-      .select()
-      .from(domains)
-      .where(and(eq(domains.id, domainId), eq(domains.userId, userId)))
-      .limit(1);
-    if (!domain) return c.json({ error: "Domain not found" }, 404);
+    if (domainId) {
+      const [domain] = await db
+        .select()
+        .from(domains)
+        .where(and(eq(domains.id, domainId), eq(domains.userId, userId)))
+        .limit(1);
+      if (!domain) return c.json({ error: "Domain not found" }, 404);
+    }
 
-    if (body.project_id) {
+    if (body.project_id && domainId) {
       const [project] = await db
         .select()
         .from(projects)
@@ -205,20 +213,130 @@ export function inboxRoutes(db: DrizzleDb) {
       if (!project) return c.json({ error: "Project does not belong to this domain" }, 400);
     }
 
-    const thread = await createThread(db, {
-      id: genId("th"),
-      name: title,
-      userId,
-      createdBy: userId,
-      status: "active",
-      currentState: item.rawText,
-      nextAction,
-      blockers,
-      metadata: {
-        source: "inbox",
-        inbox_item_id: item.id,
-      },
-    });
+    if (requestedMode === "note") {
+      if (body.thread_id) {
+        const [existingThread] = await db
+          .select({ id: threads.id })
+          .from(threads)
+          .where(and(eq(threads.id, body.thread_id), eq(threads.userId, userId)))
+          .limit(1);
+        if (!existingThread) return c.json({ error: "Thread not found" }, 404);
+      }
+
+      const [object] = await db
+        .insert(contextObjects)
+        .values({
+          id: genId("ctxobj"),
+          userId,
+          type: body.context_type || "note",
+          title,
+          body: item.rawText,
+          status: "active",
+          domainId,
+          threadId: body.thread_id || null,
+          source: item.source || "inbox",
+          createdBy: userId,
+          metadata: {
+            source: "inbox",
+            inbox_item_id: item.id,
+            next_action: nextAction,
+            owner: assignee,
+            blockers,
+          },
+        })
+        .returning();
+
+      await db
+        .update(inboxItems)
+        .set({
+          status: "remembered",
+          rememberedObjectId: object.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(inboxItems.id, id));
+
+      return c.json({
+        inbox_item: toApi({ ...item, status: "remembered", rememberedObjectId: object.id, updatedAt: new Date() }),
+        context_object: {
+          id: object.id,
+          type: object.type,
+          title: object.title,
+          body: object.body,
+          status: object.status,
+          domain_id: object.domainId,
+          thread_id: object.threadId,
+          created_at: object.createdAt,
+          updated_at: object.updatedAt,
+        },
+      });
+    }
+
+    if (requestedMode === "thread") {
+      const thread = await createThread(db, {
+        id: genId("th"),
+        name: title,
+        userId,
+        createdBy: userId,
+        status: "active",
+        currentState: item.rawText,
+        nextAction,
+        blockers,
+        metadata: {
+          source: "inbox",
+          inbox_item_id: item.id,
+        },
+      });
+
+      await db
+        .update(inboxItems)
+        .set({
+          status: "promoted",
+          promotedThreadId: thread.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(inboxItems.id, id));
+
+      return c.json({
+        inbox_item: toApi({ ...item, status: "promoted", promotedThreadId: thread.id, updatedAt: new Date() }),
+        thread: {
+          id: thread.id,
+          name: thread.name,
+          status: thread.status,
+          current_state: thread.currentState,
+          next_action: thread.nextAction,
+          blockers: thread.blockers,
+          created_at: thread.createdAt,
+        },
+      });
+    }
+
+    let thread = null as typeof threads.$inferSelect | null;
+    if (body.thread_id) {
+      const [existingThread] = await db
+        .select()
+        .from(threads)
+        .where(and(eq(threads.id, body.thread_id), eq(threads.userId, userId)))
+        .limit(1);
+      if (!existingThread) return c.json({ error: "Thread not found" }, 404);
+      thread = existingThread;
+    }
+
+    if (!thread) {
+      thread = await createThread(db, {
+        id: genId("th"),
+        name: title,
+        userId,
+        createdBy: userId,
+        status: "active",
+        currentState: item.rawText,
+        nextAction,
+        blockers,
+        metadata: {
+          source: "inbox",
+          inbox_item_id: item.id,
+        },
+      });
+    }
 
     // Create the task
     const taskId = genId("t");
@@ -254,12 +372,13 @@ export function inboxRoutes(db: DrizzleDb) {
       .set({
         status: "promoted",
         promotedTaskId: taskId,
+        promotedThreadId: thread.id,
         updatedAt: new Date(),
       })
       .where(eq(inboxItems.id, id));
 
     return c.json({
-      inbox_item: toApi({ ...item, status: "promoted", promotedTaskId: taskId, updatedAt: new Date() }),
+      inbox_item: toApi({ ...item, status: "promoted", promotedTaskId: taskId, promotedThreadId: thread.id, updatedAt: new Date() }),
       task: {
         id: task.id,
         title: task.title,

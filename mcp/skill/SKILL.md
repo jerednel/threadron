@@ -190,6 +190,19 @@ Transform vague input into specific, actionable language:
 
 When the user mentions something that should be tracked but isn't a fully formed task:
 - `threadron_capture_inbox(raw_text: "what they said", domain_id: "d_xyz")`
+
+## Shared Context Objects
+
+Use context objects for things to remember, not things to do. A task says "do this." A context object says "remember this."
+
+Use:
+- `threadron_create_context(type: "note", ...)` for facts worth remembering
+- `threadron_create_context(type: "decision", ...)` for durable choices and rationale
+- `threadron_create_context(type: "resource", ...)` for links, repos, docs, dashboards, and files
+- `threadron_create_context(type: "question", ...)` for open unknowns that need research or a human answer
+- `threadron_create_context(type: "memory", ...)` for stable reusable project/domain/thread context
+
+Before answering a context-heavy question, call `threadron_list_context` with a relevant `thread_id`, `domain_id`, `type`, or `search` filter.
 - This goes to the inbox for later processing, not directly into the task list
 
 ## Creating New Work

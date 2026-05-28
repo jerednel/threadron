@@ -4,6 +4,8 @@ import type { InboxItem } from '../lib/api';
 interface InboxItemCardProps {
   item: InboxItem;
   onPromote: (id: string) => void;
+  onPromoteThread: (id: string) => void;
+  onRemember: (id: string) => void;
   onReject: (id: string) => void;
   onEdit: (id: string) => void;
 }
@@ -30,10 +32,12 @@ const sourceBadgeColors: Record<string, string> = {
   slack: 'bg-orange-900/30 text-orange-400 border-orange-800/50',
 };
 
-export default function InboxItemCard({ item, onPromote, onReject, onEdit }: InboxItemCardProps) {
+export default function InboxItemCard({ item, onPromote, onPromoteThread, onRemember, onReject, onEdit }: InboxItemCardProps) {
   const [promoting, setPromoting] = useState(false);
+  const [threading, setThreading] = useState(false);
+  const [remembering, setRemembering] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [flash, setFlash] = useState<'promoted' | 'rejected' | null>(null);
+  const [flash, setFlash] = useState<'promoted' | 'remembered' | 'rejected' | null>(null);
 
   const handlePromote = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,6 +63,30 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
     }
   };
 
+  const handlePromoteThread = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setThreading(true);
+    setFlash('promoted');
+    try {
+      await onPromoteThread(item.id);
+    } finally {
+      setThreading(false);
+      setTimeout(() => setFlash(null), 600);
+    }
+  };
+
+  const handleRemember = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRemembering(true);
+    setFlash('remembered');
+    try {
+      await onRemember(item.id);
+    } finally {
+      setRemembering(false);
+      setTimeout(() => setFlash(null), 600);
+    }
+  };
+
   const _sourceBadge = sourceBadgeColors[item.source] || 'bg-[#2a2a2a] text-[#6a6a6a] border-[#3a3a3a]';
   void _sourceBadge; // retained for future use
 
@@ -70,6 +98,18 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
           <span className="text-green-500 text-xs">&#10003;</span>
           <span className="text-xs text-[#6a6a6a] font-mono line-through truncate">{item.raw_text}</span>
           <span className="text-[9px] font-mono text-[#4a4a4a] ml-auto shrink-0">Promoted</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (item.status === 'remembered') {
+    return (
+      <div className="px-3 py-2.5 border-b border-[#1e1e1e] opacity-50">
+        <div className="flex items-center gap-2">
+          <span className="text-blue-400 text-xs">&#10003;</span>
+          <span className="text-xs text-[#6a6a6a] font-mono line-through truncate">{item.raw_text}</span>
+          <span className="text-[9px] font-mono text-[#4a4a4a] ml-auto shrink-0">Remembered</span>
         </div>
       </div>
     );
@@ -98,6 +138,22 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
         {promoting ? '...' : 'Promote'}
       </button>
       <button
+        onClick={handlePromoteThread}
+        disabled={threading}
+        title="Create a durable thread from this item without making a task yet."
+        className="px-2.5 py-1 rounded text-[10px] font-mono text-blue-400 bg-blue-900/20 border border-blue-800/40 hover:bg-blue-900/40 hover:border-blue-700/50 transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {threading ? '...' : 'Thread'}
+      </button>
+      <button
+        onClick={handleRemember}
+        disabled={remembering}
+        title="Save this as shared context, not actionable work."
+        className="px-2.5 py-1 rounded text-[10px] font-mono text-[#c0c0c0] bg-[#1a1a1a] border border-[#2a2a2a] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors cursor-pointer disabled:opacity-50"
+      >
+        {remembering ? '...' : 'Remember'}
+      </button>
+      <button
         onClick={(e) => { e.stopPropagation(); onEdit(item.id); }}
         className="px-2.5 py-1 rounded text-[10px] font-mono text-[#8a8a8a] bg-[#1a1a1a] border border-[#2a2a2a] hover:text-[#f0f0f0] hover:border-[#3a3a3a] transition-colors cursor-pointer"
       >
@@ -118,7 +174,7 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
   if (item.status === 'error') {
     return (
       <div className={`px-3 py-3 border-b border-red-900/40 bg-red-950/20 transition-all duration-300 ${
-        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'remembered' ? 'bg-blue-950/20 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
       }`}>
         <p className="text-xs text-[#d8d8d8] font-mono mb-1">{item.raw_text}</p>
         <p className="text-[10px] text-red-400 font-mono">{item.error || 'Processing error'}</p>
@@ -131,7 +187,7 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
   if (item.status === 'processing') {
     return (
       <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
-        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'remembered' ? 'bg-blue-950/20 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
       }`}>
         <p className="text-xs text-[#d8d8d8] mb-2">{item.raw_text}</p>
         <div className="flex items-center gap-2 mb-1">
@@ -147,7 +203,7 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
   if (item.status === 'parsed' && item.parsed) {
     return (
       <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
-        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'bg-red-950/20 opacity-60' : ''
+        flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'remembered' ? 'bg-blue-950/20 translate-x-2 opacity-60' : flash === 'rejected' ? 'bg-red-950/20 opacity-60' : ''
       }`}>
         {/* Raw text */}
         <div className="border-l-2 border-[#2a2a2a] pl-2 mb-2">
@@ -198,7 +254,7 @@ export default function InboxItemCard({ item, onPromote, onReject, onEdit }: Inb
   // Unprocessed — raw text + actions
   return (
     <div className={`px-3 py-3 border-b border-[#1e1e1e] transition-all duration-300 ${
-      flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
+      flash === 'promoted' ? 'bg-green-950/30 translate-x-2 opacity-60' : flash === 'remembered' ? 'bg-blue-950/20 translate-x-2 opacity-60' : flash === 'rejected' ? 'opacity-60' : ''
     }`}>
       <p className="text-xs text-[#d8d8d8] mb-1">{item.raw_text}</p>
       {actionButtons}
