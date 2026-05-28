@@ -64,7 +64,7 @@ export default function Dashboard() {
       setTasks(Array.isArray(tasksRes) ? tasksRes : []);
       const domainList = Array.isArray(domainsRes) ? domainsRes : [];
       setDomains(domainList);
-      if (domainList.length === 0 && !onboardingDismissed) {
+      if ((domainList.length === 0 || localStorage.getItem('tfa_initial_api_key')) && !onboardingDismissed) {
         setShowOnboarding(true);
       }
     } catch (e: unknown) {
@@ -611,6 +611,7 @@ export default function Dashboard() {
       {/* Onboarding overlay */}
       {showOnboarding && (
         <Onboarding
+          hasDomain={domains.length > 0}
           onDismiss={() => {
             setShowOnboarding(false);
             setOnboardingDismissed(true);

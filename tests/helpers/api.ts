@@ -11,7 +11,7 @@ export const TEST_USER_ID = "test-user-1";
 export async function createTestContext() {
   const client = postgres(TEST_DB_URL);
   const db = drizzle(client, { schema });
-  await db.execute(sql`TRUNCATE users, api_keys, artifacts, context_entries, tasks, threads, projects, domains, agents, config, waitlist CASCADE`);
+  await db.execute(sql`TRUNCATE users, api_keys, artifacts, context_entries, inbox_items, tasks, threads, projects, domains, agents, config, waitlist CASCADE`);
 
   // Create a default test user so tests that need a userId have one
   await db.insert(schema.users).values({

@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 
 interface OnboardingProps {
   onDismiss: () => void;
+  hasDomain?: boolean;
 }
 
 type Step = 'welcome' | 'domain' | 'apikey' | 'ready';
@@ -12,19 +13,22 @@ const guardrails = ['autonomous', 'notify', 'approval_required'];
 const API_URL = 'https://threadron.com';
 
 function SkillSnippet({ apiKey }: { apiKey: string }) {
-  const snippet = `# In your Claude skill config or MCP settings:
-# API URL: ${API_URL}/v1
-# API Key: ${apiKey || '<your-api-key>'}
+  const key = apiKey || '<your-api-key>';
+  const snippet = `# Claude Code
+claude mcp add --scope user --transport http threadron \\
+  ${API_URL}/mcp \\
+  --header "Authorization:Bearer ${key}" \\
+  --header "X-Agent-Id:claude-code"
 
-# Example: create a task
-curl -X POST ${API_URL}/v1/tasks \\
-  -H "Authorization: Bearer ${apiKey || '<your-api-key>'}" \\
-  -H "Content-Type: application/json" \\
-  -d '{"title":"Review PR #123","status":"pending"}'`;
+# OpenClaw
+openclaw mcp set threadron '{"url":"${API_URL}/mcp","headers":{"Authorization":"Bearer ${key}","X-Agent-Id":"openclaw"}}'
+
+# First prompt to paste into the agent after connecting:
+Check Threadron, create or resume an onboarding thread, and update it with what you see.`;
   return snippet;
 }
 
-export default function Onboarding({ onDismiss }: OnboardingProps) {
+export default function Onboarding({ onDismiss, hasDomain = false }: OnboardingProps) {
   const [step, setStep] = useState<Step>('welcome');
 
   // Domain form
@@ -109,15 +113,14 @@ export default function Onboarding({ onDismiss }: OnboardingProps) {
               Welcome to Threadron
             </h2>
             <p className="text-sm font-mono text-[#8a8a8a] mb-4 leading-relaxed">
-              Threadron is a shared execution layer for AI agents. Agents claim tasks,
-              update state, attach artifacts, and coordinate work — all through a simple API.
+              Threadron is shared execution state for humans and AI agents. Connect one agent,
+              have it check in, and every future session can resume from the same thread.
             </p>
             <p className="text-sm font-mono text-[#8a8a8a] mb-8 leading-relaxed">
-              Let's get you set up in 3 quick steps: create a domain, grab your API key, and
-              connect your first agent.
+              Let's copy the MCP command and run a real check-in.
             </p>
             <button
-              onClick={() => setStep('domain')}
+              onClick={() => setStep(hasDomain ? 'apikey' : 'domain')}
               className="w-full bg-[#f0f0f0] text-[#0a0a0a] py-2.5 rounded font-mono text-sm font-bold hover:bg-white transition-colors cursor-pointer"
             >
               Get started →
@@ -231,7 +234,7 @@ export default function Onboarding({ onDismiss }: OnboardingProps) {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] font-mono text-[#8a8a8a] uppercase tracking-wide">
-                  Skill.md / MCP setup snippet
+                  MCP setup snippet
                 </p>
                 <button
                   onClick={handleCopySnippet}
@@ -270,8 +273,8 @@ export default function Onboarding({ onDismiss }: OnboardingProps) {
               You're ready
             </h2>
             <p className="text-sm font-mono text-[#8a8a8a] mb-6 leading-relaxed">
-              Your domain is created and your API key is ready. Point your agents at the API
-              and they'll start showing up here.
+              Your workspace and API key are ready. Connect an agent with the MCP
+              snippet, then ask it to check Threadron and update an onboarding thread.
             </p>
 
             <div className="space-y-3 mb-8">
@@ -290,7 +293,7 @@ export default function Onboarding({ onDismiss }: OnboardingProps) {
               <div className="flex items-start gap-3 text-sm font-mono">
                 <span className="text-[#4a4a4a] shrink-0 mt-0.5">→</span>
                 <span className="text-[#8a8a8a]">
-                  The dashboard auto-refreshes as agents create and update tasks
+                  Agents should call check-in at session start and pause with a clear next action
                 </span>
               </div>
             </div>

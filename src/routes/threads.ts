@@ -3,7 +3,7 @@ import type { db as DbType } from "../db/connection.js";
 import { domains, tasks, threads } from "../db/schema.js";
 import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { genId } from "../lib/id.js";
-import { createThread, toThreadApi, updateThreadSnapshot } from "../lib/threads.js";
+import { createThread, normalizeThreadStatus, toThreadApi, updateThreadSnapshot } from "../lib/threads.js";
 
 type DrizzleDb = typeof DbType;
 
@@ -67,7 +67,7 @@ export function threadRoutes(db: DrizzleDb) {
       userId,
       createdBy: userId,
       source: body.source ?? null,
-      status: body.status ?? "active",
+      status: normalizeThreadStatus(body.status),
       parentThreadId: body.parent_thread_id ?? null,
       rootTaskId: body.root_task_id ?? null,
       currentTaskId: body.current_task_id ?? null,
@@ -211,7 +211,7 @@ export function threadRoutes(db: DrizzleDb) {
       .update(threads)
       .set({
         name: body.name,
-        status: body.status,
+        status: body.status === undefined ? undefined : normalizeThreadStatus(body.status),
         source: body.source,
         parentThreadId: body.parent_thread_id,
         currentTaskId: body.current_task_id,
@@ -269,4 +269,3 @@ export function threadRoutes(db: DrizzleDb) {
 
   return router;
 }
-

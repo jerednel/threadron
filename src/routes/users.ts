@@ -78,6 +78,14 @@ export function userPublicRoutes(db: DrizzleDb) {
       userId,
     });
 
+    const domainId = genId("d");
+    await db.insert(domains).values({
+      id: domainId,
+      name: "Default",
+      userId,
+      defaultGuardrail: "autonomous",
+    });
+
     const token = await createToken(userId, email);
 
     return c.json(
@@ -85,6 +93,11 @@ export function userPublicRoutes(db: DrizzleDb) {
         user: { id: userId, email, name: name ?? null },
         token,
         api_key: apiKey,
+        domain: {
+          id: domainId,
+          name: "Default",
+          default_guardrail: "autonomous",
+        },
       },
       201
     );

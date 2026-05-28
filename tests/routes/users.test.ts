@@ -40,6 +40,8 @@ describe("POST /v1/users/register", () => {
     expect(body.user.id).toMatch(/^u_/);
     expect(body.token).toBeTruthy();
     expect(body.api_key).toMatch(/^tfa_sk_/);
+    expect(body.domain.id).toMatch(/^d_/);
+    expect(body.domain.name).toBe("Default");
   });
 
   it("returns 409 for duplicate email", async () => {
@@ -158,6 +160,8 @@ describe("GET /v1/users/me", () => {
     expect(Array.isArray(body.api_keys)).toBe(true);
     expect(body.api_keys.length).toBeGreaterThan(0);
     expect(Array.isArray(body.domains)).toBe(true);
+    expect(body.domains).toHaveLength(1);
+    expect(body.domains[0].name).toBe("Default");
   });
 
   it("returns 401 without JWT", async () => {

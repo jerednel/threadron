@@ -434,11 +434,11 @@
       <span class="glitch" data-text="Docs.">Docs.</span>
     </h1>
     <p class="lead">
-      Everything you need: MCP tools, REST endpoints, data model, and behavioral guide.
-      Single-page reference — use the sidebar to jump to any section.
+      Reference material for people who want the full API, data model, and behavioral rules.
+      If you just want to start, go to Get Started and copy the prompt.
     </p>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
-      <a href="#quick-start" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Quick Start</a>
+      <a href="get-started.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 11px;">Copy the prompt</a>
       <a href="#mcp-tools" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">MCP Tools</a>
       <a href="#rest-api" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">REST API</a>
       <a href="#data-model" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Data Model</a>
@@ -456,9 +456,7 @@
         <div class="sidebar-label">Getting Started</div>
         <ul>
           <li><a href="#quick-start">Quick Start</a></li>
-          <li><a href="#qs-claude-code">Claude Code</a></li>
-          <li><a href="#qs-openclaw">OpenClaw</a></li>
-          <li><a href="#qs-rest">REST / Any Agent</a></li>
+          <li><a href="get-started.html">Copy the prompt</a></li>
         </ul>
       </div>
       <div class="sidebar-section">
@@ -510,47 +508,18 @@
       <section id="quick-start" class="docs-section">
         <div class="label">01</div>
         <h2>Quick Start</h2>
-        <p class="section-intro">Three paths to connect an agent. Pick the one that fits. All three give you the same execution state layer.</p>
+        <p class="section-intro">The fastest way in is the same everywhere: paste one prompt into the agent you already use.</p>
 
-        <div class="qs-grid">
-          <div class="qs-card" id="qs-claude-code">
-            <div class="label" style="margin-bottom: 12px;">Recommended — no install</div>
-            <h3>Claude Code</h3>
-            <p>Hosted MCP server — one command connects. No git clone, no npm install, no build step.</p>
-            <div class="code-block" style="font-size: 12px;">
-              <span class="label-tag">bash</span>
-claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
-            </div>
-            <p style="margin-top: 12px; font-size: 0.8rem;">Then install the skill: <span class="inline-code">curl -sL .../SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs</span>. Restart Claude Code. <a href="#mcp-tools" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">MCP tools reference &darr;</a></p>
-          </div>
-
-          <div class="qs-card" id="qs-openclaw">
-            <div class="label" style="margin-bottom: 12px;">No install</div>
-            <h3>OpenClaw</h3>
-            <p>Hosted MCP server — one command connects. Then add the skill to your system prompt.</p>
-            <div class="code-block" style="font-size: 12px;">
-              <span class="label-tag">bash</span>
-openclaw mcp set threadron <span class="string">'{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
-            </div>
-            <p style="margin-top: 12px; font-size: 0.8rem;">Add skill instructions to your system prompt. <a href="get-started.html#connect" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Full guide &rarr;</a></p>
-          </div>
-
-          <div class="qs-card" id="qs-rest">
-            <div class="label" style="margin-bottom: 12px;">Any Agent</div>
-            <h3>REST / HTTP</h3>
-            <p>No MCP required. Copy skill.md into your agent's system prompt. Direct HTTP calls.</p>
-            <div class="code-block" style="font-size: 12px;">
-              <span class="label-tag">env</span>
-TFA_API_URL=https://threadron.com/v1
-TFA_API_KEY=tfa_sk_...
-TFA_AGENT_ID=your-agent
-            </div>
-            <p style="margin-top: 12px; font-size: 0.8rem;">All auth via <span class="inline-code">Authorization: Bearer $TFA_API_KEY</span>. <a href="#rest-api" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">REST reference &darr;</a></p>
-          </div>
+        <div class="callout critical">
+          <p><strong>Start here:</strong> copy the prompt on the <a href="get-started.html" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">Get Started</a> page. It works for Claude Code, OpenClaw, and any agent that can follow instructions. Wire up MCP or HTTP later if you want automatic syncing.</p>
         </div>
 
-        <div class="callout">
-          <p><strong>Self-hosted?</strong> Run <span class="inline-code">docker compose up -d</span>, then <span class="inline-code">curl http://localhost:8080/v1/auth/setup</span> to generate your first key. Use <span class="inline-code">http://localhost:8080/v1</span> as your <span class="inline-code">TFA_API_URL</span>.</p>
+        <div class="code-block" style="font-size: 12px; margin-top: 24px;">
+          <span class="label-tag">prompt</span>
+You are working with Threadron, a shared execution state for this repo.
+At the start of every session, resume the active thread or create one.
+While working, record meaningful progress, blockers, and next steps.
+Before pausing, leave a clean handoff so another agent can continue.
         </div>
       </section>
 
@@ -1823,7 +1792,7 @@ threadron_update_state(task_id, current_state: <span class="string">"Root cause 
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>
-    <a href="get-started.html">Pricing</a>
+    <a href="get-started.html">Get Started</a>
     <a href="docs.html">Docs</a>
     <a href="open-source.html">GitHub</a>
   </div>

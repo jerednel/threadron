@@ -1,0 +1,171 @@
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  RAILWAY_PROJECT_ID: 4e203420-b591-4b22-8cdd-cabad3fd197a
+  RAILWAY_ENVIRONMENT: production
+  RAILWAY_SERVICE: api
+  PRODUCTION_URL: https://threadron.com
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            dashboard/package-lock.json
+            mcp/package-lock.json
+
+      - name: Install API dependencies
+        run: npm ci
+
+      - name: Install dashboard dependencies
+        run: npm ci
+        working-directory: dashboard
+
+      - name: Install MCP dependencies
+        run: npm ci
+        working-directory: mcp
+
+      - name: Test API
+        run: npm test
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/tfa_test
+
+      - name: Build API
+        run: npm run build
+
+      - name: Build dashboard
+        run: npm run build
+        working-directory: dashboard
+
+      - name: Build MCP
+        run: npm run build
+        working-directory: mcp
+
+  deploy:
+    name: Deploy Railway
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli@4.65.0
+
+      - name: Deploy
+        id: deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          railway up \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT" \
+            --service "$RAILWAY_SERVICE" \
+            --detach \
+            --message "github-actions:${GITHUB_SHA}" | tee railway-up.log
+
+          deployment_id="$(grep -Eo 'id=[0-9a-f-]+' railway-up.log | head -n1 | cut -d= -f2)"
+          if [ -z "$deployment_id" ]; then
+            echo "Could not determine Railway deployment ID"
+            cat railway-up.log
+            exit 1
+          fi
+
+          echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Railway deployment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          DEPLOYMENT_ID: ${{ steps.deploy.outputs.deployment_id }}
+        run: |
+          set -euo pipefail
+
+          for _ in $(seq 1 80); do
+            status="$(railway deployment list --json \
+              --environment "$RAILWAY_ENVIRONMENT" \
+              --service "$RAILWAY_SERVICE" \
+              | jq -r --arg id "$DEPLOYMENT_ID" '.[] | select(.id == $id) | .status')"
+
+            echo "Railway deployment ${DEPLOYMENT_ID}: ${status:-unknown}"
+
+            case "$status" in
+              SUCCESS)
+                exit 0
+                ;;
+              FAILED|CRASHED|REMOVED)
+                railway logs --build --lines 200 "$DEPLOYMENT_ID" || true
+                railway logs --deployment --lines 200 "$DEPLOYMENT_ID" || true
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          echo "Timed out waiting for Railway deployment ${DEPLOYMENT_ID}"
+          exit 1
+
+      - name: Production health check
+        run: |
+          set -euo pipefail
+
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error "$PRODUCTION_URL/v1/health"; then
+              echo
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "Production health check failed"
+          exit 1

@@ -4,7 +4,7 @@ import { tasks, contextEntries, domains, projects, config, threads } from "../db
 import { formatTaskPush, sendMessage } from "../lib/telegram.js";
 import { genId } from "../lib/id.js";
 import { recordEvent } from "../lib/events.js";
-import { createThread, getThreadById, updateThreadSnapshot } from "../lib/threads.js";
+import { createThread, getThreadById, normalizeThreadStatus, updateThreadSnapshot } from "../lib/threads.js";
 import { eq, and, or, isNull, lte, ilike, asc, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 
@@ -146,7 +146,7 @@ export function taskRoutes(db: DrizzleDb) {
         name: body.thread_name?.trim() || body.title,
         userId,
         createdBy: body.created_by,
-        status: normalizeTaskStatus(body.status) ?? "active",
+        status: normalizeThreadStatus(body.status),
         currentState: body.current_state ?? null,
         nextAction: body.next_action ?? null,
         blockers: body.blockers ?? [],
@@ -194,7 +194,7 @@ export function taskRoutes(db: DrizzleDb) {
       await updateThreadSnapshot(db, threadRow.id, {
         rootTaskId: row.id,
         currentTaskId: row.id,
-        status: normalizeTaskStatus(row.status) ?? "active",
+        status: normalizeThreadStatus(row.status),
         currentState: row.currentState,
         nextAction: row.nextAction,
         blockers: row.blockers,
@@ -202,9 +202,9 @@ export function taskRoutes(db: DrizzleDb) {
         confidence: row.confidence,
       });
     } else {
-      await updateThreadSnapshot(db, threadId, {
+      await updateThreadSnapshot(db, threadId!, {
         currentTaskId: row.id,
-        status: normalizeTaskStatus(row.status) ?? "active",
+        status: normalizeThreadStatus(row.status),
         currentState: row.currentState,
         nextAction: row.nextAction,
         blockers: row.blockers,
@@ -504,7 +504,7 @@ export function taskRoutes(db: DrizzleDb) {
     if (row.threadId) {
       await updateThreadSnapshot(db, row.threadId, {
         currentTaskId: row.id,
-        status: normalizeTaskStatus(row.status) ?? "active",
+        status: normalizeThreadStatus(row.status),
         currentState: row.currentState,
         nextAction: row.nextAction,
         blockers: row.blockers,

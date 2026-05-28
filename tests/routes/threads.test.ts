@@ -165,7 +165,6 @@ describe("PATCH /v1/tasks/:id", () => {
     expect(thread.current_state).toBe("Implemented core thread sync");
     expect(thread.next_action).toBe("Write tests");
     expect(thread.blockers).toEqual(["Need migration"]);
-    expect(thread.status).toBe("in_progress");
+    expect(thread.status).toBe("active");
   });
 });
-

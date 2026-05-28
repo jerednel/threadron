@@ -7,6 +7,16 @@ type DrizzleDb = typeof DbType;
 export type ThreadRow = typeof threads.$inferSelect;
 export type TaskRow = typeof tasks.$inferSelect;
 
+const THREAD_STATUSES = new Set(["active", "paused", "completed", "archived"]);
+
+export function normalizeThreadStatus(status: string | null | undefined): string {
+  if (!status) return "active";
+  if (THREAD_STATUSES.has(status)) return status;
+  if (status === "completed" || status === "closed" || status === "done") return "completed";
+  if (status === "cancelled" || status === "canceled") return "archived";
+  return "active";
+}
+
 export function toThreadApi(row: ThreadRow) {
   return {
     id: row.id,
@@ -50,7 +60,7 @@ export async function createThread(db: DrizzleDb, input: {
     id: input.id,
     name: input.name,
     userId: input.userId,
-    status: input.status ?? "active",
+    status: normalizeThreadStatus(input.status),
     source: input.source ?? null,
     parentThreadId: input.parentThreadId ?? null,
     rootTaskId: input.rootTaskId ?? null,
@@ -83,7 +93,7 @@ export async function updateThreadSnapshot(db: DrizzleDb, threadId: string, snap
     updatedAt: new Date(),
   };
   if (snapshot.name !== undefined) updates.name = snapshot.name;
-  if (snapshot.status !== undefined) updates.status = snapshot.status;
+  if (snapshot.status !== undefined) updates.status = normalizeThreadStatus(snapshot.status);
   if (snapshot.currentTaskId !== undefined) updates.currentTaskId = snapshot.currentTaskId;
   if (snapshot.rootTaskId !== undefined) updates.rootTaskId = snapshot.rootTaskId;
   if (snapshot.currentState !== undefined) updates.currentState = snapshot.currentState;
@@ -106,4 +116,3 @@ export async function getThreadById(db: DrizzleDb, threadId: string) {
   const [row] = await db.select().from(threads).where(eq(threads.id, threadId)).limit(1);
   return row ?? null;
 }
-

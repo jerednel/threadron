@@ -11,7 +11,6 @@
 
 <div class="noise"></div>
 
-
 <nav>
   <a href="index.html" class="logo">thread<span>ron</span></a>
   <button class="nav-toggle" style="display:none" onclick="document.querySelector('.links').classList.toggle('open')">&#9776;</button>
@@ -27,140 +26,90 @@
 </nav>
 
 <div class="page">
-
   <section class="hero">
     <div class="label">Get started</div>
     <h1>
-      <span class="glitch" data-text="Pick your deployment.">Pick your deployment.</span>
+      <span class="glitch" data-text="Copy one prompt.">Copy one prompt.</span>
     </h1>
     <p class="lead">
-      Single-node for local dev. Cloud Threadron for real multi-agent work.
-      Same API. Same agents. The difference is whether your state can travel.
+      Threadron works when the agent keeps a durable thread of work. Start with one prompt,
+      paste it into any agent, and let the thread carry the context forward.
     </p>
-  </section>
-
-  <div class="glitch-divider"></div>
-
-  <!-- PRICING -->
-  <section>
-    <div class="label">Pricing</div>
-    <h2>Local or distributed. You choose.</h2>
-
-    <div class="pricing-grid" style="margin-top: 40px;">
-      <div class="pricing-card">
-        <div class="label">Single-node Threadron</div>
-        <h3>Local / OSS</h3>
-        <div class="price">Free <span>forever</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Full execution state API on your own machine. Good for dev, testing, and solo agent workflows.</p>
-        <ul>
-          <li>Local development</li>
-          <li>Solo agent workflows</li>
-          <li>Testing and experimentation</li>
-          <li>One machine, one agent</li>
-          <li>Structured state (goal, current_state, next_action)</li>
-          <li>Auto-generated event history</li>
-          <li>First-class artifacts</li>
-          <li>Claim / release semantics</li>
-          <li>Web dashboard included</li>
-        </ul>
-        <div style="margin-top: 32px;">
-          <a href="open-source.html" class="btn btn-secondary" style="width: 100%; text-align: center;">Run single-node</a>
-        </div>
-      </div>
-
-      <div class="pricing-card featured">
-        <div class="label" style="color: var(--white);">Distributed Threadron</div>
-        <h3>Cloud</h3>
-        <div class="price">$12 <span>/ month</span></div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Always-on shared state. Any agent, any device, anywhere. Hosted because otherwise your system fragments.</p>
-        <ul>
-          <li>Multi-agent coordination</li>
-          <li>Cross-device continuity</li>
-          <li>Long-running workflows</li>
-          <li>Always-on shared state</li>
-          <li>Hosted PostgreSQL — no Docker required</li>
-          <li>Automatic backups and uptime SLA</li>
-          <li>Smart Layer: deduplication</li>
-          <li>Smart Layer: priority scoring</li>
-          <li>Smart Layer: context summarization</li>
-        </ul>
-        <div style="margin-top: 32px;">
-          <a href="/dashboard/login" class="btn btn-primary" style="width: 100%; text-align: center;">Get Access</a>
-        </div>
-      </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px;">
+      <a href="#prompt" class="btn btn-primary" style="padding: 10px 24px; font-size: 11px;">Copy the prompt</a>
+      <a href="#how-it-works" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">How it works</a>
     </div>
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- QUICKSTART -->
-  <section>
-    <div class="label">Quickstart</div>
-    <h2>Three steps to persistent shared state</h2>
+  <section id="prompt">
+    <div class="label">One prompt</div>
+    <h2>Paste this into any agent</h2>
+    <p style="color: var(--gray-4); max-width: 760px;">
+      Replace the placeholders once, then use the same prompt everywhere. If the agent supports tools or MCP,
+      it can read and update Threadron directly. If not, it still has a clear, reusable operating rule.
+    </p>
+    <div class="code-block" style="margin-top: 24px;">
+      <span class="label-tag">prompt</span>
+You are working with Threadron, a shared execution state for this repo.
+
+Use Threadron as the source of truth for task status, context, and handoff.
+
+At the start of every session:
+1. Find the active thread for this repo or worktree.
+2. Resume the latest task state before doing any new work.
+3. If there is no active thread, create one for the feature or worktree.
+
+While working:
+1. After every meaningful step, record what changed and why.
+2. Keep the current state short, current, and easy for another agent to resume.
+3. Update the next action before pausing.
+
+Before finishing:
+1. Leave a clean handoff with the latest state, blockers, and next step.
+2. Record any artifacts, links, or decisions that matter later.
+3. Treat the thread as the durable memory for this work.
+
+Threadron connection:
+- API URL: https://threadron.com/v1
+- API key: YOUR_API_KEY
+- Agent ID: YOUR_AGENT_ID
+- Repo or worktree: YOUR_REPO_OR_WORKTREE
+
+If Threadron tools are available, use them.
+If not, keep the same discipline in your own notes and ask the user to sync the thread later.
+    </div>
+  </section>
+
+  <div class="glitch-divider"></div>
+
+  <section id="how-it-works">
+    <div class="label">How it works</div>
+    <h2>Three things to remember</h2>
 
     <div style="margin-top: 40px;">
-      <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
+      <div style="display: flex; gap: 32px; margin-bottom: 40px; align-items: flex-start;">
         <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">01</div>
         <div>
-          <h3>Get your API key</h3>
-          <p style="color: var(--gray-4);">Sign up for the managed service, or spin up the Docker container and generate a key locally.</p>
-          <div class="code-block" style="margin-top: 16px;">
-            <span class="label-tag">Cloud Threadron</span>
-<span class="comment"># Sign up at threadron.com</span>
-<span class="comment"># Your API key appears in the dashboard under Settings > API</span>
-          </div>
-          <div class="code-block" style="margin-top: 8px;">
-            <span class="label-tag">Single-node</span>
-docker compose up -d
-curl http://localhost:8080/v1/auth/setup
-          </div>
+          <h3>Thread once per worktree</h3>
+          <p style="color: var(--gray-4);">Start a thread for the feature, branch, or worktree. That thread becomes the durable record of what happened.</p>
         </div>
       </div>
 
-      <div style="display: flex; gap: 32px; margin-bottom: 48px; align-items: flex-start;">
+      <div style="display: flex; gap: 32px; margin-bottom: 40px; align-items: flex-start;">
         <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">02</div>
         <div>
-          <h3>Add the skill to your agent</h3>
-          <p style="color: var(--gray-4);">Drop the skill.md into your agent's configuration. It tells the agent how to check in, claim work, and update state on each session start.</p>
-          <div class="code-block" style="margin-top: 16px;">
-            <span class="label-tag">skill.md</span>
-<span class="comment"># Threadron — Shared Execution State</span>
-<span class="comment"># Add to your agent's skill or system prompt file</span>
-
-<span class="key">TASK_API</span>=<span class="string">https://threadron.com/v1</span>
-<span class="key">TASK_API_KEY</span>=<span class="string">tfa_sk_...</span>
-<span class="key">AGENT_ID</span>=<span class="string">claude-code</span>
-
-<span class="comment"># On session start:</span>
-<span class="comment"># 1. GET $TASK_API/tasks?assignee=$AGENT_ID&status=in_progress</span>
-<span class="comment"># 2. Read current_state + next_action. Continue from there.</span>
-<span class="comment"># 3. If nothing in progress, GET unclaimed pending work and claim one.</span>
-          </div>
+          <h3>Update after meaningful progress</h3>
+          <p style="color: var(--gray-4);">When the agent changes direction, finishes a step, or finds a blocker, it updates the thread instead of relying on memory.</p>
         </div>
       </div>
 
       <div style="display: flex; gap: 32px; align-items: flex-start;">
         <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--gray-2); line-height: 1; min-width: 60px;">03</div>
         <div>
-          <h3>Create your first work item</h3>
-          <p style="color: var(--gray-4);">From the dashboard, your agent, or a simple curl. Use the structured fields — goal, current_state, outcome_definition — so agents have real context to work from.</p>
-          <div class="code-block" style="margin-top: 16px;">
-            <span class="label-tag">curl</span>
-curl -X POST https://threadron.com/v1/tasks \
-  -H "Authorization: Bearer tfa_sk_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Fix connection pool race condition",
-    "project": "api-v2",
-    "assignee": "claude-code",
-    "goal": "Eliminate intermittent connection timeouts under load",
-    "current_state": "Race condition identified in acquire path.",
-    "next_action": "Write concurrent request tests, then open PR",
-    "outcome_definition": "Zero timeout errors in load test at 500 rps"
-  }'
-
-<span class="comment">// Work item created. Claude Code picks it up on next session start.</span>
-          </div>
+          <h3>Resume anywhere</h3>
+          <p style="color: var(--gray-4);">The same thread can be picked up by another agent, another app, or another machine without reconstructing the whole story.</p>
         </div>
       </div>
     </div>
@@ -168,231 +117,44 @@ curl -X POST https://threadron.com/v1/tasks \
 
   <div class="glitch-divider"></div>
 
-  <!-- CONNECT YOUR AGENT -->
-  <section id="connect">
-    <div class="label">Agent setup</div>
-    <h2>Connect your agent</h2>
-    <p style="margin-bottom: 48px; color: var(--gray-4);">One script for Claude Code. One file for everything else.</p>
+  <section>
+    <div class="label">If you want syncing</div>
+    <h2>Connect Threadron once</h2>
+    <p style="color: var(--gray-4); max-width: 760px;">
+      The prompt above is the core onboarding. If your agent supports MCP or shared tools, connect Threadron once and let it read and write the same thread state automatically.
+    </p>
 
-    <!-- ── CLAUDE CODE ──────────────────────────────────────── -->
-    <div class="card" style="padding: 40px; margin-bottom: 32px;">
-      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
-        <div class="label">MCP + Skill</div>
-      </div>
-      <h3 style="margin-bottom: 8px;">Claude Code</h3>
-      <p style="color: var(--gray-4); margin-bottom: 32px;">No installation required. The MCP server is hosted — one command connects Claude Code to Threadron. No git clone, no npm install, no build step.</p>
-
-      <!-- Step 1: Add MCP server -->
-      <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 1 — Add the MCP server (one command)</div>
-        <div class="code-block">
-          <span class="label-tag">bash</span>
+    <div class="card" style="padding: 32px; margin-top: 24px;">
+      <h3 style="margin-bottom: 12px;">Claude Code</h3>
+      <div class="code-block">
+        <span class="label-tag">bash</span>
 claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
-        </div>
-        <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or add to your project's <span style="font-family: var(--mono); color: var(--gray-5);">.mcp.json</span>:</p>
-        <div class="code-block" style="margin-top: 8px;">
-          <span class="label-tag">.mcp.json</span>
-{
-  <span class="key">"mcpServers"</span>: {
-    <span class="key">"threadron"</span>: {
-      <span class="key">"type"</span>: <span class="string">"http"</span>,
-      <span class="key">"url"</span>: <span class="string">"https://threadron.com/mcp"</span>,
-      <span class="key">"headers"</span>: {
-        <span class="key">"Authorization"</span>: <span class="string">"Bearer YOUR_API_KEY"</span>
-      }
-    }
-  }
-}
-        </div>
-      </div>
-
-      <!-- Step 2: Install skill -->
-      <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 2 — Install the skill (tells Claude when/how to use the tools)</div>
-        <div class="code-block">
-          <span class="label-tag">bash</span>
-curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md -o ~/.claude/skills/threadron/SKILL.md --create-dirs
-        </div>
-        <p style="margin-top: 12px; color: var(--gray-4); font-size: 0.9rem;">Or copy the CLAUDE.md snippet from the <a href="/dashboard/settings" style="color: var(--gray-5); border-bottom: 1px solid var(--gray-3);">dashboard settings</a> into your project.</p>
-      </div>
-
-      <!-- Step 3: Restart -->
-      <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Step 3 — Restart Claude Code</div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Exit and relaunch. Claude will prompt you to approve the Threadron MCP server on first use. After that, <span style="font-family: var(--mono); color: var(--gray-5);">threadron_*</span> tools are available in every session.</p>
-      </div>
-
-      <!-- Tools table -->
-      <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">What you get — 11 native tools</div>
-        <div class="code-block" style="overflow-x: auto;">
-          <span class="label-tag">11 tools</span>
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-            <thead>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; color: var(--gray-3); font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--gray-2); white-space: nowrap;">Tool</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-3); font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--gray-2);">Purpose</td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_checkin</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Session start — returns in-progress, pending, and blocked work</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_list_tasks</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">List / filter work items by status, assignee, domain, search</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_get_task</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Full work item with goal, state, timeline, artifacts</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_create_task</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Create with structured fields (goal, current_state, outcome)</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_update_state</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Update current_state, next_action, blockers, confidence</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_add_context</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Add timeline entries: observation, decision, action_taken, etc.</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_create_artifact</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Attach branches, PRs, commits, files, docs</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_claim</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Claim before working — prevents collisions, auto-expires</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_release</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">Release claim when done or pausing</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap; border-bottom: 1px solid var(--gray-1);">threadron_list_domains</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4); border-bottom: 1px solid var(--gray-1);">List available domains</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 16px 8px 0; font-family: var(--mono); color: var(--gray-5); white-space: nowrap;">threadron_list_agents</td>
-                <td style="padding: 8px 0 8px 16px; color: var(--gray-4);">List registered agents and activity</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- How Claude uses them -->
-      <div style="margin-bottom: 32px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">How Claude Code uses them</div>
-        <div style="padding: 20px; background: var(--gray-1); border-left: 2px solid var(--gray-2);">
-          <p style="color: var(--gray-4); font-size: 0.9rem; margin-bottom: 12px;">The installed skill tells Claude to:</p>
-          <ul style="margin: 0; padding-left: 20px; color: var(--gray-4); font-size: 0.9rem; line-height: 1.8; list-style: none; padding-left: 0;">
-            <li style="margin-bottom: 6px;"><span style="font-family: var(--mono); color: var(--gray-5);">threadron_checkin</span> at every session start</li>
-            <li style="margin-bottom: 6px;"><span style="font-family: var(--mono); color: var(--gray-5);">threadron_claim</span> before starting work</li>
-            <li style="margin-bottom: 6px;"><span style="font-family: var(--mono); color: var(--gray-5);">threadron_update_state</span> as progress happens</li>
-            <li style="margin-bottom: 6px;"><span style="font-family: var(--mono); color: var(--gray-5);">threadron_add_context</span> for decisions and observations</li>
-            <li style="margin-bottom: 6px;"><span style="font-family: var(--mono); color: var(--gray-5);">threadron_create_artifact</span> for outputs</li>
-            <li><span style="font-family: var(--mono); color: var(--gray-5);">threadron_release</span> when done or pausing</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ── OPENCLAW ──────────────────────────────────────────── -->
-    <div class="card" style="padding: 40px; margin-bottom: 32px;">
-      <div class="label" style="margin-bottom: 8px;">MCP Server</div>
-      <h3 style="margin-bottom: 8px;">OpenClaw</h3>
-      <p style="color: var(--gray-4); margin-bottom: 32px;">No installation required. The MCP server is hosted — one command connects OpenClaw to Threadron. No git clone, no npm install, no build step.</p>
-
-      <div style="margin-bottom: 24px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Add the MCP server (one command)</div>
-        <div class="code-block">
-          <span class="label-tag">bash</span>
-openclaw mcp set threadron <span class="string">'{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'</span>
-        </div>
-      </div>
-
-      <div>
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Add skill instructions to system prompt</div>
-        <p style="color: var(--gray-4); font-size: 0.9rem;">Copy the Threadron skill into your OpenClaw system prompt or instruction file. This tells the agent when and how to use each tool.</p>
-        <div class="code-block" style="margin-top: 12px;">
-          <span class="label-tag">bash</span>
-<span class="comment"># Get the skill content:</span>
-curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/mcp/skill/SKILL.md
-        </div>
       </div>
     </div>
 
-    <!-- ── ANY AGENT (REST) ──────────────────────────────────── -->
-    <div class="card" style="padding: 40px;">
-      <div class="label" style="margin-bottom: 8px;">REST API</div>
-      <h3 style="margin-bottom: 8px;">Any Agent</h3>
-      <p style="color: var(--gray-4); margin-bottom: 32px;">For Hermes, custom agents, or anything that can make HTTP requests. No MCP needed — your agent uses <span style="font-family: var(--mono); color: var(--gray-5);">curl</span> or <span style="font-family: var(--mono); color: var(--gray-5);">fetch</span> directly.</p>
-
-      <div style="margin-bottom: 12px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 1 — Copy skill.md into your agent's instruction file</div>
-        <div class="code-block">
-          <span class="label-tag">bash</span>
-<span class="comment"># Download skill.md and copy into your agent's system prompt,</span>
-<span class="comment"># instruction file, or config. It contains complete API docs.</span>
-curl -sL https://raw.githubusercontent.com/jerednel/threadron/main/skill.md -o your-agent/instructions/threadron.md
-        </div>
-      </div>
-
-      <div style="margin-bottom: 12px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Step 2 — Set environment variables</div>
-        <div class="code-block">
-          <span class="label-tag">env</span>
-TFA_API_URL=https://threadron.com/v1
-TFA_API_KEY=YOUR_KEY
-TFA_AGENT_ID=hermes
-        </div>
-      </div>
-
-      <div>
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--gray-3); margin-bottom: 8px;">Key endpoints</div>
-        <div class="code-block">
-          <span class="label-tag">REST</span>
-<span class="method">GET</span>  <span class="string">/tasks?assignee=hermes&amp;status=in_progress</span>  <span class="comment">→ check for work</span>
-<span class="method">POST</span> <span class="string">/tasks/:id/claim</span>                           <span class="comment">→ claim before working</span>
-<span class="method">PATCH</span> <span class="string">/tasks/:id</span>                                 <span class="comment">→ update state</span>
-<span class="method">POST</span> <span class="string">/tasks/:id/context</span>                         <span class="comment">→ add timeline entries</span>
-<span class="method">POST</span> <span class="string">/tasks/:id/artifacts</span>                       <span class="comment">→ attach outputs</span>
-<span class="method">POST</span> <span class="string">/tasks/:id/release</span>                         <span class="comment">→ release when done</span>
-        </div>
+    <div class="card" style="padding: 32px; margin-top: 24px;">
+      <h3 style="margin-bottom: 12px;">Any other agent</h3>
+      <p style="color: var(--gray-4); margin-bottom: 16px;">Use the same prompt, point it at the API, and keep the thread updated by whatever mechanism that agent supports.</p>
+      <div class="code-block">
+        <span class="label-tag">env</span>
+THREADRON_API_URL=https://threadron.com/v1
+THREADRON_API_KEY=YOUR_API_KEY
+THREADRON_AGENT_ID=YOUR_AGENT_ID
       </div>
     </div>
-
   </section>
 
   <div class="glitch-divider"></div>
 
-  <!-- WAITLIST / CTA -->
-  <section style="text-align: center;" id="waitlist">
+  <section style="text-align: center;">
     <img src="images/threadron.png" alt="Threadron" class="mascot-sm" style="width: 100px; height: 100px; object-fit: contain; margin-bottom: 24px;">
-    <h2>Get early access to Cloud Threadron</h2>
-    <p style="margin: 16px auto;">Multi-agent coordination, cross-device continuity, always-on shared state. Be among the first to run distributed Threadron.</p>
-
-    <form id="waitlist-form" style="max-width: 480px; margin: 40px auto 0; display: flex; gap: 8px;">
-      <input type="email" placeholder="you@email.com" required style="
-        flex: 1;
-        background: var(--gray-1);
-        border: 1px solid var(--gray-2);
-        padding: 14px 20px;
-        font-family: var(--mono);
-        font-size: 13px;
-        color: var(--white);
-        outline: none;
-      ">
-      <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Get Access</button>
-    </form>
-    <p style="margin-top: 16px; font-size: 0.8rem; color: var(--gray-3);">No spam. Just early access and product updates.</p>
+    <h2>Keep the thread alive.</h2>
+    <p style="margin: 16px auto; max-width: 720px;">Start with one prompt, keep one thread per worktree, and let every agent resume from the same durable state.</p>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 28px;">
+      <a href="#prompt" class="btn btn-primary" style="padding: 10px 24px; font-size: 11px;">Copy the prompt</a>
+      <a href="/dashboard/" class="btn btn-secondary" style="padding: 10px 24px; font-size: 11px;">Open dashboard</a>
+    </div>
   </section>
-
 </div>
 
 <footer>
@@ -400,28 +162,10 @@ TFA_AGENT_ID=hermes
   <div class="footer-links">
     <a href="system.html">System</a>
     <a href="use-cases.html">Use Cases</a>
-    <a href="get-started.html">Pricing</a>
+    <a href="get-started.html">Get Started</a>
     <a href="open-source.html">GitHub</a>
   </div>
 </footer>
 
-<script>
-document.getElementById('waitlist-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const email = form.querySelector('input[type=email]').value;
-  try {
-    const res = await fetch('/v1/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    form.innerHTML = `<p style="color: var(--white); font-family: var(--mono);">${data.message}</p>`;
-  } catch (err) {
-    form.innerHTML = `<p style="color: var(--white); font-family: var(--mono);">Something went wrong. Try again later.</p>`;
-  }
-});
-</script>
 </body>
 </html>

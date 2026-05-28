@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { eq, and, desc } from "drizzle-orm";
 import type { db as DbType } from "../db/connection.js";
-import { inboxItems, domains, tasks } from "../db/schema.js";
+import { inboxItems, domains, projects, tasks } from "../db/schema.js";
 import { genId } from "../lib/id.js";
+import { createThread, updateThreadSnapshot } from "../lib/threads.js";
 
 type DrizzleDb = typeof DbType;
 
@@ -195,6 +196,30 @@ export function inboxRoutes(db: DrizzleDb) {
       .limit(1);
     if (!domain) return c.json({ error: "Domain not found" }, 404);
 
+    if (body.project_id) {
+      const [project] = await db
+        .select()
+        .from(projects)
+        .where(and(eq(projects.id, body.project_id), eq(projects.domainId, domainId)))
+        .limit(1);
+      if (!project) return c.json({ error: "Project does not belong to this domain" }, 400);
+    }
+
+    const thread = await createThread(db, {
+      id: genId("th"),
+      name: title,
+      userId,
+      createdBy: userId,
+      status: "active",
+      currentState: item.rawText,
+      nextAction,
+      blockers,
+      metadata: {
+        source: "inbox",
+        inbox_item_id: item.id,
+      },
+    });
+
     // Create the task
     const taskId = genId("t");
     const [task] = await db
@@ -204,14 +229,24 @@ export function inboxRoutes(db: DrizzleDb) {
         title,
         status: "pending",
         domainId,
+        threadId: thread.id,
         projectId: body.project_id || null,
         assignee,
         createdBy: userId,
         priority: "medium",
+        currentState: item.rawText,
         nextAction: nextAction,
         blockers,
       })
       .returning();
+
+    await updateThreadSnapshot(db, thread.id, {
+      rootTaskId: task.id,
+      currentTaskId: task.id,
+      currentState: task.currentState,
+      nextAction: task.nextAction,
+      blockers: task.blockers,
+    });
 
     // Mark inbox item as promoted
     await db
@@ -230,6 +265,7 @@ export function inboxRoutes(db: DrizzleDb) {
         title: task.title,
         status: task.status,
         domain_id: task.domainId,
+        thread_id: task.threadId,
         next_action: task.nextAction,
         assignee: task.assignee,
         blockers: task.blockers,
