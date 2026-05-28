@@ -18,7 +18,7 @@ If your agent supports the Model Context Protocol, use the hosted MCP server. No
 
 **Claude Code (one command):**
 ```bash
-claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header "Authorization:Bearer YOUR_API_KEY"
+claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header "Authorization:Bearer YOUR_API_KEY" --header "X-Agent-Id:claude-code"
 ```
 
 **Or add `.mcp.json` to your project root:**
@@ -29,7 +29,8 @@ claude mcp add --scope user --transport http threadron https://threadron.com/mcp
       "type": "http",
       "url": "https://threadron.com/mcp",
       "headers": {
-        "Authorization": "Bearer YOUR_API_KEY"
+        "Authorization": "Bearer YOUR_API_KEY",
+        "X-Agent-Id": "claude-code"
       }
     }
   }
@@ -38,8 +39,10 @@ claude mcp add --scope user --transport http threadron https://threadron.com/mcp
 
 **OpenClaw (one command):**
 ```bash
-openclaw mcp set threadron '{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
+openclaw mcp set threadron '{"command":"npx","args":["-y","mcp-remote@latest","https://threadron.com/mcp","--header","Authorization: Bearer YOUR_API_KEY","--header","X-Agent-Id: openclaw"]}'
 ```
+
+After changing MCP config, restart the agent runtime. For OpenClaw, restart the agent/gateway so it reloads the MCP command bridge.
 
 **Add to `CLAUDE.md` (behavioral instructions):**
 ```markdown
@@ -52,6 +55,8 @@ Use Threadron tools to track work across sessions:
 - Record decisions and observations with `threadron_add_context`
 - Attach outputs with `threadron_create_artifact`
 - When done or pausing, `threadron_release` the item
+- Capture loose follow-ups with `threadron_capture_inbox`
+- Never say Threadron was updated unless a `threadron_*` tool call succeeded
 ```
 
 **Available MCP tools:**

@@ -31,12 +31,13 @@ No installation required. Connect your agent to the hosted service:
 ```bash
 claude mcp add --scope user --transport http threadron \
   https://threadron.com/mcp \
-  --header "Authorization:Bearer YOUR_API_KEY"
+  --header "Authorization:Bearer YOUR_API_KEY" \
+  --header "X-Agent-Id:claude-code"
 ```
 
 **OpenClaw:**
 ```bash
-openclaw mcp set threadron '{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
+openclaw mcp set threadron '{"command":"npx","args":["-y","mcp-remote@latest","https://threadron.com/mcp","--header","Authorization: Bearer YOUR_API_KEY","--header","X-Agent-Id: openclaw"]}'
 ```
 
 **Any agent (REST):**

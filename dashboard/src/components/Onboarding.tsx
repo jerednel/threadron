@@ -21,7 +21,7 @@ claude mcp add --scope user --transport http threadron \\
   --header "X-Agent-Id:claude-code"
 
 # OpenClaw
-openclaw mcp set threadron '{"url":"${API_URL}/mcp","headers":{"Authorization":"Bearer ${key}","X-Agent-Id":"openclaw"}}'
+openclaw mcp set threadron '{"command":"npx","args":["-y","mcp-remote@latest","${API_URL}/mcp","--header","Authorization: Bearer ${key}","--header","X-Agent-Id: openclaw"]}'
 
 # First prompt to paste into the agent after connecting:
 Check Threadron, create or resume an onboarding thread, and update it with what you see.`;

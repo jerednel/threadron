@@ -31,7 +31,8 @@ If the MCP server is NOT configured, tell the user:
 >    ```bash
 >    claude mcp add --scope user --transport http threadron \
 >      https://threadron.com/mcp \
->      --header "Authorization:Bearer YOUR_API_KEY"
+>      --header "Authorization:Bearer YOUR_API_KEY" \
+>      --header "X-Agent-Id:claude-code"
 >    ```
 > 3. Restart Claude Code
 

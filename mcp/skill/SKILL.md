@@ -15,17 +15,20 @@ The Threadron tools (`threadron_checkin`, `threadron_list_tasks`, etc.) require 
 ```bash
 claude mcp add --scope user --transport http threadron \
   https://threadron.com/mcp \
-  --header "Authorization:Bearer YOUR_API_KEY"
+  --header "Authorization:Bearer YOUR_API_KEY" \
+  --header "X-Agent-Id:claude-code"
 ```
 
 **OpenClaw:**
 ```bash
-openclaw mcp set threadron '{"url":"https://threadron.com/mcp","headers":{"Authorization":"Bearer YOUR_API_KEY"}}'
+openclaw mcp set threadron '{"command":"npx","args":["-y","mcp-remote@latest","https://threadron.com/mcp","--header","Authorization: Bearer YOUR_API_KEY","--header","X-Agent-Id: openclaw"]}'
 ```
 
 The user needs an API key from [threadron.com/dashboard](https://threadron.com/dashboard/). If they don't have one, direct them there to create an account and generate a key.
 
-After adding the MCP server, the user must **restart Claude Code** for the tools to become available.
+After adding the MCP server, the user must **restart the agent runtime** for the tools to become available. For OpenClaw, restart the agent/gateway after changing MCP config.
+
+After restart, verify tool discovery before claiming setup worked. Ask the agent to list or call a Threadron tool such as `threadron_checkin`. If `threadron_*` tools are missing, say setup is incomplete instead of pretending state was written.
 
 ## CRITICAL RULES
 
@@ -74,6 +77,10 @@ When in doubt, **ask the user** if they want you to track something in Threadron
 ### Rule 4: Identify yourself
 
 When setting up the MCP connection, pass your agent name via the `X-Agent-Id` header. Each agent should have a unique identity — "openclaw", "hermes", "claude-code", etc. Don't reuse another agent's identity. If you see work claimed by another agent, that's a different agent — don't take over their work without the user's permission.
+
+### Rule 5: Verify writes, then report them
+
+Never tell the user that a handoff, note, task, or state update was recorded unless you actually called a `threadron_*` tool and saw a successful result. If tools are unavailable, say that plainly and help fix the MCP setup. For loose follow-ups or "remember this" style requests, call `threadron_capture_inbox` even when the user did not explicitly name Threadron.
 
 ## Session Start
 

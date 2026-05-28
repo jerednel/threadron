@@ -128,7 +128,15 @@ If not, keep the same discipline in your own notes and ask the user to sync the 
       <h3 style="margin-bottom: 12px;">Claude Code</h3>
       <div class="code-block">
         <span class="label-tag">bash</span>
-claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization: Bearer YOUR_API_KEY"</span>
+claude mcp add --scope user --transport http threadron https://threadron.com/mcp --header <span class="string">"Authorization:Bearer YOUR_API_KEY"</span> --header <span class="string">"X-Agent-Id:claude-code"</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 32px; margin-top: 24px;">
+      <h3 style="margin-bottom: 12px;">OpenClaw</h3>
+      <div class="code-block">
+        <span class="label-tag">bash</span>
+openclaw mcp set threadron '{"command":"npx","args":["-y","mcp-remote@latest","https://threadron.com/mcp","--header","Authorization: Bearer YOUR_API_KEY","--header","X-Agent-Id: openclaw"]}'
       </div>
     </div>
 
