@@ -197,6 +197,39 @@ export interface ContextObject {
   updated_at: string;
 }
 
+export interface SprintItem {
+  id: string;
+  sprint_id: string;
+  task_id?: string | null;
+  thread_id?: string | null;
+  commitment_status: 'planned' | 'committed' | 'stretch' | 'removed';
+  position: number;
+  added_by: string;
+  metadata?: Record<string, unknown>;
+  task?: Pick<Task, 'id' | 'title' | 'status' | 'priority' | 'assignee' | 'current_state' | 'next_action' | 'blockers' | 'thread_id' | 'domain_id' | 'updated_at'> | null;
+  thread?: Pick<Thread, 'id' | 'name' | 'status' | 'current_state' | 'next_action' | 'blockers' | 'updated_at'> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sprint {
+  id: string;
+  user_id: string;
+  domain_id?: string | null;
+  name: string;
+  status: 'planned' | 'active' | 'closed';
+  goal?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  capacity_notes?: string | null;
+  metadata?: Record<string, unknown>;
+  created_by: string;
+  item_count?: number;
+  items?: SprintItem[];
+  created_at: string;
+  updated_at: string;
+}
+
 export const api = {
   // Auth
   register: (data: { email: string; password: string; name: string }) =>
@@ -357,6 +390,40 @@ export const api = {
   updateContextObject: (id: string, data: Partial<ContextObject>): Promise<ContextObject> =>
     request(`/context-objects/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteContextObject: (id: string) => request(`/context-objects/${id}`, { method: 'DELETE' }),
+
+  // Sprints
+  listSprints: (params?: Record<string, string>): Promise<Sprint[]> => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request(`/sprints${qs}`).then(r => r.sprints ?? r);
+  },
+  getSprint: (id: string): Promise<Sprint> => request(`/sprints/${id}`),
+  createSprint: (data: {
+    name: string;
+    domain_id?: string | null;
+    status?: string;
+    goal?: string;
+    start_date?: string | null;
+    end_date?: string | null;
+    capacity_notes?: string;
+    created_by?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<Sprint> =>
+    request('/sprints', { method: 'POST', body: JSON.stringify(data) }),
+  updateSprint: (id: string, data: Partial<Sprint>): Promise<Sprint> =>
+    request(`/sprints/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  addSprintItem: (id: string, data: {
+    task_id?: string;
+    thread_id?: string;
+    commitment_status?: string;
+    position?: number;
+    added_by?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<SprintItem> =>
+    request(`/sprints/${id}/items`, { method: 'POST', body: JSON.stringify(data) }),
+  updateSprintItem: (sprintId: string, itemId: string, data: Partial<SprintItem>): Promise<SprintItem> =>
+    request(`/sprints/${sprintId}/items/${itemId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSprintItem: (sprintId: string, itemId: string) =>
+    request(`/sprints/${sprintId}/items/${itemId}`, { method: 'DELETE' }),
 
   // Telegram
   getTelegramConfig: (): Promise<{ connected: boolean; chat_id: string | null; token_preview: string | null }> =>

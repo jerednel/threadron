@@ -19,6 +19,7 @@ import { agentRoutes } from "./routes/agents.js";
 import { configRoutes } from "./routes/config.js";
 import { inboxRoutes } from "./routes/inbox.js";
 import { contextObjectRoutes } from "./routes/contextObjects.js";
+import { sprintRoutes } from "./routes/sprints.js";
 import { waitlistRoutes } from "./routes/waitlist.js";
 import { mcpRoutes } from "./routes/mcp.js";
 
@@ -64,6 +65,7 @@ protected_.route("/agents", agentRoutes(db));
 protected_.route("/config", configRoutes(db));
 protected_.route("/inbox", inboxRoutes(db));
 protected_.route("/context-objects", contextObjectRoutes(db));
+protected_.route("/sprints", sprintRoutes(db));
 
 v1.route("/", protected_);
 app.route("/v1", v1);

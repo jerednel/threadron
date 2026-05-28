@@ -484,11 +484,12 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
   server.tool(
     "threadron_checkin",
-    "Session start check-in. Returns your active threads, in-progress work, pending items, blocked items, and unprocessed inbox items. Use this at the start of every session to understand what needs attention.",
+    "Session start check-in. Returns your active threads, active sprints, in-progress work, pending items, blocked items, and unprocessed inbox items. Use this at the start of every session to understand what needs attention.",
     {},
     async () => {
-      const [threadsData, inProgress, pending, blocked, inbox] = await Promise.all([
+      const [threadsData, sprintsData, inProgress, pending, blocked, inbox] = await Promise.all([
         api(`/threads?status=active`).then((d) => (d as { threads?: unknown[] }).threads || d).catch(() => []),
+        api(`/sprints?status=active`).then((d) => (d as { sprints?: unknown[] }).sprints || d).catch(() => []),
         api(`/tasks?assignee=${agentId}&status=in_progress`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?assignee=${agentId}&status=pending`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
         api(`/tasks?status=blocked`).then((d) => (d as { tasks?: unknown[] }).tasks || d),
@@ -496,6 +497,7 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       ]);
 
       const threadArr = threadsData as unknown[];
+      const sprintArr = sprintsData as unknown[];
       const inProgressArr = inProgress as unknown[];
       const pendingArr = pending as unknown[];
       const blockedArr = blocked as unknown[];
@@ -503,11 +505,12 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
       const summary = {
         active_threads: threadArr,
+        active_sprints: sprintArr,
         in_progress: inProgressArr,
         pending: pendingArr,
         blocked: blockedArr,
         unprocessed_inbox: inboxArr,
-        summary: `${threadArr.length} active threads, ${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked, ${inboxArr.length} inbox items to parse`,
+        summary: `${threadArr.length} active threads, ${sprintArr.length} active sprints, ${inProgressArr.length} in progress, ${pendingArr.length} pending, ${blockedArr.length} blocked, ${inboxArr.length} inbox items to parse`,
       };
 
       return {
@@ -645,6 +648,92 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
       if (thread_id) payload.thread_id = thread_id;
       if (status) payload.status = status;
       const data = await api("/context-objects", { method: "POST", body: JSON.stringify(payload) });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  // ─── Sprint planning overlay ────────────────────────────────────────────────
+
+  server.tool(
+    "threadron_list_sprints",
+    "List planning sprints. Use when the user asks what is in the current sprint, what is planned this week, or what slipped from a time-boxed focus set.",
+    {
+      status: z.string().optional().describe("Filter: planned, active, closed"),
+      domain_id: z.string().optional().describe("Optional domain ID"),
+    },
+    async ({ status, domain_id }) => {
+      const params = new URLSearchParams();
+      if (status) params.set("status", status);
+      if (domain_id) params.set("domain_id", domain_id);
+      const qs = params.toString() ? `?${params}` : "";
+      const data = await api(`/sprints${qs}`);
+      const sprints = (data as { sprints?: unknown[] }).sprints || data;
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(sprints, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_create_sprint",
+    "Create a sprint as an optional planning overlay. Sprints group tasks and threads for a time-boxed focus period; they do not replace projects or execution state.",
+    {
+      name: z.string().describe("Sprint name"),
+      domain_id: z.string().optional().describe("Optional domain ID"),
+      goal: z.string().optional().describe("Sprint goal"),
+      start_date: z.string().optional().describe("ISO date/time"),
+      end_date: z.string().optional().describe("ISO date/time"),
+      status: z.string().optional().describe("planned, active, closed"),
+      capacity_notes: z.string().optional().describe("Human planning notes about capacity or scope"),
+    },
+    async ({ name, domain_id, goal, start_date, end_date, status, capacity_notes }) => {
+      const payload: Record<string, unknown> = { name, created_by: agentId };
+      if (domain_id) payload.domain_id = domain_id;
+      if (goal) payload.goal = goal;
+      if (start_date) payload.start_date = start_date;
+      if (end_date) payload.end_date = end_date;
+      if (status) payload.status = status;
+      if (capacity_notes) payload.capacity_notes = capacity_notes;
+      const data = await api("/sprints", { method: "POST", body: JSON.stringify(payload) });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_get_sprint",
+    "Get a sprint with its task/thread focus items. Use for sprint review, current sprint planning, and rollover decisions.",
+    {
+      sprint_id: z.string().describe("Sprint ID"),
+    },
+    async ({ sprint_id }) => {
+      const data = await api(`/sprints/${sprint_id}`);
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
+  server.tool(
+    "threadron_add_sprint_item",
+    "Add a task or thread to a sprint. Use when the user says to add something to the current sprint, next sprint, committed work, or stretch work.",
+    {
+      sprint_id: z.string().describe("Sprint ID"),
+      task_id: z.string().optional().describe("Task ID to add"),
+      thread_id: z.string().optional().describe("Thread ID to add"),
+      commitment_status: z.string().optional().describe("planned, committed, stretch, removed"),
+      position: z.number().optional().describe("Sort position"),
+    },
+    async ({ sprint_id, task_id, thread_id, commitment_status, position }) => {
+      const payload: Record<string, unknown> = { added_by: agentId };
+      if (task_id) payload.task_id = task_id;
+      if (thread_id) payload.thread_id = thread_id;
+      if (commitment_status) payload.commitment_status = commitment_status;
+      if (position !== undefined) payload.position = position;
+      const data = await api(`/sprints/${sprint_id}/items`, { method: "POST", body: JSON.stringify(payload) });
       return {
         content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
       };

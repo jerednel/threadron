@@ -228,6 +228,18 @@ When you identify new work to be done:
 5. Set `current_state` and `next_action` if you know them
 6. **One work item per goal.** Never bundle unrelated tasks into one work item.
 
+## Sprint Planning
+
+Sprints are optional human planning overlays. A sprint groups tasks and threads for a time-boxed focus period, but it does not replace projects, thread state, task status, claims, or blockers.
+
+Use:
+- `threadron_list_sprints(status: "active")` when the user asks about the current sprint, this week, committed work, stretch work, slipped work, or sprint review.
+- `threadron_create_sprint(...)` when the user explicitly asks to start a sprint or plan a time-box.
+- `threadron_add_sprint_item(sprint_id, task_id | thread_id, commitment_status)` when the user says to add a task or thread to a sprint.
+- `threadron_get_sprint(sprint_id)` before summarizing sprint state or deciding what to roll over.
+
+Do not add every task to a sprint by default. Only use sprints when the user is planning focus, capacity, weekly work, or review/rollover.
+
 ## Key Principles
 
 **Write state for the next reader, not for yourself.** The whole point is that a different session — possibly a different agent — should be able to pick up any work item and immediately understand what's going on without re-investigating.

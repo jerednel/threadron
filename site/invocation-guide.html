@@ -388,6 +388,41 @@
       </div>
     </section>
 
+    <section class="phrase-section">
+      <div class="label">Sprints</div>
+      <h2>When you want a time-boxed focus set</h2>
+      <p>Sprints are a planning overlay across tasks and threads. Use them for weekly focus, review, rollover, and capacity conversations.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Start a sprint for this week around Threadron onboarding."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_sprint</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates an active planning window with goal, dates, and optional domain scope.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The sprint names what humans are trying to finish now.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Add this thread to the current sprint as committed work."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_add_sprint_item</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Links a task or thread to the sprint as planned, committed, or stretch.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Sprints group existing execution state; they do not replace it.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"What slipped from this sprint?"</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_get_sprint</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Shows committed, stretch, blocked, completed, and still-open focus items.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Review and rollover need the sprint overlay plus live task/thread status.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="decision-boundary" class="phrase-section">
       <div class="label">Decision boundary</div>
       <h2>Which shape should the agent choose?</h2>
@@ -430,6 +465,11 @@
             <td>"Here is the output"</td>
             <td><code>threadron_create_artifact</code></td>
             <td>The branch, PR, commit, file, plan, doc, or terminal output becomes inspectable.</td>
+          </tr>
+          <tr>
+            <td>"Plan this week"</td>
+            <td><code>threadron_create_sprint</code> or <code>threadron_add_sprint_item</code></td>
+            <td>A sprint groups existing tasks and threads into a time-boxed focus set.</td>
           </tr>
           <tr>
             <td>"I am starting work"</td>
@@ -492,6 +532,7 @@ When the user asks to keep a stream resumable, create or update a Threadron thre
 When the user says to remember a fact, decision, link, question, routine, person, incident, or preference, create a Threadron context object.
 When the user dumps an ambiguous thought, capture it in the Threadron inbox.
 Before answering requests involving preferences, people, routines, reminders, scheduling, prior decisions, resources, or resume/handoff, call threadron_list_context with a narrow relevant filter.
+When the user plans this week, current sprint, committed work, stretch work, slipped work, or rollover, use Threadron sprint tools as an optional planning overlay.
 When you make progress, pair timeline context with structured state updates.
 When you produce an output, attach it as an artifact.
 Never claim Threadron was updated unless the relevant threadron_* tool call succeeded.

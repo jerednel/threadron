@@ -3,6 +3,7 @@ import {
   text,
   timestamp,
   jsonb,
+  integer,
   index,
   uniqueIndex,
   unique,
@@ -248,6 +249,54 @@ export const contextObjects = pgTable(
     index("context_objects_status_idx").on(table.status),
     index("context_objects_domain_idx").on(table.domainId),
     index("context_objects_thread_idx").on(table.threadId),
+  ]
+);
+
+// Sprints
+export const sprints = pgTable(
+  "sprints",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    domainId: text("domain_id").references(() => domains.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    status: text("status").notNull().default("planned"), // planned | active | closed
+    goal: text("goal"),
+    startDate: timestamp("start_date"),
+    endDate: timestamp("end_date"),
+    capacityNotes: text("capacity_notes"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdBy: text("created_by").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sprints_user_idx").on(table.userId),
+    index("sprints_domain_idx").on(table.domainId),
+    index("sprints_status_idx").on(table.status),
+  ]
+);
+
+export const sprintItems = pgTable(
+  "sprint_items",
+  {
+    id: text("id").primaryKey(),
+    sprintId: text("sprint_id")
+      .notNull()
+      .references(() => sprints.id, { onDelete: "cascade" }),
+    taskId: text("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+    threadId: text("thread_id").references(() => threads.id, { onDelete: "cascade" }),
+    commitmentStatus: text("commitment_status").notNull().default("planned"), // planned | committed | stretch | removed
+    position: integer("position").notNull().default(0),
+    addedBy: text("added_by").notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sprint_items_sprint_idx").on(table.sprintId),
+    index("sprint_items_task_idx").on(table.taskId),
+    index("sprint_items_thread_idx").on(table.threadId),
   ]
 );
 
