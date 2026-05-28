@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invocation Guide — Threadron</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    .guide-layout {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 80px 48px;
+    }
+
+    .guide-intro {
+      max-width: 760px;
+      margin-bottom: 56px;
+    }
+
+    .phrase-section {
+      border-top: 1px solid var(--gray-2);
+      padding: 44px 0;
+    }
+
+    .phrase-section h2 {
+      margin-bottom: 8px;
+    }
+
+    .phrase-section > p {
+      color: var(--gray-4);
+      margin-bottom: 28px;
+    }
+
+    .phrase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .phrase-card {
+      border: 1px solid var(--gray-2);
+      background: var(--gray-1);
+      padding: 22px;
+      min-height: 260px;
+    }
+
+    .phrase-card:hover {
+      border-color: var(--gray-3);
+    }
+
+    .phrase-card .says {
+      font-family: var(--mono);
+      color: var(--white);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .phrase-card .meta {
+      border-top: 1px solid var(--gray-2);
+      padding-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .phrase-card .meta-row {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .phrase-card .meta-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gray-3);
+      padding-top: 2px;
+    }
+
+    .phrase-card .meta-value {
+      color: var(--gray-5);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .phrase-card code,
+    .decision-table code {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--white);
+      background: #111;
+      border: 1px solid var(--gray-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-size: 0.9rem;
+    }
+
+    .decision-table th {
+      text-align: left;
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gray-3);
+      padding: 10px 12px 10px 0;
+      border-bottom: 1px solid var(--gray-2);
+    }
+
+    .decision-table td {
+      padding: 14px 12px 14px 0;
+      border-bottom: 1px solid var(--gray-2);
+      vertical-align: top;
+      color: var(--gray-5);
+    }
+
+    .decision-table td:first-child {
+      color: var(--white);
+      font-family: var(--mono);
+      min-width: 170px;
+    }
+
+    .callout {
+      border: 1px solid var(--gray-2);
+      background: var(--gray-1);
+      padding: 24px;
+      margin-top: 28px;
+    }
+
+    .callout p {
+      color: var(--gray-4);
+      max-width: 780px;
+    }
+
+    @media (max-width: 768px) {
+      .guide-layout { padding: 60px 24px; }
+      .phrase-card .meta-row { grid-template-columns: 1fr; gap: 2px; }
+      .decision-table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <a href="index.html" class="logo">thread<span>ron</span></a>
+  <button class="nav-toggle" style="display:none" onclick="document.querySelector('.links').classList.toggle('open')">&#9776;</button>
+  <ul class="links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="system.html">The System</a></li>
+    <li><a href="use-cases.html">Use Cases</a></li>
+    <li><a href="get-started.html">Get Started</a></li>
+    <li><a href="invocation-guide.html" class="active">Invocation Guide</a></li>
+    <li><a href="docs.html">Docs</a></li>
+    <li><a href="open-source.html">Open Source</a></li>
+    <li><a href="/dashboard/">Dashboard</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+  <section class="hero" style="min-height: auto; padding-bottom: 48px;">
+    <div class="label">Guidebook</div>
+    <h1>
+      <span class="glitch" data-text="Say the work plainly.">Say the work plainly.</span><br>
+      <span style="color: var(--gray-3);">Threadron picks the right state shape.</span>
+    </h1>
+    <p class="lead">
+      Use these phrases when you want an agent to capture context, create work, update a thread, remember a decision, or prepare a clean handoff.
+    </p>
+    <div class="btn-group">
+      <a href="#quick-map" class="btn btn-primary">Phrase map</a>
+      <a href="#decision-boundary" class="btn btn-secondary">Decision boundary</a>
+    </div>
+  </section>
+
+  <div class="guide-layout">
+    <div class="guide-intro">
+      <div class="label">Mental model</div>
+      <h2>Task means do this. Context means remember this. Thread means resume here.</h2>
+      <p>
+        You do not need to name MCP tools in normal use. Say what you mean. A connected agent should translate your intent into the right Threadron call, then report back only after the write succeeds.
+      </p>
+      <div class="callout">
+        <p>
+          If an agent says it recorded something, it should have actually called a <code>threadron_*</code> tool and received a successful result. If tools are missing, the correct answer is setup help, not fake certainty.
+        </p>
+      </div>
+    </div>
+
+    <section id="quick-map" class="phrase-section">
+      <div class="label">Universal capture</div>
+      <h2>When you are dumping raw thoughts</h2>
+      <p>These phrases put unstructured input somewhere safe before it becomes work or context.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Remember this for later: the deploy kept failing because Railway had stale env vars."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_capture_inbox</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates an inbox item for later parsing or promotion.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The thought may matter, but it is not yet a clean task or durable object.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Drop this into Threadron: open question whether OpenClaw reloads MCP config without a gateway restart."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_capture_inbox</code> or <code>threadron_create_context</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Captures the raw question, or stores a <code>question</code> context object if the agent has enough structure.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Questions are context until someone is explicitly assigned to answer them.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"This is not a task, just keep it in the project memory."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_context</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates a <code>memory</code> or <code>note</code> object scoped to the domain or thread.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Prevents the task board from becoming a junk drawer.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Threads</div>
+      <h2>When you want resumable work</h2>
+      <p>Threads are durable streams: current state, next action, blockers, artifacts, and member tasks.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Start a thread for wiring Hermes and OpenClaw into shared state."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_thread</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates a durable thread with a resume snapshot.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The work may span agents, devices, or sessions.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Update the thread: transport works, but live agent behavior is still flaky."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_update_thread</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Updates current state and next action for anyone arriving cold.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Thread snapshots are the fastest way to resume without rereading everything.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Give me the handoff prompt for this thread."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_resume</code> or <code>threadron_get_thread</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Produces a pasteable prompt with current state, next action, blockers, and focus task.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Useful when moving work to another agent or another machine.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Tasks</div>
+      <h2>When you want actionable work</h2>
+      <p>A task should have a clear outcome and a next action. If it is only a fact, decision, or resource, use context instead.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Create a task for OpenClaw to verify live prompt evals and report failures."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_task</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates a work item with goal, outcome, owner, current state, and next action.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">There is a clear action and someone can complete it.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Before you work on that, claim it."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_claim</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Places a time-bounded claim on the task.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Prevents duplicate work when multiple agents are active.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Mark it blocked: need Railway logs from the latest failed deploy."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_add_context</code> then <code>threadron_update_state</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Adds the blocker to the timeline and structured task state.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The next agent sees both the blocker and the reason it happened.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Context objects</div>
+      <h2>When it should be remembered, not done</h2>
+      <p>Shared context objects are the natural home for notes, decisions, resources, people, incidents, routines, questions, and memories.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Decision: OpenClaw should use mcp-remote for Threadron, not direct URL MCP."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_context</code> with type <code>decision</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Stores a durable decision with rationale.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">A future agent should follow this choice without rediscovering it.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Resource: production dashboard is threadron.com/dashboard; deploys go through Railway."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_context</code> with type <code>resource</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Stores a link or operational pointer outside the task queue.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Resources are lookup context, not work.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Question: do Hermes and OpenClaw actually call the context tools in live mode?"</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_context</code> with type <code>question</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Stores the unknown for later research or human answer.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">A question only becomes a task when someone is assigned to answer it.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Artifacts and outcomes</div>
+      <h2>When something was produced</h2>
+      <p>Artifacts make outputs visible: branches, PRs, commits, files, docs, plans, patches, or terminal output.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Attach the PR and commit to the task."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_create_artifact</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Adds the branch, PR, commit, file, or plan to the task's artifacts.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Outputs should be inspectable without scrolling through chat.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Record what changed and mark the task complete."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_add_context</code>, <code>threadron_update_state</code>, then <code>threadron_release</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Creates an outcome trail, closes the work, and frees the claim.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The dashboard can show recent outcomes instead of stale cards.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Session start</div>
+      <h2>When an agent arrives cold</h2>
+      <p>The first move should orient the agent without making it re-investigate everything.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Check Threadron first, then tell me what needs attention."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_checkin</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Returns active threads, in-progress work, pending work, blockers, and inbox items.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">This is the agent equivalent of opening the dashboard's attention view.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"What changed since last time on the Threadron UI work?"</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_list_threads</code>, <code>threadron_get_thread</code>, and possibly <code>threadron_list_context</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Summarizes changed tasks, context, artifacts, blockers, and next actions.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Humans want deltas, not a raw dump of every record.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="decision-boundary" class="phrase-section">
+      <div class="label">Decision boundary</div>
+      <h2>Which shape should the agent choose?</h2>
+
+      <table class="decision-table">
+        <thead>
+          <tr>
+            <th>If the user means...</th>
+            <th>Use</th>
+            <th>What happens</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Do this"</td>
+            <td><code>threadron_create_task</code></td>
+            <td>A work item is created with goal, owner, status, next action, and outcome.</td>
+          </tr>
+          <tr>
+            <td>"Keep this stream resumable"</td>
+            <td><code>threadron_create_thread</code> or <code>threadron_update_thread</code></td>
+            <td>A durable resume snapshot is available for any future agent or human.</td>
+          </tr>
+          <tr>
+            <td>"Remember this"</td>
+            <td><code>threadron_create_context</code></td>
+            <td>A note, decision, resource, question, or memory is stored outside the task board.</td>
+          </tr>
+          <tr>
+            <td>"I am not sure what this is yet"</td>
+            <td><code>threadron_capture_inbox</code></td>
+            <td>The raw thought lands in the inbox for later parsing, promotion, or remembering.</td>
+          </tr>
+          <tr>
+            <td>"I made progress"</td>
+            <td><code>threadron_add_context</code> plus <code>threadron_update_state</code></td>
+            <td>The timeline explains why, and structured state says what changed.</td>
+          </tr>
+          <tr>
+            <td>"Here is the output"</td>
+            <td><code>threadron_create_artifact</code></td>
+            <td>The branch, PR, commit, file, plan, doc, or terminal output becomes inspectable.</td>
+          </tr>
+          <tr>
+            <td>"I am starting work"</td>
+            <td><code>threadron_claim</code></td>
+            <td>The item is locked for that agent until release or expiry.</td>
+          </tr>
+          <tr>
+            <td>"I am pausing"</td>
+            <td><code>threadron_add_context</code>, <code>threadron_update_state</code>, <code>threadron_release</code></td>
+            <td>The next agent gets a clean handoff and the claim is freed.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="phrase-section">
+      <div class="label">Copy block</div>
+      <h2>Prompt snippet for agents</h2>
+      <p>Paste this into an agent instruction file when you want it to infer the right Threadron call from ordinary language.</p>
+
+      <div class="code-block">
+        <span class="label-tag">agent instruction</span>
+When the user asks to do work, create or update a Threadron task.
+When the user asks to keep a stream resumable, create or update a Threadron thread.
+When the user says to remember a fact, decision, link, question, routine, person, incident, or preference, create a Threadron context object.
+When the user dumps an ambiguous thought, capture it in the Threadron inbox.
+When you make progress, pair timeline context with structured state updates.
+When you produce an output, attach it as an artifact.
+Never claim Threadron was updated unless the relevant threadron_* tool call succeeded.
+      </div>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <p>Threadron &mdash; threadron.com</p>
+  <div class="footer-links">
+    <a href="system.html">System</a>
+    <a href="use-cases.html">Use Cases</a>
+    <a href="get-started.html">Get Started</a>
+    <a href="docs.html">Docs</a>
+  </div>
+</footer>
+
+</body>
+</html>
