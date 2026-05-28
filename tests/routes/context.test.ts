@@ -70,6 +70,26 @@ describe("POST /v1/tasks/:id/context", () => {
     expect(body.author).toBe("claude-code");
   });
 
+  it("defaults author when omitted", async () => {
+    const app = buildApp();
+    const domain = await createDomain(app);
+    const task = await createTask(app, domain.id);
+
+    const res = await app.request(`/v1/tasks/${task.id}/context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "action_taken",
+        body: "Recorded without an explicit author",
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.author).toBe("agent");
+    expect(body.actor_type).toBe("agent");
+  });
+
   it("returns 404 for nonexistent task", async () => {
     const app = buildApp();
 

@@ -63,7 +63,7 @@ export function contextRoutes(db: DrizzleDb) {
     const body = await c.req.json<{
       type: string;
       body: string;
-      author: string;
+      author?: string;
       actor_type?: string;
     }>();
 
@@ -76,7 +76,7 @@ export function contextRoutes(db: DrizzleDb) {
         taskId,
         type: body.type,
         body: body.body,
-        author: body.author,
+        author: body.author ?? "agent",
         actorType: body.actor_type ?? "agent",
       })
       .returning();
