@@ -202,8 +202,20 @@ Use:
 - `threadron_create_context(type: "question", ...)` for open unknowns that need research or a human answer
 - `threadron_create_context(type: "memory", ...)` for stable reusable project/domain/thread context
 
-Before answering a context-heavy question, call `threadron_list_context` with a relevant `thread_id`, `domain_id`, `type`, or `search` filter.
-- This goes to the inbox for later processing, not directly into the task list
+### Implicit context retrieval
+
+Threadron is also a retrieval layer. The user should not have to say "check Threadron" every time. Before answering or acting, call `threadron_list_context` with the narrowest relevant `domain_id`, `thread_id`, `type`, or `search` filter when the request involves:
+
+- preferences, constraints, habits, routines, or "how I usually do this"
+- people, organizations, relationship context, or communication preferences
+- personal reminders, scheduling, obligations, travel, health, home, finance, or family context
+- prior decisions, durable facts, resources, links, repos, dashboards, or documents
+- continuing, resuming, handing off, or asking "what changed since last time"
+- ambiguity where a remembered fact could materially change the answer
+
+Keep retrieval scoped. Do not dump all personal or work context into the conversation. Prefer targeted searches such as `domain: Personal + type: memory + search: appointments`, `type: person + search: Sarah`, or the current `thread_id`.
+
+If relevant context is found, use it quietly and mention only the specific facts that affected the answer. If no context is found, proceed normally unless the missing context is required.
 
 ## Creating New Work
 

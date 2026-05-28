@@ -446,6 +446,41 @@
     </section>
 
     <section class="phrase-section">
+      <div class="label">Implicit retrieval</div>
+      <h2>When agents should check context first</h2>
+      <p>Threadron should feel more like scoped retrieval than a manual filing cabinet. Agents should fetch the smallest relevant slice before answering when remembered context could change the result.</p>
+
+      <div class="phrase-grid">
+        <div class="phrase-card">
+          <div class="says">"Plan this around my usual schedule."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_list_context</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Searches Personal memories, routines, and preferences before suggesting a plan.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">The user should not need to repeat stable constraints every session.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Draft a reply to Sarah."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_list_context</code> with type <code>person</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Looks for relationship context and communication preferences for Sarah.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">People context should be applied narrowly, not dumped wholesale.</div></div>
+          </div>
+        </div>
+
+        <div class="phrase-card">
+          <div class="says">"Continue the onboarding work."</div>
+          <div class="meta">
+            <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_checkin</code>, then <code>threadron_get_thread</code> or <code>threadron_get_task</code></div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Reads the active state, blocker, next action, and recent timeline before acting.</div></div>
+            <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Resume requests need shared state first, not reconstructed memory.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="phrase-section">
       <div class="label">Copy block</div>
       <h2>Prompt snippet for agents</h2>
       <p>Paste this into an agent instruction file when you want it to infer the right Threadron call from ordinary language.</p>
@@ -456,6 +491,7 @@ When the user asks to do work, create or update a Threadron task.
 When the user asks to keep a stream resumable, create or update a Threadron thread.
 When the user says to remember a fact, decision, link, question, routine, person, incident, or preference, create a Threadron context object.
 When the user dumps an ambiguous thought, capture it in the Threadron inbox.
+Before answering requests involving preferences, people, routines, reminders, scheduling, prior decisions, resources, or resume/handoff, call threadron_list_context with a narrow relevant filter.
 When you make progress, pair timeline context with structured state updates.
 When you produce an output, attach it as an artifact.
 Never claim Threadron was updated unless the relevant threadron_* tool call succeeded.
