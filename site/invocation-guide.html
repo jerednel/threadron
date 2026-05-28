@@ -407,7 +407,7 @@
           <div class="says">"Add this thread to the current sprint as committed work."</div>
           <div class="meta">
             <div class="meta-row"><div class="meta-label">Tool</div><div class="meta-value"><code>threadron_add_sprint_item</code></div></div>
-            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Links a task or thread to the sprint as planned, committed, or stretch.</div></div>
+            <div class="meta-row"><div class="meta-label">Result</div><div class="meta-value">Links exactly one task or one standalone thread to the sprint as planned, committed, or stretch.</div></div>
             <div class="meta-row"><div class="meta-label">Why</div><div class="meta-value">Sprints group existing execution state; they do not replace it.</div></div>
           </div>
         </div>
@@ -533,6 +533,7 @@ When the user says to remember a fact, decision, link, question, routine, person
 When the user dumps an ambiguous thought, capture it in the Threadron inbox.
 Before answering requests involving preferences, people, routines, reminders, scheduling, prior decisions, resources, or resume/handoff, call threadron_list_context with a narrow relevant filter.
 When the user plans this week, current sprint, committed work, stretch work, slipped work, or rollover, use Threadron sprint tools as an optional planning overlay.
+When adding a sprint item, pass exactly one of task_id or thread_id. Prefer task_id for normal work items; use thread_id only for standalone thread focus.
 When you make progress, pair timeline context with structured state updates.
 When you produce an output, attach it as an artifact.
 Never claim Threadron was updated unless the relevant threadron_* tool call succeeded.

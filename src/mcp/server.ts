@@ -719,15 +719,27 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
 
   server.tool(
     "threadron_add_sprint_item",
-    "Add a task or thread to a sprint. Use when the user says to add something to the current sprint, next sprint, committed work, or stretch work.",
+    "Add exactly one task or exactly one thread to a sprint. Use when the user says to add something to the current sprint, next sprint, committed work, or stretch work. Pass either task_id or thread_id, never both.",
     {
       sprint_id: z.string().describe("Sprint ID"),
-      task_id: z.string().optional().describe("Task ID to add"),
-      thread_id: z.string().optional().describe("Thread ID to add"),
+      task_id: z.string().optional().describe("Task ID to add. Do not pass thread_id when this is set."),
+      thread_id: z.string().optional().describe("Thread ID to add. Do not pass task_id when this is set."),
       commitment_status: z.string().optional().describe("planned, committed, stretch, removed"),
       position: z.number().optional().describe("Sort position"),
     },
     async ({ sprint_id, task_id, thread_id, commitment_status, position }) => {
+      if (!task_id && !thread_id) {
+        return {
+          content: [{ type: "text" as const, text: "Error: pass exactly one of task_id or thread_id." }],
+          isError: true,
+        };
+      }
+      if (task_id && thread_id) {
+        return {
+          content: [{ type: "text" as const, text: "Error: pass either task_id or thread_id, not both. Prefer task_id when adding a concrete task; use thread_id only for standalone thread focus." }],
+          isError: true,
+        };
+      }
       const payload: Record<string, unknown> = { added_by: agentId };
       if (task_id) payload.task_id = task_id;
       if (thread_id) payload.thread_id = thread_id;

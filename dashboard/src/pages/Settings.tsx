@@ -418,8 +418,11 @@ Sprints are optional human planning overlays. A sprint groups tasks and threads 
 
 - \`threadron_list_sprints(status: "active")\` when the user asks about the current sprint, this week, committed work, stretch work, slipped work, or sprint review
 - \`threadron_create_sprint(...)\` when the user explicitly asks to start a sprint or plan a time-box
-- \`threadron_add_sprint_item(sprint_id, task_id | thread_id, commitment_status)\` when the user says to add a task or thread to a sprint
+- \`threadron_add_sprint_item(sprint_id, task_id, commitment_status)\` when adding a concrete task to a sprint
+- \`threadron_add_sprint_item(sprint_id, thread_id, commitment_status)\` when adding a standalone thread to a sprint
 - \`threadron_get_sprint(sprint_id)\` before summarizing sprint state or deciding what to roll over
+
+When adding sprint items, pass exactly one of \`task_id\` or \`thread_id\`, never both. Prefer \`task_id\` for normal work items; use \`thread_id\` only for standalone thread focus that is not represented by a task.
 
 Do not add every task to a sprint by default. Only use sprints when the user is planning focus, capacity, weekly work, or review/rollover.
 
