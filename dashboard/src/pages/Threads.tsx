@@ -257,8 +257,8 @@ export default function Threads() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-full md:w-[36%] lg:w-[32%] border-r border-[#2a2a2a] overflow-auto">
+      <div className="flex flex-col md:flex-row flex-1 overflow-auto md:overflow-hidden">
+        <div className="w-full md:w-[36%] lg:w-[32%] md:border-r border-b md:border-b-0 border-[#2a2a2a] overflow-visible md:overflow-auto shrink-0">
           <div className="p-3 md:p-4 space-y-4">
             {loading && (
               <div className="text-center py-10">
@@ -320,9 +320,9 @@ export default function Threads() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-visible md:overflow-auto min-w-0">
           {!selectedThreadId && !loading && !error && (
-            <div className="h-full flex items-center justify-center text-[#4a4a4a] text-xs font-mono">
+            <div className="min-h-40 md:h-full flex items-center justify-center text-[#4a4a4a] text-xs font-mono">
               Select a thread to inspect its resume snapshot.
             </div>
           )}
@@ -331,23 +331,23 @@ export default function Threads() {
             <div className="p-4 md:p-6 space-y-5">
               <div className="flex flex-col gap-2 border border-[#1f1f1f] rounded-lg bg-[#101010] p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-xl font-semibold text-white">{selectedThread.name}</h2>
+                      <h2 className="text-xl font-semibold text-white break-words min-w-0">{selectedThread.name}</h2>
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#2a2a2a] text-[#8a8a8a] uppercase">
                         {selectedThread.status}
                       </span>
                     </div>
-                    <p className="text-sm text-[#8a8a8a] mt-2">
+                    <p className="text-sm text-[#8a8a8a] mt-2 break-words">
                       {selectedThread.current_state || 'No current state set.'}
                     </p>
-                    <p className="text-xs text-[#6a6a6a] mt-2" title="Stored locally per browser; useful for quickly seeing whether this thread moved since you opened it.">
+                    <p className="text-xs text-[#6a6a6a] mt-2 break-words" title="Stored locally per browser; useful for quickly seeing whether this thread moved since you opened it.">
                       {changedSinceLastLook(selectedThread)}
                     </p>
                   </div>
                   <button
                     onClick={handleCopyHandoff}
-                    className="border border-[#2a2a2a] text-[#c0c0c0] px-3 py-1.5 rounded text-xs font-mono hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer shrink-0"
+                    className="border border-[#2a2a2a] text-[#c0c0c0] px-3 py-1.5 rounded text-xs font-mono hover:text-[#f0f0f0] hover:border-[#4a4a4a] transition-colors cursor-pointer shrink-0 self-start"
                     title="Copy a prompt any agent can paste to resume this thread through Threadron."
                   >
                     {handoffCopied ? 'Copied' : 'Copy handoff prompt'}
@@ -357,15 +357,15 @@ export default function Threads() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="border border-[#1f1f1f] rounded-lg bg-[#101010] p-4 md:col-span-2">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <div className="min-w-0">
                       <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">Resume Snapshot</div>
                       <div className="text-xs text-[#6a6a6a] mt-1">This is the handoff state agents read when they resume the thread.</div>
                     </div>
                     <button
                       onClick={handleSaveSnapshot}
                       disabled={savingSnapshot || !draftName.trim()}
-                      className="bg-[#f0f0f0] text-[#0a0a0a] px-3 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#f0f0f0] text-[#0a0a0a] px-3 py-1.5 rounded text-xs font-mono font-bold hover:bg-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed self-start sm:self-auto"
                     >
                       {savingSnapshot ? 'Saving...' : 'Save Snapshot'}
                     </button>
@@ -400,7 +400,7 @@ export default function Threads() {
                         className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded px-3 py-2 text-[#f0f0f0] text-sm font-mono focus:outline-none focus:border-[#4a4a4a]"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <div className="text-[10px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-1">Status</div>
                         <select
@@ -460,8 +460,8 @@ export default function Threads() {
               </div>
 
               <div className="border border-[#1f1f1f] rounded-lg bg-[#101010] p-4">
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                  <div className="min-w-0">
                     <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">Member Tasks</div>
                     <div className="text-sm text-[#8a8a8a] mt-1">Tasks currently attached to this thread.</div>
                   </div>

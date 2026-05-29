@@ -125,14 +125,14 @@ export default function Context() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-full md:w-[38%] border-r border-[#2a2a2a] overflow-auto p-4">
+      <div className="flex flex-col md:flex-row flex-1 overflow-auto md:overflow-hidden">
+        <div className="w-full md:w-[38%] md:border-r border-b md:border-b-0 border-[#2a2a2a] overflow-visible md:overflow-auto p-4 shrink-0">
           <form onSubmit={handleCreate} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 space-y-3">
             <div>
               <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-1">Universal capture</div>
               <p className="text-xs text-[#6a6a6a]">Dump a thought here when it should be remembered but is not actionable work.</p>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <select value={draftType} onChange={e => setDraftType(e.target.value)} className="bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-2 text-sm text-[#f0f0f0] font-mono">
                 {objectTypes.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -168,7 +168,7 @@ export default function Context() {
           </form>
         </div>
 
-        <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex-1 overflow-visible md:overflow-auto p-4 md:p-6 min-w-0">
           {loading && <div className="text-[#8a8a8a] font-mono text-sm">loading...</div>}
           {error && <div className="text-red-400 font-mono text-sm">{error}</div>}
           {!loading && !error && groupedObjects.length === 0 && (
@@ -184,13 +184,13 @@ export default function Context() {
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                   {group.items.map(object => (
-                    <div key={object.id} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4">
+                    <div key={object.id} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h2 className="text-sm font-semibold text-[#f0f0f0]">{object.title}</h2>
+                        <h2 className="text-sm font-semibold text-[#f0f0f0] min-w-0 break-words">{object.title}</h2>
                         <span className="text-[10px] font-mono text-[#4a4a4a] shrink-0">{timeAgo(object.updated_at)}</span>
                       </div>
-                      <p className="text-sm text-[#c0c0c0] whitespace-pre-wrap">{object.body}</p>
-                      <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-mono text-[#4a4a4a]">
+                      <p className="text-sm text-[#c0c0c0] whitespace-pre-wrap break-words">{object.body}</p>
+                      <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-mono text-[#4a4a4a] break-all">
                         {object.thread_id && <span title="Thread scope">thread: {object.thread_id}</span>}
                         {object.domain_id && <span title="Domain scope">domain: {object.domain_id}</span>}
                         <span title="Where this object came from">source: {object.source}</span>

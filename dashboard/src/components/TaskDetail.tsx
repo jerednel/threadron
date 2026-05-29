@@ -729,7 +729,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                             </span>
                           </div>
                           {entry.body && (
-                            <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-1 ${isDim ? 'text-[#7a7a7a]' : 'text-[#e0e0e0]'}`}>
+                            <p className={`text-sm leading-relaxed whitespace-pre-wrap break-words mb-1 ${isDim ? 'text-[#7a7a7a]' : 'text-[#e0e0e0]'}`}>
                               {entry.body}
                             </p>
                           )}
@@ -754,11 +754,11 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
               <div className="mt-5 pt-4 border-t border-[#1a1a1a]">
                 <h4 className="text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-3">Add Entry</h4>
                 <form onSubmit={handleAddContext} className="space-y-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <select
                       value={ctxType}
                       onChange={e => setCtxType(e.target.value)}
-                      className="bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#3a3a3a] cursor-pointer"
+                      className="w-full sm:w-auto bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono focus:outline-none focus:border-[#3a3a3a] cursor-pointer"
                     >
                       {contextTypes.map(t => (
                         <option key={t} value={t}>{t}</option>
@@ -769,7 +769,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                       value={ctxAuthor}
                       onChange={e => setCtxAuthor(e.target.value)}
                       placeholder="author"
-                      className="w-32 bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
+                      className="w-full sm:w-32 bg-[#0f0f0f] border border-[#2a2a2a] rounded px-2 py-1.5 text-[#f0f0f0] text-xs font-mono placeholder-[#3a3a3a] focus:outline-none focus:border-[#3a3a3a]"
                     />
                   </div>
                   <textarea
@@ -813,13 +813,13 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                   {artifacts.map(art => {
                     const typeCfg = artifactTypeColors[art.type] || { cls: 'bg-[#2a2a2a] text-[#8a8a8a] border-[#3a3a3a]', icon: '◻' };
                     return (
-                      <div key={art.id} className="flex items-start gap-3 border border-[#1e1e1e] rounded-lg px-3 py-2.5">
+                      <div key={art.id} className="flex flex-col sm:flex-row sm:items-start gap-3 border border-[#1e1e1e] rounded-lg px-3 py-2.5 min-w-0">
                         <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0 ${typeCfg.cls}`}>
                           {typeCfg.icon} {art.type}
                         </span>
                         <div className="flex-1 min-w-0">
                           {art.title && (
-                            <span className="text-sm text-[#f0f0f0] font-medium block">{art.title}</span>
+                            <span className="text-sm text-[#f0f0f0] font-medium block break-words">{art.title}</span>
                           )}
                           {art.uri && !art.body && (
                             <a
@@ -832,7 +832,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                             </a>
                           )}
                           {art.uri && art.body && (
-                            <span className="text-[10px] font-mono text-[#4a4a4a] block">{art.uri}</span>
+                            <span className="text-[10px] font-mono text-[#4a4a4a] block break-all">{art.uri}</span>
                           )}
                           {art.body && (
                             <details className="mt-1.5" open={art.body.length < 500}>
@@ -843,7 +843,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
                             </details>
                           )}
                         </div>
-                        <span className="text-[9px] font-mono text-[#3a3a3a] shrink-0">by {art.created_by}</span>
+                        <span className="text-[9px] font-mono text-[#3a3a3a] shrink-0 break-all">by {art.created_by}</span>
                       </div>
                     );
                   })}
@@ -852,7 +852,7 @@ export default function TaskDetail({ taskId, onClose, onUpdate }: TaskDetailProp
 
               {showArtifactForm && (
                 <form onSubmit={handleAddArtifact} className="space-y-3 border border-[#1e1e1e] rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[9px] font-mono text-[#7a7a7a] uppercase tracking-widest mb-1">Type</label>
                       <select

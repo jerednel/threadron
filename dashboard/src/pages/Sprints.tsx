@@ -162,8 +162,8 @@ export default function Sprints() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-full md:w-[38%] border-r border-[#2a2a2a] overflow-auto p-4 space-y-4">
+      <div className="flex flex-col md:flex-row flex-1 overflow-auto md:overflow-hidden">
+        <div className="w-full md:w-[38%] md:border-r border-b md:border-b-0 border-[#2a2a2a] overflow-visible md:overflow-auto p-4 space-y-4 shrink-0">
           <form onSubmit={handleCreate} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 space-y-3">
             <div>
               <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest mb-1">Start sprint</div>
@@ -175,7 +175,7 @@ export default function Sprints() {
               <option value="">All domains</option>
               {domains.map(domain => <option key={domain.id} value={domain.id}>{domain.name}</option>)}
             </select>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-2 text-sm text-[#f0f0f0] font-mono" />
               <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-2 text-sm text-[#f0f0f0] font-mono" />
             </div>
@@ -187,7 +187,7 @@ export default function Sprints() {
           {selected && (
             <form onSubmit={handleAddItem} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 space-y-3">
               <div className="text-[10px] font-mono text-[#6a6a6a] uppercase tracking-widest">Add focus item</div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <select value={itemKind} onChange={e => { setItemKind(e.target.value as 'task' | 'thread'); setItemId(''); }} className="bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-2 text-sm text-[#f0f0f0] font-mono">
                   <option value="task">Task</option>
                   <option value="thread">Thread</option>
@@ -207,7 +207,7 @@ export default function Sprints() {
           )}
         </div>
 
-        <div className="flex-1 overflow-auto p-4 md:p-6">
+        <div className="flex-1 overflow-visible md:overflow-auto p-4 md:p-6 min-w-0">
           {loading && <div className="text-[#8a8a8a] font-mono text-sm">loading...</div>}
           {error && <div className="text-red-400 font-mono text-sm mb-4">{error}</div>}
           {!loading && !selected && (
@@ -217,18 +217,18 @@ export default function Sprints() {
           )}
           {selected && (
             <div className="space-y-5">
-              <div className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+              <div className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 md:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="min-w-0">
                     <div className="text-[10px] font-mono uppercase tracking-widest text-[#4a4a4a] mb-1">{selected.status} sprint</div>
-                    <h2 className="text-xl font-semibold text-white">{selected.name}</h2>
-                    <p className="text-sm text-[#c0c0c0] mt-2 whitespace-pre-wrap">{selected.goal || 'No goal set.'}</p>
+                    <h2 className="text-xl font-semibold text-white break-words">{selected.name}</h2>
+                    <p className="text-sm text-[#c0c0c0] mt-2 whitespace-pre-wrap break-words">{selected.goal || 'No goal set.'}</p>
                   </div>
-                  <button onClick={closeSprint} disabled={saving || selected.status === 'closed'} className="text-xs font-mono border border-[#2a2a2a] text-[#8a8a8a] px-3 py-2 rounded hover:text-white hover:border-[#4a4a4a] disabled:opacity-40 cursor-pointer">
+                  <button onClick={closeSprint} disabled={saving || selected.status === 'closed'} className="text-xs font-mono border border-[#2a2a2a] text-[#8a8a8a] px-3 py-2 rounded hover:text-white hover:border-[#4a4a4a] disabled:opacity-40 cursor-pointer self-start">
                     Close
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-3 mt-4 text-[10px] font-mono text-[#6a6a6a]">
+                <div className="flex flex-wrap gap-3 mt-4 text-[10px] font-mono text-[#6a6a6a] break-all">
                   {selected.start_date && <span>{shortDate(selected.start_date)} to {shortDate(selected.end_date)}</span>}
                   <span>{visibleItems.length} focus items</span>
                   {selected.domain_id && <span>domain: {selected.domain_id}</span>}
@@ -241,14 +241,14 @@ export default function Sprints() {
                   const state = item.task?.current_state || item.thread?.current_state;
                   const next = item.task?.next_action || item.thread?.next_action;
                   return (
-                    <div key={item.id} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4">
+                    <div key={item.id} className="border border-[#1f1f1f] bg-[#101010] rounded-lg p-4 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <h3 className="text-sm font-semibold text-[#f0f0f0]">{label}</h3>
+                        <h3 className="text-sm font-semibold text-[#f0f0f0] min-w-0 break-words">{label}</h3>
                         <span className="text-[10px] font-mono text-[#6a6a6a] shrink-0">{item.commitment_status}</span>
                       </div>
-                      {state && <p className="text-sm text-[#c0c0c0] whitespace-pre-wrap">{state}</p>}
-                      {next && <p className="text-xs text-[#8a8a8a] mt-2">Next: {next}</p>}
-                      <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-mono text-[#4a4a4a]">
+                      {state && <p className="text-sm text-[#c0c0c0] whitespace-pre-wrap break-words">{state}</p>}
+                      {next && <p className="text-xs text-[#8a8a8a] mt-2 break-words">Next: {next}</p>}
+                      <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-mono text-[#4a4a4a] break-all">
                         {item.task_id && <span>task: {item.task_id}</span>}
                         {item.thread_id && <span>thread: {item.thread_id}</span>}
                       </div>
