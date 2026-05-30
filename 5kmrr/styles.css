@@ -409,17 +409,17 @@ footer span {
   font-weight: 700;
 }
 
-.operator-hero {
+.intake-hero {
   padding-top: clamp(76px, 10vw, 120px);
 }
 
-.operator-grid {
+.intake-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
   gap: 16px;
 }
 
-.prospect-form {
+.intake-form {
   display: grid;
   gap: 16px;
 }
@@ -439,43 +439,11 @@ footer span {
   font-size: 28px;
 }
 
-.pipeline-actions {
+.form-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 18px;
-}
-
-.pipeline-list {
-  display: grid;
-  gap: 12px;
-}
-
-.prospect-card,
-.empty-state {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px;
-  gap: 18px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 18px;
-}
-
-.prospect-card p {
-  margin-bottom: 8px;
-}
-
-.prospect-card a {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--teal);
-  overflow-wrap: anywhere;
-}
-
-.empty-state {
-  display: block;
-  color: var(--muted);
 }
 
 .prepared-email {
@@ -490,8 +458,7 @@ footer span {
   .grid.three,
   .pricing,
   .calculator,
-  .operator-grid,
-  .prospect-card,
+  .intake-grid,
   .timeline div {
     grid-template-columns: 1fr;
   }
