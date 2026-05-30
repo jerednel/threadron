@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AgentOps Audit Intake</title>
+    <meta name="description" content="Start an AgentOps Fieldkit audit for a team using AI coding agents.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="AgentOps Fieldkit home">
+        <span class="brand-mark">AF</span>
+        <span>AgentOps Fieldkit</span>
+      </a>
+      <nav aria-label="Primary">
+        <a href="index.html#offer">Offer</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="operator.html">Pipeline</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section operator-hero">
+        <p class="eyebrow">AgentOps audit</p>
+        <h1>Turn coding-agent sprawl into a concrete failure map.</h1>
+        <p class="lead">The audit is for teams already using AI coding agents and feeling review, branch, context, cost, or ownership pain. It is not a strategy call. It ends with evidence and a go/no-go recommendation.</p>
+      </section>
+
+      <section class="band">
+        <div class="operator-grid">
+          <form id="audit-form" class="panel prospect-form">
+            <h2>Audit intake</h2>
+            <label>
+              Your name
+              <input id="buyer-name" name="buyerName" required placeholder="Jane Doe">
+            </label>
+            <label>
+              Work email
+              <input id="email" name="email" type="email" required placeholder="jane@company.com">
+            </label>
+            <label>
+              Company/team
+              <input id="company" name="company" required placeholder="Acme Platform">
+            </label>
+            <label>
+              Team size
+              <input id="team-size" name="teamSize" inputmode="numeric" placeholder="12 engineers">
+            </label>
+            <label>
+              Agents in use
+              <textarea id="agents" name="agents" rows="3" placeholder="Cursor, Codex, Claude Code, OpenCode, internal wrapper..."></textarea>
+            </label>
+            <label>
+              Biggest failure mode
+              <textarea id="failure" name="failure" rows="4" required placeholder="Generated PRs are hard to review, long agent sessions lose context, branches pile up..."></textarea>
+            </label>
+            <label>
+              What would make this worth paying for?
+              <textarea id="success" name="success" rows="3" placeholder="Save review time, prevent bad PRs, make handoffs clearer..."></textarea>
+            </label>
+            <button class="button primary" type="submit">Prepare audit email</button>
+          </form>
+
+          <aside class="panel">
+            <h2>What you get</h2>
+            <div class="metric-row">
+              <span>Audit</span>
+              <strong>$950</strong>
+            </div>
+            <div class="metric-row">
+              <span>Implementation sprint</span>
+              <strong>$4.5k</strong>
+            </div>
+            <div class="metric-row">
+              <span>Retainer</span>
+              <strong>$1.75k/mo</strong>
+            </div>
+            <p>The audit fee is credited toward the 7-day Fieldkit Sprint if the failure map shows enough waste to justify implementation.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <p class="eyebrow">Prepared email</p>
+          <h2>Copy, review, send.</h2>
+        </div>
+        <div class="panel prepared-email">
+          <textarea id="email-output" rows="12" readonly>Fill out the intake form to generate the audit request.</textarea>
+          <div class="pipeline-actions">
+            <button class="button secondary" id="copy-email" type="button">Copy email</button>
+            <a class="button primary" id="mailto-link" href="mailto:jeremy@jerednel.com?subject=AgentOps%20Audit%20Request">Open email</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>AgentOps Fieldkit</span>
+      <a href="index.html">Site</a>
+      <a href="operator.html">Pipeline</a>
+    </footer>
+
+    <script src="audit.js"></script>
+  </body>
+</html>

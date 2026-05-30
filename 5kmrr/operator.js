@@ -5,8 +5,47 @@ const count = document.querySelector("#count");
 const dmButton = document.querySelector("#copy-dm");
 const exportButton = document.querySelector("#export-json");
 const clearDoneButton = document.querySelector("#clear-done");
+const loadSeedsButton = document.querySelector("#load-seeds");
 
 const statuses = ["New", "Replied", "DM sent", "Call booked", "Audit", "Sprint", "Retainer", "Lost"];
+const seedProspects = [
+  {
+    name: "Degen Sing / OpenClaw orchestration thread",
+    url: "https://x.com/degensing/status/2026578817016566047",
+    signal: "Agent branches or worktrees",
+    note: "Public thread describes isolated worktrees, task registry, multi-agent orchestration, reviewer weakness, and security surface. Good reply angle: receipts and review gates are the missing operating layer.",
+  },
+  {
+    name: "tetsuo / AgenC runtime traces",
+    url: "https://x.com/tetsuoai/status/2032031965575332172",
+    signal: "Local agents or internal wrappers",
+    note: "Public launch thread argues agent behavior improvements need runtime traces and prompt/tool routing patterns. Good reply angle: run ledgers need a human-buyable workflow and stop conditions, not only traces.",
+  },
+  {
+    name: "Matthew Cassinelli / Codex Cursor Claude sync blocker",
+    url: "https://x.com/mattcassinelli/status/2039865090988806215",
+    signal: "Using Cursor/Codex/Claude Code",
+    note: "Public post names lack of sync across Codex, Cursor, and Claude Code as the blocker. Good reply angle: shared state plus handoff receipts solves the research/work continuity version.",
+  },
+  {
+    name: "am.will / c-CRAB AI review benchmark thread",
+    url: "https://x.com/LLMJunky/status/2036675950553804818",
+    signal: "AI PR review pain",
+    note: "Public thread says AI review tools catch fewer human-identified issues and create too many comments. Good reply angle: review needs cited claims, failing cases, and a receipt humans can inspect.",
+  },
+  {
+    name: "Kaxil Naik / shared AI agent patterns in engineering org",
+    url: "https://x.com/kaxil/status/2037503513350005134",
+    signal: "Using Cursor/Codex/Claude Code",
+    note: "Public post describes sharing Cursor rules and slash commands across an engineering org. Good reply angle: this is the exact moment rules need ownership, freshness, and deletion policy.",
+  },
+  {
+    name: "Chen Cheng / 5-10 Claude Code Codex worktrees",
+    url: "https://x.com/chenchengpro/status/2032411474703053012",
+    signal: "Agent branches or worktrees",
+    note: "Public thread describes 5-10 Claude Code/Codex sessions, isolated worktrees, and dependency duplication. Good reply angle: once isolation works, the next bottleneck is receipts, merge order, and review gates.",
+  },
+];
 
 function loadProspects() {
   try {
@@ -108,6 +147,25 @@ exportButton.addEventListener("click", () => {
 clearDoneButton.addEventListener("click", () => {
   const active = loadProspects().filter((item) => item.status !== "Lost" && item.status !== "Retainer");
   saveProspects(active);
+  render();
+});
+
+loadSeedsButton.addEventListener("click", () => {
+  const prospects = loadProspects();
+  const knownUrls = new Set(prospects.map((item) => item.url));
+  const additions = seedProspects
+    .filter((item) => !knownUrls.has(item.url))
+    .map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+      status: "New",
+      createdAt: new Date().toISOString(),
+    }));
+  saveProspects([...additions, ...prospects]);
+  loadSeedsButton.textContent = additions.length ? `Loaded ${additions.length}` : "Already loaded";
+  setTimeout(() => {
+    loadSeedsButton.textContent = "Load seed radar";
+  }, 1600);
   render();
 });
 

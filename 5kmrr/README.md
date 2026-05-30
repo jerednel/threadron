@@ -29,6 +29,8 @@ This uses the strongest existing surface area:
 ## Files
 
 - `index.html`: launch site.
+- `audit.html`: buyer-facing audit intake flow.
+- `audit.js`: mailto and copy workflow for audit requests.
 - `styles.css`: site design.
 - `app.js`: ROI calculator.
 - `operator.html`: local-first acquisition pipeline.
@@ -39,3 +41,4 @@ This uses the strongest existing surface area:
 - `docs/outreach.md`: outbound scripts and qualification.
 - `docs/market-notes.md`: market scan and positioning.
 - `docs/browser-actions.md`: browser-ready social/account setup steps.
+- `docs/lead-radar.md`: first prospect and reply radar.
