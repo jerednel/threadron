@@ -2,6 +2,8 @@
 
 AgentOps Fieldkit is the $5k MRR wedge for this workspace: a productized implementation service for engineering teams adopting AI coding agents.
 
+Public site: https://jerednel.github.io/agentops-fieldkit/
+
 The offer is deliberately narrow:
 
 - Audit how a team uses Codex, Claude Code, Cursor, OpenCode, local agents, or internal wrappers.
@@ -29,7 +31,11 @@ This uses the strongest existing surface area:
 - `index.html`: launch site.
 - `styles.css`: site design.
 - `app.js`: ROI calculator.
+- `operator.html`: local-first acquisition pipeline.
+- `operator.js`: browser-local prospect tracker.
 - `assets/agentops-hero.png`: generated hero image.
 - `docs/launch-plan.md`: first 30 days.
 - `docs/social-profiles.md`: profile copy and posting plan.
 - `docs/outreach.md`: outbound scripts and qualification.
+- `docs/market-notes.md`: market scan and positioning.
+- `docs/browser-actions.md`: browser-ready social/account setup steps.
