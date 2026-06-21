@@ -752,5 +752,34 @@ export function createThreadronMcp(apiUrl: string, apiKey: string, agentId: stri
     }
   );
 
+  // ─── Update sprint ───────────────────────────────────────────────
+
+  server.tool(
+    "threadron_update_sprint",
+    "Update a sprint's metadata or status. Use to close a sprint (status: closed), rename it, adjust dates, or update the goal.",
+    {
+      sprint_id: z.string().describe("Sprint ID"),
+      name: z.string().optional().describe("Rename the sprint"),
+      status: z.string().optional().describe("planned, active, closed"),
+      goal: z.string().optional().describe("Update the sprint goal"),
+      start_date: z.string().optional().describe("ISO date string, or null to clear"),
+      end_date: z.string().optional().describe("ISO date string, or null to clear"),
+      capacity_notes: z.string().optional().describe("Capacity or scope notes"),
+    },
+    async ({ sprint_id, ...updates }) => {
+      const payload: Record<string, unknown> = {};
+      if (updates.name !== undefined) payload.name = updates.name;
+      if (updates.status !== undefined) payload.status = updates.status;
+      if (updates.goal !== undefined) payload.goal = updates.goal;
+      if (updates.start_date !== undefined) payload.start_date = updates.start_date;
+      if (updates.end_date !== undefined) payload.end_date = updates.end_date;
+      if (updates.capacity_notes !== undefined) payload.capacity_notes = updates.capacity_notes;
+      const data = await api(`/sprints/${sprint_id}`, { method: "PATCH", body: JSON.stringify(payload) });
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+      };
+    }
+  );
+
   return server;
 }
